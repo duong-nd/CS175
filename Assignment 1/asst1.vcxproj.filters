@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{88ac872a-528b-4187-b529-4fa77d4f4d63}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="ppm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="asst1.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="glsupport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ppm.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="glsupport.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\asst1-sq-gl2.fshader">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\asst1-sq-gl2.vshader">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\asst1-sq-gl3.fshader">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\asst1-sq-gl3.vshader">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>
