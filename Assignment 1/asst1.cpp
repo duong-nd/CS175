@@ -48,7 +48,7 @@ using namespace std::tr1; // for shared_ptr
  * If g_Gl2Compatible=false, shaders with -gl3 suffix will be loaded.
  * To complete the assignment you only need to edit the shader files that get loaded
  * !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
-static const bool g_Gl2Compatible = IS_MAC;
+static const bool g_Gl2Compatible = true;
 static const float g_initialWidth  = 512.0;
 static const float g_initialHeight = g_initialWidth;
 
