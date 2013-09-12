@@ -314,19 +314,15 @@ static void keyboard(unsigned char key, int x, int y) {
   case 'q':
     exit(0);
   case 'i':
-    printf("Attempting to move up\n");
     g_yOffset++;
     break;
   case 'j':
-    printf("Attempting to move left\n");
     g_xOffset--;
     break;
   case 'k':
-    printf("Attempting to move down\n");
     g_yOffset--;
     break;
   case 'l':
-    printf("Attempting to move right\n");
     g_xOffset++;
     break;
   case 's':
