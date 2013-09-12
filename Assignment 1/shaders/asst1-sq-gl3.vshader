@@ -15,13 +15,12 @@ void main() {
   float uInitialWidth = 512.0, uInitialHeight = 512.0;
 
   float scaleCoefficient = min(uWidth / uInitialWidth, uHeight / uInitialHeight);
-  gl_Position =
-    vec4(
-      aPosition.x * uVertexScale * uInitialWidth / uWidth * scaleCoefficient,
-      aPosition.y * uInitialHeight / uHeight * scaleCoefficient,
-      0,
-      1
-    );
+  gl_Position = vec4(
+    aPosition.x * uVertexScale * uInitialWidth / uWidth * scaleCoefficient,
+    aPosition.y * uInitialHeight / uHeight * scaleCoefficient,
+    0,
+    1
+  );
   vTexCoord = aTexCoord;
   vTemp = vec2(1, 1);
 }
