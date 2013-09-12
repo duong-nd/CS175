@@ -23,7 +23,6 @@ void main() {
       0,
       1
     );
-  // gl_Position = vec4(0.5 - 256.0 / uWidth + aPosition.x, aPosition.y, 0, 1);
   vTexCoord = aTexCoord;
   vTemp = vec2(1, 1);
 }
