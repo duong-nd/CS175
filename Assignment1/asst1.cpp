@@ -88,7 +88,6 @@ struct TriangleShaderState {
   GlProgram program;
 
   /** Handles to uniform variables */
-  GLint h_uVertexScale;
   GLint h_uTex2;
   GLint h_uXCoefficient, h_uYCoefficient;
   GLint h_uXOffset, h_uYOffset;
@@ -173,7 +172,6 @@ static void drawTriangle() {
 
   /* Set glsl uniform variables */
   safe_glUniform1i(g_triangleShaderState->h_uTex2, 2); /* 2 means GL_TEXTURE2 */
-  safe_glUniform1f(g_triangleShaderState->h_uVertexScale, g_objScale);
   safe_glUniform1f(g_triangleShaderState->h_uXCoefficient, g_initialWidth / g_width * scaleCoefficient);
   safe_glUniform1f(g_triangleShaderState->h_uYCoefficient, g_initialHeight / g_height * scaleCoefficient);
 
@@ -391,7 +389,6 @@ static void loadTriangleShader(TriangleShaderState& ss) {
   }
 
   /* Retrieve handles to uniform variables */
-  ss.h_uVertexScale = safe_glGetUniformLocation(h, "uVertexScale");
   ss.h_uTex2 = safe_glGetUniformLocation(h, "uTex2");
   ss.h_uXCoefficient = safe_glGetUniformLocation(h, "uXCoefficient");
   ss.h_uYCoefficient = safe_glGetUniformLocation(h, "uYCoefficient");
