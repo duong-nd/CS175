@@ -74,9 +74,6 @@ struct SquareShaderState {
   GLint h_uVertexScale;
   GLint h_uTex0, h_uTex1;
   GLint h_uXCoefficient, h_uYCoefficient;
-////////////////////////////////////////////////////////////////////////////////
-  GLint h_uXOffset, h_uYOffset;
-////////////////////////////////////////////////////////////////////////////////
 
   // Handles to vertex attributes
   GLint h_aPosition;
@@ -90,6 +87,7 @@ struct TriangleShaderState {
   GLint h_uVertexScale;
   GLint h_uTex2;
   GLint h_uXCoefficient, h_uYCoefficient;
+  GLint h_uXOffset, h_uYOffset;
 
   // Handles to vertex attributes
   GLint h_aPosition;
@@ -135,11 +133,6 @@ static void drawSquare() {
   safe_glUniform1f(g_squareShaderState->h_uXCoefficient, g_initialWidth / g_width * scaleCoefficient);
   safe_glUniform1f(g_squareShaderState->h_uYCoefficient, g_initialHeight / g_height * scaleCoefficient);
 
-////////////////////////////////////////////////////////////////////////////////
-safe_glUniform1f(g_squareShaderState->h_uXOffset, g_xOffset * .05);
-safe_glUniform1f(g_squareShaderState->h_uYOffset, g_yOffset * .05);
-////////////////////////////////////////////////////////////////////////////////
-
   // bind vertex buffers
   glBindBuffer(GL_ARRAY_BUFFER, g_square->posVbo);
   safe_glVertexAttribPointer(g_squareShaderState->h_aPosition,
@@ -163,7 +156,7 @@ safe_glUniform1f(g_squareShaderState->h_uYOffset, g_yOffset * .05);
 }
 
 static void drawTriangle() {
-  
+
   // activate the glsl program
   glUseProgram(g_triangleShaderState->program);
 
@@ -179,26 +172,28 @@ static void drawTriangle() {
   safe_glUniform1f(g_triangleShaderState->h_uVertexScale, g_objScale);
   safe_glUniform1f(g_triangleShaderState->h_uXCoefficient, g_initialWidth / g_width * scaleCoefficient);
   safe_glUniform1f(g_triangleShaderState->h_uYCoefficient, g_initialHeight / g_height * scaleCoefficient);
+  safe_glUniform1f(g_triangleShaderState->h_uXOffset, g_xOffset * .05);
+  safe_glUniform1f(g_triangleShaderState->h_uYOffset, g_yOffset * .05);
 
   // bind vertex buffers
   glBindBuffer(GL_ARRAY_BUFFER, g_triangle->posVbo);
-  
+
   safe_glVertexAttribPointer(g_triangleShaderState->h_aPosition,
                              2, GL_FLOAT, GL_FALSE, 0, 0);
-  
+
   glBindBuffer(GL_ARRAY_BUFFER, g_triangle->texVbo);
   safe_glVertexAttribPointer(g_triangleShaderState->h_aTexCoord,
                              2, GL_FLOAT, GL_FALSE, 0, 0);
-  
+
   safe_glEnableVertexAttribArray(g_triangleShaderState->h_aPosition);
   safe_glEnableVertexAttribArray(g_triangleShaderState->h_aTexCoord);
-  
+
   // draw using 3 vertices, forming a triangle
   glDrawArrays(GL_TRIANGLES, 0, 3);
-  
+
   safe_glDisableVertexAttribArray(g_triangleShaderState->h_aPosition);
   safe_glDisableVertexAttribArray(g_triangleShaderState->h_aTexCoord);
-  
+
   // check for errors
   checkGlErrors();
 }
@@ -380,8 +375,6 @@ static void loadSquareShader(SquareShaderState& ss) {
   ss.h_uTex1 = safe_glGetUniformLocation(h, "uTex1");
   ss.h_uXCoefficient = safe_glGetUniformLocation(h, "uXCoefficient");
   ss.h_uYCoefficient = safe_glGetUniformLocation(h, "uYCoefficient");
-  ss.h_uXOffset = safe_glGetUniformLocation(h, "uXOffset");
-  ss.h_uYOffset = safe_glGetUniformLocation(h, "uYOffset");
 
   // Retrieve handles to vertex attributes
   ss.h_aPosition = safe_glGetAttribLocation(h, "aPosition");
@@ -407,6 +400,8 @@ static void loadTriangleShader(TriangleShaderState& ss) {
   ss.h_uTex2 = safe_glGetUniformLocation(h, "uTex2");
   ss.h_uXCoefficient = safe_glGetUniformLocation(h, "uXCoefficient");
   ss.h_uYCoefficient = safe_glGetUniformLocation(h, "uYCoefficient");
+  ss.h_uXOffset = safe_glGetUniformLocation(h, "uXOffset");
+  ss.h_uYOffset = safe_glGetUniformLocation(h, "uYOffset");
 
   // Retrieve handles to vertex attributes
   ss.h_aPosition = safe_glGetAttribLocation(h, "aPosition");
