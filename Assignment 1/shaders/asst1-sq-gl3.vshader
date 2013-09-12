@@ -12,7 +12,6 @@ out vec2 vTemp;
 
 void main() {
   // TODO: MAKE THESE INTO CONSTANTS SOMEHOW!!!!
-  // printf("HI FROM THE SHADER!");
   float uInitialWidth = 512.0, uInitialHeight = 512.0;
 
   float scaleCoefficient = min(uWidth / uInitialWidth, uHeight / uInitialHeight);
