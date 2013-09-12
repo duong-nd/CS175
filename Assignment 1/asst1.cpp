@@ -47,10 +47,11 @@ using namespace std::tr1; // for shared_ptr
 // To complete the assignment you only need to edit the shader files that get loaded
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 static const bool g_Gl2Compatible = IS_MAC;
+static const float g_initialWidth  = 512.0;
+static const float g_initialHeight = g_initialWidth;
 
-
-static int g_width             = 512;       // screen width
-static int g_height            = 512;       // screen height
+static int g_width             = g_initialWidth;       // screen width
+static int g_height            = g_initialHeight;      // screen height
 static bool g_leftClicked      = false;     // is the left mouse button down?
 static bool g_rightClicked     = false;     // is the right mouse button down?
 static float g_objScale        = 1.0;       // scale factor for object
@@ -64,7 +65,7 @@ struct SquareShaderState {
   // Handles to uniform variables
   GLint h_uVertexScale;
   GLint h_uTex0, h_uTex1;
-  GLint h_uWidth, h_uHeight;
+  GLint h_uXCoefficient, h_uYCoefficient;
 
   // Handles to vertex attributes
   GLint h_aPosition;
@@ -98,12 +99,15 @@ static void drawSquare() {
   glActiveTexture(GL_TEXTURE1);
   glBindTexture(GL_TEXTURE_2D, *g_tex1);
 
+  /* Compute coefficients for maintaining aspect ratio */
+  float scaleCoefficient = min(g_width / g_initialWidth, g_height / g_initialHeight);
+
   // set glsl uniform variables
   safe_glUniform1i(g_squareShaderState->h_uTex0, 0); // 0 means GL_TEXTURE0
   safe_glUniform1i(g_squareShaderState->h_uTex1, 1); // 1 means GL_TEXTURE1
   safe_glUniform1f(g_squareShaderState->h_uVertexScale, g_objScale);
-  safe_glUniform1f(g_squareShaderState->h_uWidth, float(g_width));
-  safe_glUniform1f(g_squareShaderState->h_uHeight, float(g_height));
+  safe_glUniform1f(g_squareShaderState->h_uXCoefficient, g_initialWidth / g_width * scaleCoefficient);
+  safe_glUniform1f(g_squareShaderState->h_uYCoefficient, g_initialHeight / g_height * scaleCoefficient);
 
   // bind vertex buffers
   glBindBuffer(GL_ARRAY_BUFFER, g_square->posVbo);
@@ -285,10 +289,8 @@ static void loadSquareShader(SquareShaderState& ss) {
   ss.h_uVertexScale = safe_glGetUniformLocation(h, "uVertexScale");
   ss.h_uTex0 = safe_glGetUniformLocation(h, "uTex0");
   ss.h_uTex1 = safe_glGetUniformLocation(h, "uTex1");
-  ss.h_uWidth = safe_glGetUniformLocation(h, "uWidth");
-  ss.h_uHeight = safe_glGetUniformLocation(h, "uHeight");
-  safe_glUniform1i(safe_glGetUniformLocation(h, "uInitialWidth"), g_width);
-  safe_glUniform1i(safe_glGetUniformLocation(h, "uInitialHeight"), g_height);
+  ss.h_uXCoefficient = safe_glGetUniformLocation(h, "uXCoefficient");
+  ss.h_uYCoefficient = safe_glGetUniformLocation(h, "uYCoefficient");
 
   // Retrieve handles to vertex attributes
   ss.h_aPosition = safe_glGetAttribLocation(h, "aPosition");

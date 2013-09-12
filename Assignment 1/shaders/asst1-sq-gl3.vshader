@@ -1,8 +1,8 @@
 #version 130
 
 uniform float uVertexScale;
-uniform float uWidth;
-uniform float uHeight;
+uniform float uXCoefficient;
+uniform float uYCoefficient;
 
 in vec2 aPosition;
 in vec2 aTexCoord;
@@ -11,16 +11,8 @@ out vec2 vTexCoord;
 out vec2 vTemp;
 
 void main() {
-  // TODO: MAKE THESE INTO CONSTANTS SOMEHOW!!!!
-  float uInitialWidth = 512.0, uInitialHeight = 512.0;
-
-  float scaleCoefficient = min(uWidth / uInitialWidth, uHeight / uInitialHeight);
-  gl_Position = vec4(
-    aPosition.x * uVertexScale * uInitialWidth / uWidth * scaleCoefficient,
-    aPosition.y * uInitialHeight / uHeight * scaleCoefficient,
-    0,
-    1
-  );
+  gl_Position =
+    vec4(aPosition.x * uVertexScale * uXCoefficient, aPosition.y * uYCoefficient, 0, 1);
   vTexCoord = aTexCoord;
   vTemp = vec2(1, 1);
 }
