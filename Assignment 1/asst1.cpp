@@ -102,8 +102,8 @@ static void drawSquare() {
   safe_glUniform1i(g_squareShaderState->h_uTex0, 0); // 0 means GL_TEXTURE0
   safe_glUniform1i(g_squareShaderState->h_uTex1, 1); // 1 means GL_TEXTURE1
   safe_glUniform1f(g_squareShaderState->h_uVertexScale, g_objScale);
-  safe_glUniform1i(g_squareShaderState->h_uWidth, g_width);
-  safe_glUniform1i(g_squareShaderState->h_uHeight, g_height);
+  safe_glUniform1f(g_squareShaderState->h_uWidth, float(g_width));
+  safe_glUniform1f(g_squareShaderState->h_uHeight, float(g_height));
 
   // bind vertex buffers
   glBindBuffer(GL_ARRAY_BUFFER, g_square->posVbo);
