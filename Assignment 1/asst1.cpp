@@ -10,6 +10,7 @@
 #include <string>
 #include <memory>
 #include <stdexcept>
+#include <stdio.h>
 #if __GNUG__
 #   include <tr1/memory>
 #endif
@@ -61,6 +62,7 @@ struct SquareShaderState {
   // Handles to uniform variables
   GLint h_uVertexScale;
   GLint h_uTex0, h_uTex1;
+  GLint h_uWidth, h_uHeight;
 
   // Handles to vertex attributes
   GLint h_aPosition;
@@ -98,6 +100,8 @@ static void drawSquare() {
   safe_glUniform1i(g_squareShaderState->h_uTex0, 0); // 0 means GL_TEXTURE0
   safe_glUniform1i(g_squareShaderState->h_uTex1, 1); // 1 means GL_TEXTURE1
   safe_glUniform1f(g_squareShaderState->h_uVertexScale, g_objScale);
+  safe_glUniform1i(g_squareShaderState->h_uWidth, g_width);
+  safe_glUniform1i(g_squareShaderState->h_uHeight, g_height);
 
   // bind vertex buffers
   glBindBuffer(GL_ARRAY_BUFFER, g_square->posVbo);
@@ -108,6 +112,7 @@ static void drawSquare() {
   safe_glVertexAttribPointer(g_squareShaderState->h_aTexCoord,
                              2, GL_FLOAT, GL_FALSE, 0, 0);
 
+  cout << "HI THERE IM A PRINT\n";
   safe_glEnableVertexAttribArray(g_squareShaderState->h_aPosition);
   safe_glEnableVertexAttribArray(g_squareShaderState->h_aTexCoord);
 
@@ -157,6 +162,8 @@ static void display(void) {
 static void reshape(int w, int h) {
   g_width = w;
   g_height = h;
+  cout << "New width: " << g_width << "\n";
+  cout << "New height: " << g_height << "\n";
   glViewport(0, 0, w, h);
   glutPostRedisplay();
 }
@@ -279,6 +286,8 @@ static void loadSquareShader(SquareShaderState& ss) {
   ss.h_uVertexScale = safe_glGetUniformLocation(h, "uVertexScale");
   ss.h_uTex0 = safe_glGetUniformLocation(h, "uTex0");
   ss.h_uTex1 = safe_glGetUniformLocation(h, "uTex1");
+  ss.h_uWidth = safe_glGetUniformLocation(h, "uWidth");
+  ss.h_uHeight = safe_glGetUniformLocation(h, "uHeight");
 
   // Retrieve handles to vertex attributes
   ss.h_aPosition = safe_glGetAttribLocation(h, "aPosition");
@@ -296,6 +305,7 @@ static void initShaders() {
 }
 
 static void loadSquareGeometry(const GeometryPX& g) {
+  cout << "loadSquareGeometry\n";
   GLfloat pos[12] = {
     -.5, -.5,
     .5,  .5,
