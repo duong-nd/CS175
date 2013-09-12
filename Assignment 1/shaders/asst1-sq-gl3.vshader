@@ -15,10 +15,14 @@ void main() {
   // printf("HI FROM THE SHADER!");
   float uInitialWidth = 512.0, uInitialHeight = 512.0;
 
-  float widthCoefficient = uInitialWidth / uWidth;
-  float heightCoefficient = uInitialHeight / uHeight;
-  float scaleCoefficient = min(widthCoefficient, heightCoefficient);
-  gl_Position = vec4(aPosition.x * uVertexScale * widthCoefficient, aPosition.y * heightCoefficient, 0, 1);
+  float scaleCoefficient = min(uWidth / uInitialWidth, uHeight / uInitialHeight);
+  gl_Position =
+    vec4(
+      aPosition.x * uVertexScale * uInitialWidth / uWidth * scaleCoefficient,
+      aPosition.y * uInitialHeight / uHeight * scaleCoefficient,
+      0,
+      1
+    );
   // gl_Position = vec4(0.5 - 256.0 / uWidth + aPosition.x, aPosition.y, 0, 1);
   vTexCoord = aTexCoord;
   vTemp = vec2(1, 1);
