@@ -9,8 +9,9 @@ varying vec2 vTexCoord;
 varying vec2 vTemp;
 
 void main() {
-  gl_Position =
-    vec4(aPosition.x * uVertexScale * uXCoefficient, aPosition.y * uYCoefficient, 0, 1);
+  /* use the coefficients passed in as uniform variables to maintain the aspect ratio of the triangle */
+  gl_Position = vec4(aPosition.x * uVertexScale * uXCoefficient, aPosition.y * uYCoefficient, 0, 1);
+  
   vTexCoord = aTexCoord;
   vTemp = vec2(1, 1);
 }
