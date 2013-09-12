@@ -1,5 +1,3 @@
-
-
 uniform float uVertexScale;
 uniform sampler2D uTex2;
 
