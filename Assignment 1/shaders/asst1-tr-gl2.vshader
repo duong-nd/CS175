@@ -1,4 +1,3 @@
-uniform float uVertexScale;
 uniform float uXCoefficient;
 uniform float uYCoefficient;
 uniform float uXOffset;
@@ -13,7 +12,7 @@ varying vec3 vColor;
 
 void main() {
   gl_Position =
-    vec4((aPosition.x + uXOffset) * uVertexScale * uXCoefficient, (aPosition.y + uYOffset) * uYCoefficient, 0, 1);
+    vec4((aPosition.x + uXOffset) * uXCoefficient, (aPosition.y + uYOffset) * uYCoefficient, 0, 1);
   vTexCoord = aTexCoord;
   vColor = aColor;
 }
