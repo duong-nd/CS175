@@ -59,12 +59,14 @@ static bool g_rightClicked     = false;     /** is the right mouse button down? 
 static float g_objScale        = 1.0;       /** scale factor for object */
 static int g_leftClickX, g_leftClickY;      /** coordinates for mouse left click event */
 static int g_rightClickX, g_rightClickY;    /** coordinates for mouse right click event */
+
 /**
  * Represents the offset of the triangle in the x-direction. This increments
  * each time the shape should move to the right, and decrements each time the
  * shape should move to the left.
  */
 static int g_xOffset           = 0.0;
+
 /** Like xOffset, but in the y direction. */
 static int g_yOffset           = 0.0;
 
@@ -174,6 +176,8 @@ static void drawTriangle() {
   safe_glUniform1f(g_triangleShaderState->h_uVertexScale, g_objScale);
   safe_glUniform1f(g_triangleShaderState->h_uXCoefficient, g_initialWidth / g_width * scaleCoefficient);
   safe_glUniform1f(g_triangleShaderState->h_uYCoefficient, g_initialHeight / g_height * scaleCoefficient);
+
+  /* Uniform variables used to move the triangle around the screen */
   safe_glUniform1f(g_triangleShaderState->h_uXOffset, g_xOffset * .05);
   safe_glUniform1f(g_triangleShaderState->h_uYOffset, g_yOffset * .05);
 
@@ -215,7 +219,6 @@ static void drawTriangle() {
  */
 static void display(void) {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
 
   drawSquare();
   drawTriangle();
@@ -274,7 +277,6 @@ static void mouse(int button, int state, int x, int y) {
     }
   }
 }
-
 
 /**
  * Motion
@@ -461,12 +463,14 @@ static void loadTriangleGeometry(const GeometryPX& g) {
     0.45, 0.45
   };
 
+  /* Center shield in triangle */
   GLfloat tex[2 * dim] = {
-    0.5, -.35,
-    -.35, 1.35,
-    1.35, 1.35
+    0.5, -.60,
+    -.35, 1.1,
+    1.35, 1.1
   };
 
+  /* Give each vertex a different color */
   GLfloat color[3 * dim] = {
     1, 0, 0,
     0, 1, 0,
