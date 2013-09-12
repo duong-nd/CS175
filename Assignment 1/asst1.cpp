@@ -72,10 +72,24 @@ struct SquareShaderState {
   GLint h_aTexCoord;
 };
 
+struct TriangleShaderState {
+  GlProgram program;
+
+  // Handles to uniform variables
+  GLint h_uVertexScale;
+  GLint h_uTex2;
+  GLint h_uXCoefficient, h_uYCoefficient;
+
+  // Handles to vertex attributes
+  GLint h_aPosition;
+  GLint h_aTexCoord;
+};
+
 static shared_ptr<SquareShaderState> g_squareShaderState;
+static shared_ptr<TriangleShaderState> g_triangleShaderState;
 
 // our global texture instance
-static shared_ptr<GlTexture> g_tex0, g_tex1;
+static shared_ptr<GlTexture> g_tex0, g_tex1, g_tex2;
 
 // our global geometries
 struct GeometryPX {
@@ -83,6 +97,7 @@ struct GeometryPX {
 };
 
 static shared_ptr<GeometryPX> g_square;
+static shared_ptr<GeometryPX> g_triangle;
 
 // C A L L B A C K S ///////////////////////////////////////////////////
 
@@ -131,6 +146,47 @@ static void drawSquare() {
   checkGlErrors();
 }
 
+static void drawTriangle() {
+  
+  // activate the glsl program
+  glUseProgram(g_triangleShaderState->program);
+
+  // bind textures
+  glActiveTexture(GL_TEXTURE2);
+  glBindTexture(GL_TEXTURE_2D, *g_tex2);
+
+  /* Compute coefficients for maintaining aspect ratio */
+  float scaleCoefficient = min(g_width / g_initialWidth, g_height / g_initialHeight);
+
+  // set glsl uniform variables
+  safe_glUniform1i(g_triangleShaderState->h_uTex2, 2); // 2 means GL_TEXTURE2
+  safe_glUniform1f(g_triangleShaderState->h_uVertexScale, g_objScale);
+  safe_glUniform1f(g_triangleShaderState->h_uXCoefficient, g_initialWidth / g_width * scaleCoefficient);
+  safe_glUniform1f(g_triangleShaderState->h_uYCoefficient, g_initialHeight / g_height * scaleCoefficient);
+
+  // bind vertex buffers
+  glBindBuffer(GL_ARRAY_BUFFER, g_triangle->posVbo);
+  
+  safe_glVertexAttribPointer(g_triangleShaderState->h_aPosition,
+                             2, GL_FLOAT, GL_FALSE, 0, 0);
+  
+  glBindBuffer(GL_ARRAY_BUFFER, g_triangle->texVbo);
+  safe_glVertexAttribPointer(g_triangleShaderState->h_aTexCoord,
+                             2, GL_FLOAT, GL_FALSE, 0, 0);
+  
+  safe_glEnableVertexAttribArray(g_triangleShaderState->h_aPosition);
+  safe_glEnableVertexAttribArray(g_triangleShaderState->h_aTexCoord);
+  
+  // draw using 3 vertices, forming a triangle
+  glDrawArrays(GL_TRIANGLES, 0, 3);
+  
+  safe_glDisableVertexAttribArray(g_triangleShaderState->h_aPosition);
+  safe_glDisableVertexAttribArray(g_triangleShaderState->h_aTexCoord);
+  
+  // check for errors
+  checkGlErrors();
+}
+
 // _____________________________________________________
 //|                                                     |
 //|  display                                            |
@@ -147,6 +203,7 @@ static void display(void) {
 
 
   drawSquare();
+  drawTriangle();
 
   glutSwapBuffers();
 
@@ -301,10 +358,37 @@ static void loadSquareShader(SquareShaderState& ss) {
   checkGlErrors();
 }
 
+static void loadTriangleShader(TriangleShaderState& ss) {
+  const GLuint h = ss.program; // short hand
+
+  if (!g_Gl2Compatible) {
+    readAndCompileShader(ss.program, "shaders/asst1-tr-gl3.vshader", "shaders/asst1-tr-gl3.fshader");
+  }
+  else {
+    readAndCompileShader(ss.program, "shaders/asst1-tr-gl2.vshader", "shaders/asst1-tr-gl2.fshader");
+  }
+
+  // Retrieve handles to uniform variables
+  ss.h_uVertexScale = safe_glGetUniformLocation(h, "uVertexScale");
+  ss.h_uTex2 = safe_glGetUniformLocation(h, "uTex2");
+  ss.h_uXCoefficient = safe_glGetUniformLocation(h, "uXCoefficient");
+  ss.h_uYCoefficient = safe_glGetUniformLocation(h, "uYCoefficient");
+
+  // Retrieve handles to vertex attributes
+  ss.h_aPosition = safe_glGetAttribLocation(h, "aPosition");
+  ss.h_aTexCoord = safe_glGetAttribLocation(h, "aTexCoord");
+
+  if (!g_Gl2Compatible)
+    glBindFragDataLocation(h, 0, "fragColor");
+  checkGlErrors();
+}
+
 static void initShaders() {
   g_squareShaderState.reset(new SquareShaderState);
-
   loadSquareShader(*g_squareShaderState);
+
+  g_triangleShaderState.reset(new TriangleShaderState);
+  loadTriangleShader(*g_triangleShaderState);
 }
 
 static void loadSquareGeometry(const GeometryPX& g) {
@@ -345,10 +429,43 @@ static void loadSquareGeometry(const GeometryPX& g) {
   checkGlErrors();
 }
 
+static void loadTriangleGeometry(const GeometryPX& g) {
+  const int dim = 6;
+  GLfloat pos[dim] = {
+    0.0, -0.45,
+    -0.45, 0.45,
+    0.45, 0.45
+  };
+
+  GLfloat tex[dim] = {
+    0.5, -.35,
+    -.35, 1.35,
+    1.35, 1.35
+  };
+
+  glBindBuffer(GL_ARRAY_BUFFER, g.posVbo);
+  glBufferData(
+    GL_ARRAY_BUFFER,
+    dim*sizeof(GLfloat),
+    pos,
+    GL_STATIC_DRAW);
+  checkGlErrors();
+
+  glBindBuffer(GL_ARRAY_BUFFER, g.texVbo);
+  glBufferData(
+    GL_ARRAY_BUFFER,
+    dim*sizeof(GLfloat),
+    tex,
+    GL_STATIC_DRAW);
+  checkGlErrors();
+}
 
 static void initGeometry() {
   g_square.reset(new GeometryPX());
   loadSquareGeometry(*g_square);
+
+  g_triangle.reset(new GeometryPX());
+  loadTriangleGeometry(*g_triangle);
 }
 
 static void loadTexture(GLuint texHandle, const char *ppmFilename) {
@@ -372,9 +489,11 @@ static void loadTexture(GLuint texHandle, const char *ppmFilename) {
 static void initTextures() {
   g_tex0.reset(new GlTexture());
   g_tex1.reset(new GlTexture());
+  g_tex2.reset(new GlTexture());
 
   loadTexture(*g_tex0, "smiley.ppm");
   loadTexture(*g_tex1, "reachup.ppm");
+  loadTexture(*g_tex2, "shield.ppm");
 }
 
 
