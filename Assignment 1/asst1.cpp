@@ -57,6 +57,14 @@ static bool g_rightClicked     = false;     // is the right mouse button down?
 static float g_objScale        = 1.0;       // scale factor for object
 static int g_leftClickX, g_leftClickY;      // coordinates for mouse left click event
 static int g_rightClickX, g_rightClickY;    // coordinates for mouse right click event
+/**
+ * Represents the offset of the triangle in the x-direction. This increments
+ * each time the shape should move to the right, and decrements each time the
+ * shape should move to the left.
+ */
+static int g_xOffset           = 0.0;
+/** Like xOffset, but in the y direction. */
+static int g_yOffset           = 0.0;
 
 // our global shader states
 struct SquareShaderState {
@@ -66,6 +74,9 @@ struct SquareShaderState {
   GLint h_uVertexScale;
   GLint h_uTex0, h_uTex1;
   GLint h_uXCoefficient, h_uYCoefficient;
+////////////////////////////////////////////////////////////////////////////////
+  GLint h_uXOffset, h_uYOffset;
+////////////////////////////////////////////////////////////////////////////////
 
   // Handles to vertex attributes
   GLint h_aPosition;
@@ -108,6 +119,11 @@ static void drawSquare() {
   safe_glUniform1f(g_squareShaderState->h_uVertexScale, g_objScale);
   safe_glUniform1f(g_squareShaderState->h_uXCoefficient, g_initialWidth / g_width * scaleCoefficient);
   safe_glUniform1f(g_squareShaderState->h_uYCoefficient, g_initialHeight / g_height * scaleCoefficient);
+
+////////////////////////////////////////////////////////////////////////////////
+safe_glUniform1f(g_squareShaderState->h_uXOffset, g_xOffset * .05);
+safe_glUniform1f(g_squareShaderState->h_uYOffset, g_yOffset * .05);
+////////////////////////////////////////////////////////////////////////////////
 
   // bind vertex buffers
   glBindBuffer(GL_ARRAY_BUFFER, g_square->posVbo);
@@ -245,6 +261,22 @@ static void keyboard(unsigned char key, int x, int y) {
     break;
   case 'q':
     exit(0);
+  case 'i':
+    printf("Attempting to move up\n");
+    g_yOffset++;
+    break;
+  case 'j':
+    printf("Attempting to move left\n");
+    g_xOffset--;
+    break;
+  case 'k':
+    printf("Attempting to move down\n");
+    g_yOffset--;
+    break;
+  case 'l':
+    printf("Attempting to move right\n");
+    g_xOffset++;
+    break;
   case 's':
     glFinish();
     writePpmScreenshot(g_width, g_height, "out.ppm");
@@ -291,6 +323,8 @@ static void loadSquareShader(SquareShaderState& ss) {
   ss.h_uTex1 = safe_glGetUniformLocation(h, "uTex1");
   ss.h_uXCoefficient = safe_glGetUniformLocation(h, "uXCoefficient");
   ss.h_uYCoefficient = safe_glGetUniformLocation(h, "uYCoefficient");
+  ss.h_uXOffset = safe_glGetUniformLocation(h, "uXOffset");
+  ss.h_uYOffset = safe_glGetUniformLocation(h, "uYOffset");
 
   // Retrieve handles to vertex attributes
   ss.h_aPosition = safe_glGetAttribLocation(h, "aPosition");
