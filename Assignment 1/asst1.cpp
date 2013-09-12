@@ -17,8 +17,10 @@
 
 #include <GL/glew.h>
 #ifdef __MAC__
+#   define IS_MAC true
 #   include <GLUT/glut.h>
 #else
+#   define IS_MAC false
 #   include <GL/glut.h>
 #endif
 
@@ -44,7 +46,7 @@ using namespace std::tr1; // for shared_ptr
 // If g_Gl2Compatible=false, shaders with -gl3 suffix will be loaded.
 // To complete the assignment you only need to edit the shader files that get loaded
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-static const bool g_Gl2Compatible = false;
+static const bool g_Gl2Compatible = IS_MAC;
 
 
 static int g_width             = 512;       // screen width
