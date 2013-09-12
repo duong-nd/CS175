@@ -413,7 +413,8 @@ static void initShaders() {
 }
 
 static void loadSquareGeometry(const GeometryPX& g) {
-  GLfloat pos[12] = {
+  const int dim = 6;
+  GLfloat pos[2 * dim] = {
     -.5, -.5,
     .5,  .5,
     .5,  -.5,
@@ -423,7 +424,7 @@ static void loadSquareGeometry(const GeometryPX& g) {
     .5,  .5
   };
 
-  GLfloat tex[12] = {
+  GLfloat tex[2 * dim] = {
     0, 0,
     1, 1,
     1, 0,
@@ -436,7 +437,7 @@ static void loadSquareGeometry(const GeometryPX& g) {
   glBindBuffer(GL_ARRAY_BUFFER, g.posVbo);
   glBufferData(
     GL_ARRAY_BUFFER,
-    12*sizeof(GLfloat),
+    2*dim*sizeof(GLfloat),
     pos,
     GL_STATIC_DRAW);
   checkGlErrors();
@@ -444,7 +445,7 @@ static void loadSquareGeometry(const GeometryPX& g) {
   glBindBuffer(GL_ARRAY_BUFFER, g.texVbo);
   glBufferData(
     GL_ARRAY_BUFFER,
-    12*sizeof(GLfloat),
+    2*dim*sizeof(GLfloat),
     tex,
     GL_STATIC_DRAW);
   checkGlErrors();
