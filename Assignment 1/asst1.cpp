@@ -19,10 +19,8 @@
 
 #include <GL/glew.h>
 #ifdef __MAC__
-#   define IS_MAC true
 #   include <GLUT/glut.h>
 #else
-#   define IS_MAC false
 #   include <GL/glut.h>
 #endif
 
