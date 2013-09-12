@@ -114,7 +114,6 @@ static void drawSquare() {
   safe_glVertexAttribPointer(g_squareShaderState->h_aTexCoord,
                              2, GL_FLOAT, GL_FALSE, 0, 0);
 
-  cout << "HI THERE IM A PRINT\n";
   safe_glEnableVertexAttribArray(g_squareShaderState->h_aPosition);
   safe_glEnableVertexAttribArray(g_squareShaderState->h_aTexCoord);
 
@@ -164,8 +163,6 @@ static void display(void) {
 static void reshape(int w, int h) {
   g_width = w;
   g_height = h;
-  cout << "New width: " << g_width << "\n";
-  cout << "New height: " << g_height << "\n";
   glViewport(0, 0, w, h);
   glutPostRedisplay();
 }
@@ -290,6 +287,8 @@ static void loadSquareShader(SquareShaderState& ss) {
   ss.h_uTex1 = safe_glGetUniformLocation(h, "uTex1");
   ss.h_uWidth = safe_glGetUniformLocation(h, "uWidth");
   ss.h_uHeight = safe_glGetUniformLocation(h, "uHeight");
+  safe_glUniform1i(safe_glGetUniformLocation(h, "uInitialWidth"), g_width);
+  safe_glUniform1i(safe_glGetUniformLocation(h, "uInitialHeight"), g_height);
 
   // Retrieve handles to vertex attributes
   ss.h_aPosition = safe_glGetAttribLocation(h, "aPosition");
@@ -307,7 +306,6 @@ static void initShaders() {
 }
 
 static void loadSquareGeometry(const GeometryPX& g) {
-  cout << "loadSquareGeometry\n";
   GLfloat pos[12] = {
     -.5, -.5,
     .5,  .5,
