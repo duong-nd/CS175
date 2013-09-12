@@ -462,9 +462,9 @@ static void loadTriangleGeometry(const GeometryPX& g) {
   };
 
   GLfloat tex[2 * dim] = {
-    0.5, -.35,
-    -.35, 1.35,
-    1.35, 1.35
+    0.5, -.60,
+    -.35, 1.1,
+    1.35, 1.1
   };
 
   GLfloat color[3 * dim] = {
