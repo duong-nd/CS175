@@ -1,8 +1,8 @@
 #version 130
 
 uniform float uVertexScale;
-uniform int uWidth;
-uniform int uHeight;
+uniform float uWidth;
+uniform float uHeight;
 
 in vec2 aPosition;
 in vec2 aTexCoord;
