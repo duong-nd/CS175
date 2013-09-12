@@ -94,6 +94,7 @@ struct TriangleShaderState {
   /** Handles to vertex attributes */
   GLint h_aPosition;
   GLint h_aTexCoord;
+  GLint h_aColor;
 };
 
 static shared_ptr<SquareShaderState> g_squareShaderState;
@@ -104,7 +105,7 @@ static shared_ptr<GlTexture> g_tex0, g_tex1, g_tex2;
 
 /** Global geometries */
 struct GeometryPX {
-  GlBufferObject posVbo, texVbo;
+  GlBufferObject posVbo, texVbo, colorVbo;
 };
 
 static shared_ptr<GeometryPX> g_square;
@@ -114,10 +115,10 @@ static shared_ptr<GeometryPX> g_triangle;
 /* C A L L B A C K S **************************************************/
 
 static void drawSquare() {
-  /* activate the glsl program */
+  /* Activate the glsl program */
   glUseProgram(g_squareShaderState->program);
 
-  /* bind textures */
+  /* Bind textures */
   glActiveTexture(GL_TEXTURE0);
   glBindTexture(GL_TEXTURE_2D, *g_tex0);
 
@@ -127,14 +128,14 @@ static void drawSquare() {
   /* Compute coefficients for maintaining aspect ratio */
   float scaleCoefficient = min(g_width / g_initialWidth, g_height / g_initialHeight);
 
-  /* set glsl uniform variables */
+  /* Set glsl uniform variables */
   safe_glUniform1i(g_squareShaderState->h_uTex0, 0); /* 0 means GL_TEXTURE0 */
   safe_glUniform1i(g_squareShaderState->h_uTex1, 1); /* 1 means GL_TEXTURE1 */
   safe_glUniform1f(g_squareShaderState->h_uVertexScale, g_objScale);
   safe_glUniform1f(g_squareShaderState->h_uXCoefficient, g_initialWidth / g_width * scaleCoefficient);
   safe_glUniform1f(g_squareShaderState->h_uYCoefficient, g_initialHeight / g_height * scaleCoefficient);
 
-  /* bind vertex buffers */
+  /* Bind vertex buffers */
   glBindBuffer(GL_ARRAY_BUFFER, g_square->posVbo);
   safe_glVertexAttribPointer(g_squareShaderState->h_aPosition,
                              2, GL_FLOAT, GL_FALSE, 0, 0);
@@ -146,29 +147,29 @@ static void drawSquare() {
   safe_glEnableVertexAttribArray(g_squareShaderState->h_aPosition);
   safe_glEnableVertexAttribArray(g_squareShaderState->h_aTexCoord);
 
-  /* draw using 6 vertices, forming two triangles */
+  /* Draw using 6 vertices, forming two triangles */
   glDrawArrays(GL_TRIANGLES, 0, 6);
 
   safe_glDisableVertexAttribArray(g_squareShaderState->h_aPosition);
   safe_glDisableVertexAttribArray(g_squareShaderState->h_aTexCoord);
 
-  /* check for errors */
+  /* Check for errors */
   checkGlErrors();
 }
 
 static void drawTriangle() {
 
-  /* activate the glsl program */
+  /* Activate the glsl program */
   glUseProgram(g_triangleShaderState->program);
 
-  /* bind textures */
+  /* Bind textures */
   glActiveTexture(GL_TEXTURE2);
   glBindTexture(GL_TEXTURE_2D, *g_tex2);
 
   /* Compute coefficients for maintaining aspect ratio */
   float scaleCoefficient = min(g_width / g_initialWidth, g_height / g_initialHeight);
 
-  /* set glsl uniform variables */
+  /* Set glsl uniform variables */
   safe_glUniform1i(g_triangleShaderState->h_uTex2, 2); /* 2 means GL_TEXTURE2 */
   safe_glUniform1f(g_triangleShaderState->h_uVertexScale, g_objScale);
   safe_glUniform1f(g_triangleShaderState->h_uXCoefficient, g_initialWidth / g_width * scaleCoefficient);
@@ -176,7 +177,7 @@ static void drawTriangle() {
   safe_glUniform1f(g_triangleShaderState->h_uXOffset, g_xOffset * .05);
   safe_glUniform1f(g_triangleShaderState->h_uYOffset, g_yOffset * .05);
 
-  /* bind vertex buffers */
+  /* Bind vertex buffers */
   glBindBuffer(GL_ARRAY_BUFFER, g_triangle->posVbo);
 
   safe_glVertexAttribPointer(g_triangleShaderState->h_aPosition,
@@ -186,16 +187,22 @@ static void drawTriangle() {
   safe_glVertexAttribPointer(g_triangleShaderState->h_aTexCoord,
                              2, GL_FLOAT, GL_FALSE, 0, 0);
 
+  glBindBuffer(GL_ARRAY_BUFFER, g_triangle->colorVbo);
+  safe_glVertexAttribPointer(g_triangleShaderState->h_aColor,
+                             3, GL_FLOAT, GL_FALSE, 0, 0);
+
   safe_glEnableVertexAttribArray(g_triangleShaderState->h_aPosition);
   safe_glEnableVertexAttribArray(g_triangleShaderState->h_aTexCoord);
+  safe_glEnableVertexAttribArray(g_triangleShaderState->h_aColor);
 
-  /* draw using 3 vertices, forming a triangle */
+  /* Draw using 3 vertices, forming a triangle */
   glDrawArrays(GL_TRIANGLES, 0, 3);
 
   safe_glDisableVertexAttribArray(g_triangleShaderState->h_aPosition);
   safe_glDisableVertexAttribArray(g_triangleShaderState->h_aTexCoord);
+  safe_glDisableVertexAttribArray(g_triangleShaderState->h_aColor);
 
-  /* check for errors */
+  /* Check for errors */
   checkGlErrors();
 }
 
@@ -392,6 +399,7 @@ static void loadTriangleShader(TriangleShaderState& ss) {
   /* Retrieve handles to vertex attributes */
   ss.h_aPosition = safe_glGetAttribLocation(h, "aPosition");
   ss.h_aTexCoord = safe_glGetAttribLocation(h, "aTexCoord");
+  ss.h_aColor = safe_glGetAttribLocation(h, "aColor");
 
   if (!g_Gl2Compatible)
     glBindFragDataLocation(h, 0, "fragColor");
@@ -445,23 +453,29 @@ static void loadSquareGeometry(const GeometryPX& g) {
 }
 
 static void loadTriangleGeometry(const GeometryPX& g) {
-  const int dim = 6;
-  GLfloat pos[dim] = {
+  const int dim = 3;
+  GLfloat pos[2 * dim] = {
     0.0, -0.45,
     -0.45, 0.45,
     0.45, 0.45
   };
 
-  GLfloat tex[dim] = {
+  GLfloat tex[2 * dim] = {
     0.5, -.35,
     -.35, 1.35,
     1.35, 1.35
   };
 
+  GLfloat color[3 * dim] = {
+    1, 0, 0,
+    0, 1, 0,
+    0, 0, 1
+  };
+
   glBindBuffer(GL_ARRAY_BUFFER, g.posVbo);
   glBufferData(
     GL_ARRAY_BUFFER,
-    dim*sizeof(GLfloat),
+    2*dim*sizeof(GLfloat),
     pos,
     GL_STATIC_DRAW);
   checkGlErrors();
@@ -469,8 +483,16 @@ static void loadTriangleGeometry(const GeometryPX& g) {
   glBindBuffer(GL_ARRAY_BUFFER, g.texVbo);
   glBufferData(
     GL_ARRAY_BUFFER,
-    dim*sizeof(GLfloat),
+    2*dim*sizeof(GLfloat),
     tex,
+    GL_STATIC_DRAW);
+  checkGlErrors();
+
+  glBindBuffer(GL_ARRAY_BUFFER, g.colorVbo);
+  glBufferData(
+    GL_ARRAY_BUFFER,
+    3*dim*sizeof(GLfloat),
+    color,
     GL_STATIC_DRAW);
   checkGlErrors();
 }
