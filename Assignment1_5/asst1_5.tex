@@ -95,5 +95,19 @@
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 4.4 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problemn{4.4}
+    \renewcommand{\a}{\vec{\boldsymbol{a}}^t}
+    \renewcommand{\b}{\vec{\boldsymbol{b}}^t}
+    \renewcommand{\c}{\vec{\boldsymbol{c}}^t}
+    First, let's look at what we want to do here. We want to rotate $\a$ by $\theta$ around (``with respect to'') $\b$. Why is this? First, realize that the origin of $\a$ and $\c$ are both $d$ away from $b$'s origin. This means that they could `swing' along a rope of length $d$ tethered at $\b$'s origin and run into each other. This, however, doesn't guarantee that their orientations are the same. For this, we first need to realize that, from the assumptions that we are making in this class, $\a, \b,$ and $\c$ are orthogonal frames --- that is, their comprising vectors are orthogonal to each other. This is important, because it means that the angles between the two components of the frame form a right angle. Since the complement of the angle of measure $\phi$ must be the same in both $\a$ and $\c$ (since reference frames are orthogonal), this means that the angles will also match up if $\c$ were to be `swung' over to be in the same place as $\a$. Thus, we simply have to rotate $\a$ a number of degrees $\theta$ around $\b$'s origin in order to produce frame $\c$.
 
+    So how do we do this? First, we'll realize that we will have to use the rotation matrix
+    \[
+      R=
+        \begin{pmatrix}
+          \cos{\theta} & -\sin{\theta} & 0 \\
+          \sin{\theta} & \cos{\theta} & 0 \\
+          0 & 0 & 1
+       \end{pmatrix}
+    \]
+    in our answer (note that we use $\theta$ and not $-\theta$ here, since we're rotating in a \emph{counterclockwise} fashion). So now we realize that $\c$ is produced by ``doing $R$ to $\a$ with respect to $\b$.'' This is the
 \end{document}
