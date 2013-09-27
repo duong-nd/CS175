@@ -32,3 +32,10 @@
 ehthumbs.db
 Icon?
 Thumbs.db
+
+# .tex #
+########
+*.aux
+*.fdb_latexmk
+*.out
+*.tex
