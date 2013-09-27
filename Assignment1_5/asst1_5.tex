@@ -21,6 +21,8 @@
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 4.3 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problemn{4.3}
     \renewcommand{\a}{\vec{\boldsymbol{a}}^t}
+    \newcommand{\ap}{\vec{\boldsymbol{a}}'^t}
+    \newcommand{\ao}{\vec{\boldsymbol{a}}^{\circ t}}
     \renewcommand{\b}{\vec{\boldsymbol{b}}^t}
     Note that in both of these scenarios, we have to rotate by $\theta$. So we have no choice but to set
     \[
@@ -29,14 +31,67 @@
           \cos{\theta} & -\sin{\theta} & 0 \\
           \sin{\theta} & \cos{\theta} & 0 \\
           0 & 0 & 1
-       \end{pmatrix}
+       \end{pmatrix}.
     \]
+    \textit{Realize that this will be true in all of the analyses below; the assignment of $R$ will not be repeated in the following discussions.}
 
-    Now, we'll discuss $T$ in the equation $\b=\a TR$.
+    Now, we'll discuss $T$ in the equation $\b=\a TR$ in two ways. First, the local way gives the following interpretation:
 
-    We'll discuss this in two ways. First, the local way gives the following interpretation:
+    \ind{%
+      Consider $\ap=\a T$. This means that ``$\ap$ is transformed by $T$ with respect to $\a$.'' Thus, $\ap$ is translated according to $T$ from its original position. We now consider $\b=\ap R$, which means ``$\b$ is transformed by $R$ with respect to $\ap$.'' We understand this description as: we are rotating (``applying $R$'') to our frame last, after having translated the frame that we are rotating around. So, since we have translated to get our intermediate frame, we realize that the translation is done in the direction of the original frame, and so we conclude that
+      \[
+        T=
+          \begin{pmatrix}
+            1 & 0 & d_1 \\
+            0 & 1 & d_2 \\
+            0 & 0 & 1
+          \end{pmatrix}.
+      \]
+    }
 
+    \noindent We can also consider the global interpretation:
 
+    \ind{%
+      Consider $\ao=\a R$. This means that ``$\ao$ is transformed by $R$ with respect to $\a$.'' Thus, $\ao$ is rotated according to $R$ about its original reference frame. We now consider $\b=\a T R$, which means ``$\ao$ is transformed by $T$ with respect to $\a$ --- its original reference frame.'' We understand this description as: we are rotating (``applying $R$'') to our frame first, and then translating (``applying $T$'') in terms of the original frame of reference. Since we are translating in the direction of the original frame, and so we conclude that
+      \[
+        T=
+          \begin{pmatrix}
+            1 & 0 & d_1 \\
+            0 & 1 & d_2 \\
+            0 & 0 & 1
+          \end{pmatrix}.
+      \]
+    }
+
+    \hrule
+
+    Now, we'll discuss $T$ in the equation $\b=\a RT$ in two ways. First, the local way gives the following interpretation:
+
+    \ind{
+      Consider $\ap=\a R$. This means that ``$\ap$ is transformed by $R$ with respect to $\a$.'' Thus, $\ap$ is rotated according to $R$ from its original position. We now consider $\b=\ap T$, which means ``$\b$ is transformed by $T$ with respect to $\ap$.'' We understand this description as: we are translating (``applying $T$'') to our frame last, after having rotated the frame around its original reference frame. So, since we have rotated to get our intermediate frame, our translation has to be done with respect to this rotated reference frame, and so we conclude that
+      \[
+        T=
+          \begin{pmatrix}
+            1 & 0 & d_3 \\
+            0 & 1 & d_4 \\
+            0 & 0 & 1
+          \end{pmatrix}.
+      \]
+    }
+
+    We can also consider the global interpretation:
+
+    \ind{
+      Consider $\ao=\a T$. This means that ``$\ao$ is transformed by $T$ with respect to $\a$.'' Thus, $\ao$ is translated according to $T$ from its original reference frame. We now consider $\b=\a R T$, which means ``$\ao$ is transformed by $R$ with respect to $\a$ --- its original reference frame.'' We understand this description as: we are translating (``applying $T$'') to our frame first, and then rotating (``applying $R$'') in terms of the original frame of reference. So we translate and then rotate. If we ant to end up with the frame $\b$ given in the diagram, this means that we translate over $d_3$ and up $d_4$. Then, if we rotate around the \emph{original reference frame} by $\theta$, that will land us where $\b$ is given in the digram. So we conclude that
+      \[
+        T=
+          \begin{pmatrix}
+            1 & 0 & d_3 \\
+            0 & 1 & d_4 \\
+            0 & 0 & 1
+          \end{pmatrix}.
+      \]
+    }
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 4.4 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problemn{4.4}
