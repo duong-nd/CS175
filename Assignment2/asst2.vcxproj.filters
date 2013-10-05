@@ -1,0 +1,60 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{2bebc5e6-6c0a-4c37-b442-b9fb5827a0d4}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="asst2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ppm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="glsupport.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="cvec.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="matrix4.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ppm.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="geometrymaker.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="glsupport.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\basic-gl3.vshader">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\diffuse-gl3.fshader">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\solid-gl3.fshader">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\basic-gl2.vshader">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\diffuse-gl2.fshader">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="shaders\solid-gl2.fshader">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>
