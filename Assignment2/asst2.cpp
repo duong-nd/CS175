@@ -47,7 +47,7 @@ using namespace tr1; // for shared_ptr
 // To complete the assignment you only need to edit the shader files that get
 // loaded
 // ----------------------------------------------------------------------------
-static const bool g_Gl2Compatible = false;
+static const bool g_Gl2Compatible = true;
 
 
 static const float g_frustMinFov = 60.0;  // A minimal of 60 degree field of view
