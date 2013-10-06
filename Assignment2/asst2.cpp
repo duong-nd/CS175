@@ -216,7 +216,7 @@ static WorldObject objectBeingManipulated = RED_CUBE;
  *   - World-sky frame (like orbiting around the world)
  *   - Sky-sky frame (like moving your head)
  */
-static Matrix4 g_a_frame = g_skyRbt;
+static Matrix4 g_aFrame = g_skyRbt;
 
 
 /** start with the sky camera as the object that's manipulated by the mouse */
@@ -371,17 +371,22 @@ static void motion(const int x, const int y) {
 
   Matrix4 m;
   if (g_mouseLClickButton && !g_mouseRClickButton) { // left button down?
+    // TODO: IT'S NOT ROTATING CORRECTLY. IT'S CURRENTLY ROTATING ACCORDING TO
+    // ITS OWN ORIENTATION. REALLY, WE WANT IT TO ROTATE ACCORDING TO THE EYE'S
+    // ORIENTATION. WE DO THIS BY FIRST PULLING THE OBJECT TO BE ON THE EYE,
+    // THEN ROTATING IT WITH RESPECT TO THE EYE, THEN PUTTING IT BACK WHERE IT
+    // WAS ORIGINALLY.
     m = Matrix4::makeXRotation(-dy) * Matrix4::makeYRotation(dx);
     const Matrix4 object = (g_objectBeingManipulated == 0) ? g_skyRbt : g_objectRbt[g_objectBeingManipulated - 1];
     m = object * m * inv(object);
   }
   else if (g_mouseRClickButton && !g_mouseLClickButton) { // right button down?
     m = Matrix4::makeTranslation(Cvec3(dx, dy, 0) * 0.01);
-    m = g_a_frame * m * inv(g_a_frame);
+    m = g_aFrame * m * inv(g_aFrame);
   }
   else if (g_mouseMClickButton || (g_mouseLClickButton && g_mouseRClickButton)) {  // middle or (left and right) button down?
     m = Matrix4::makeTranslation(Cvec3(0, 0, -dy) * 0.01);
-    m = g_a_frame * m * inv(g_a_frame);
+    m = g_aFrame * m * inv(g_aFrame);
   }
 
   if (g_mouseClickDown) {
@@ -424,34 +429,14 @@ static void mouse(const int button, const int state, const int x, const int y) {
  *   - Sky-sky frame (like moving your head)
  */
 static void setWrtFrame() {
-  // switch(manipulatedObject) {
-  //   case RED_CUBE:
-  //     if (g_a_frame == g_skyRbt) {
-
-  //     } else {
-
-  //     }
-  //     break;
-  //   case GREEN_CUBE:
-  //     if (g_a_frame == g_skyRbt) {
-
-  //     } else {
-
-  //     }
-  //     break;
-  //   case SKY:
-
-  //     break;
-  // }
-
   if (g_objectBeingManipulated == 0) {
     /* manipulating sky */
     if (g_currentViewIndex == 0) {
       /* view is sky */
       if (g_skyAMatrixChoice == 0) {
-        g_a_frame = g_skyRbt * g_worldRbt;
+        g_aFrame = g_skyRbt * g_worldRbt;
       } else {
-        g_a_frame = g_skyRbt;
+        g_aFrame = g_skyRbt;
       }
     } else {
       /* view is cube */
@@ -461,10 +446,10 @@ static void setWrtFrame() {
     /* manipulating cube */
     if (g_currentViewIndex == 0) {
       /* view is sky */
-      g_a_frame = g_objectRbt[g_objectBeingManipulated] * g_skyRbt;
+      g_aFrame = g_objectRbt[g_objectBeingManipulated] * g_skyRbt;
     } else {
       /* view is cube */
-      g_a_frame = g_objectRbt[g_objectBeingManipulated] * g_objectRbt[g_currentViewIndex];
+      g_aFrame = g_objectRbt[g_objectBeingManipulated] * g_objectRbt[g_currentViewIndex];
     }
   }
 }
@@ -478,7 +463,7 @@ static void cycleSkyAMatrix() {
 }
 
 /**
- * Toggles the frame to be used with the sky camera. Also updates g_a_frame if the
+ * Toggles the frame to be used with the sky camera. Also updates g_aFrame if the
  * current objectBeingManipulated is the SKY.
  */
 static void toggleEyeMode() {
@@ -494,16 +479,10 @@ static void toggleEyeMode() {
 }
 
 /**
- * Cycles which object is being manipulated, and also sets the correct g_a_frame.
+ * Cycles which object is being manipulated, and also sets the correct g_aFrame.
  */
 static void cycleManipulation() {
-  // objectBeingManipulated =
-  //   static_cast<WorldObject>(objectBeingManipulated + 1 % g_numberOfViews);
-  // setWrtFrame(objectBeingManipulated);
-
-  g_objectBeingManipulated += 1;
-  g_objectBeingManipulated %= g_numberOfViews;
-
+  g_objectBeingManipulated = (g_objectBeingManipulated + 1) % g_numberOfViews;
   setWrtFrame();
 }
 
