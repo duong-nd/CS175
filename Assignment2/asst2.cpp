@@ -197,10 +197,10 @@ static Cvec3f g_objectColors[g_numObjects] = {Cvec3f(1, 0, 0), Cvec3f(0, 1, 0)};
  * Global constant representing the number of objects in the world (including
  * the sky).
  */
-int NumberOfObjects = 3;
+int NumberOfViews = g_numObjects + 1;
 /**
  * The object currently being manipulated. Pressing the 'o' key cycles between
- * available objects. Should always be less than NumberOfObjects.
+ * available objects. Should always be less than NumberOfViews.
  */
 enum WorldObject { RED_CUBE, GREEN_CUBE, SKY };
 static WorldObject objectBeingManipulated = RED_CUBE;
@@ -401,10 +401,18 @@ static void mouse(const int button, const int state, const int x, const int y) {
 static void setWrtFrame(WorldObject manipulatedObject) {
   switch(manipulatedObject) {
     case RED_CUBE:
+      if (a_frame == g_skyRbt) {
 
+      } else {
+
+      }
       break;
     case GREEN_CUBE:
+      if (a_frame == g_skyRbt) {
 
+      } else {
+
+      }
       break;
     case SKY:
 
@@ -425,7 +433,7 @@ static void toggleEyeMode() {
  */
 static void cycleManipulation() {
   objectBeingManipulated =
-    static_cast<WorldObject>(objectBeingManipulated + 1 % NumberOfObjects);
+    static_cast<WorldObject>(objectBeingManipulated + 1 % NumberOfViews);
   setWrtFrame(objectBeingManipulated);
 }
 
