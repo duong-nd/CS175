@@ -197,10 +197,10 @@ static Cvec3f g_objectColors[g_numObjects] = {Cvec3f(1, 0, 0), Cvec3f(0, 1, 0)};
  * Global constant representing the number of objects in the world (including
  * the sky).
  */
-int NumberOfViews = g_numObjects + 1;
+static const int g_numberOfViews = g_numObjects + 1;
 /**
  * The object currently being manipulated. Pressing the 'o' key cycles between
- * available objects. Should always be less than NumberOfViews.
+ * available objects. Should always be less than g_numberOfViews.
  */
 enum WorldObject { RED_CUBE, GREEN_CUBE, SKY };
 static WorldObject objectBeingManipulated = RED_CUBE;
@@ -433,7 +433,7 @@ static void toggleEyeMode() {
  */
 static void cycleManipulation() {
   objectBeingManipulated =
-    static_cast<WorldObject>(objectBeingManipulated + 1 % NumberOfViews);
+    static_cast<WorldObject>(objectBeingManipulated + 1 % g_numberOfViews);
   setWrtFrame(objectBeingManipulated);
 }
 
@@ -459,7 +459,7 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       break;
     case 'v':
       g_currentViewIndex += 1;
-      g_currentViewIndex %= (g_numObjects + 1);
+      g_currentViewIndex %= (g_numberOfViews);
       if (g_currentViewIndex == 0) {
         cout << "Using sky view" << endl;
       } else {
