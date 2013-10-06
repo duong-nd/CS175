@@ -355,16 +355,19 @@ static void motion(const int x, const int y) {
   Matrix4 m;
   if (g_mouseLClickButton && !g_mouseRClickButton) { // left button down?
     m = Matrix4::makeXRotation(-dy) * Matrix4::makeYRotation(dx);
+    m = g_objectRbt[0] * m * inv(g_objectRbt[0]);
   }
   else if (g_mouseRClickButton && !g_mouseLClickButton) { // right button down?
     m = Matrix4::makeTranslation(Cvec3(dx, dy, 0) * 0.01);
+    m = a_frame * m * inv(a_frame);
   }
   else if (g_mouseMClickButton || (g_mouseLClickButton && g_mouseRClickButton)) {  // middle or (left and right) button down?
     m = Matrix4::makeTranslation(Cvec3(0, 0, -dy) * 0.01);
+    m = a_frame * m * inv(a_frame);
   }
 
   if (g_mouseClickDown) {
-    g_objectRbt[0] = a_frame * m * inv(a_frame) * g_objectRbt[0]; // Simply right-multiply is WRONG
+    g_objectRbt[0] = m * g_objectRbt[0]; // Simply right-multiply is WRONG
     glutPostRedisplay(); // we always redraw if we changed the scene
   }
 
