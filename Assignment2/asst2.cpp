@@ -192,10 +192,16 @@ static Matrix4 g_objectRbt[2] = {Matrix4::makeTranslation(Cvec3(-1,0,0)), Matrix
 static Cvec3f g_objectColors[2] = {Cvec3f(1, 0, 0), Cvec3f(0, 1, 0)};
 
 /**
- * The object currently being manipulated. Pressing the 'o' key cycles between
- * available objects.
+ * Global constant representing the number of objects in the world (including
+ * the sky).
  */
-int objectBeingMainpulate = 0;
+int NumberOfObjects = 3;
+/**
+ * The object currently being manipulated. Pressing the 'o' key cycles between
+ * available objects. Should always be less than NumberOfObjects.
+ */
+enum WorldObject { RED_CUBE, GREEN_CUBE, SKY };
+WorldObject objectBeingMainpulated = RED_CUBE;
 /**
  * Frame that we're manipulating the current object with respect to. This is:
  * - If we're manipulating a cube and the eye is the sky, this should be the
@@ -378,6 +384,45 @@ static void mouse(const int button, const int state, const int x, const int y) {
   g_mouseClickDown = g_mouseLClickButton || g_mouseRClickButton || g_mouseMClickButton;
 }
 
+/**
+ * Cycles which object is being manipulated, and also sets the correct a_frame.
+ */
+static void cycleManipulation() {
+  objectBeingMainpulated =
+    static_cast<WorldObject>(objectBeingMainpulated + 1 % NumberOfObjects);
+  setWrtFrame(objectBeingMainpulated);
+}
+
+/**
+ * - If we're manipulating a cube and the eye is the sky, this should be the
+ *   cube-sky frame.
+ * - If we're manipulating cube i and eye is cube j, this should be the
+ *   cube i-cube j frame.
+ * - If we're manipulating the sky camera and eye is the sky, we have two
+ *   viable frames, and pressing 'm' switches between them:
+ *   - World-sky frame (like orbiting around the world)
+ *   - Sky-sky frame (like moving your head)
+ */
+static void setWrtFrame(WorldObject manipulatedObject) {
+  switch(manipulatedObject) {
+    case RED_CUBE:
+
+      break;
+    case GREEN_CUBE:
+
+      break;
+    case SKY:
+
+      break;
+  }
+}
+
+/**
+ * Toggles the frame to be used with the sky camera.
+ */
+static void toggleEyeMode() {
+
+}
 
 static void keyboard(const unsigned char key, const int x, const int y) {
   switch (key) {
@@ -398,6 +443,9 @@ static void keyboard(const unsigned char key, const int x, const int y) {
     break;
   case 'f':
     g_activeShader ^= 1;
+    break;
+  case 'o':
+    cycleManipulation();
     break;
   }
   glutPostRedisplay();
