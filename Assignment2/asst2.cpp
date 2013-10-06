@@ -188,8 +188,10 @@ static shared_ptr<Geometry> g_ground, g_cube, g_cube2;
 
 static const Cvec3 g_light1(2.0, 3.0, 14.0), g_light2(-2, -3.0, -5.0);  // define two lights positions in world space
 static Matrix4 g_skyRbt = Matrix4::makeTranslation(Cvec3(0.0, 0.25, 4.0));
-static Matrix4 g_objectRbt[2] = {Matrix4::makeTranslation(Cvec3(-1,0,0)), Matrix4::makeTranslation(Cvec3(1,0,0))};
-static Cvec3f g_objectColors[2] = {Cvec3f(1, 0, 0), Cvec3f(0, 1, 0)};
+static const int g_numObjects = 2;
+static int g_currentViewIndex = 0;
+static Matrix4 g_objectRbt[g_numObjects] = {Matrix4::makeTranslation(Cvec3(-1,0,0)), Matrix4::makeTranslation(Cvec3(1,0,0))};
+static Cvec3f g_objectColors[g_numObjects] = {Cvec3f(1, 0, 0), Cvec3f(0, 1, 0)};
 
 ///////////////// END OF G L O B A L S //////////////////////////////////////////////////
 
@@ -266,8 +268,10 @@ static void drawStuff() {
   const Matrix4 projmat = makeProjectionMatrix();
   sendProjectionMatrix(curSS, projmat);
 
-  // use the skyRbt as the eyeRbt
-  const Matrix4 eyeRbt = g_skyRbt;
+  // set the camera view
+  const Matrix4 eyeRbt = (g_currentViewIndex == 0) ? g_skyRbt : g_objectRbt[g_currentViewIndex - 1];
+
+  // const Matrix4 eyeRbt = views[g_currentViewIndex];
   const Matrix4 invEyeRbt = inv(eyeRbt);
 
   const Cvec3 eyeLight1 = Cvec3(invEyeRbt * Cvec4(g_light1, 1)); // g_light1 position in eye coordinates
@@ -363,24 +367,33 @@ static void mouse(const int button, const int state, const int x, const int y) {
 
 static void keyboard(const unsigned char key, const int x, const int y) {
   switch (key) {
-  case 27:
-    exit(0);                                  // ESC
-  case 'h':
-    cout << " ============== H E L P ==============\n\n"
-    << "h\t\thelp menu\n"
-    << "s\t\tsave screenshot\n"
-    << "f\t\tToggle flat shading on/off.\n"
-    << "o\t\tCycle object to edit\n"
-    << "v\t\tCycle view\n"
-    << "drag left mouse to rotate\n" << endl;
-    break;
-  case 's':
-    glFlush();
-    writePpmScreenshot(g_windowWidth, g_windowHeight, "out.ppm");
-    break;
-  case 'f':
-    g_activeShader ^= 1;
-    break;
+    case 27:
+      exit(0);                                  // ESC
+    case 'h':
+      cout << " ============== H E L P ==============\n\n"
+      << "h\t\thelp menu\n"
+      << "s\t\tsave screenshot\n"
+      << "f\t\tToggle flat shading on/off.\n"
+      << "o\t\tCycle object to edit\n"
+      << "v\t\tCycle view\n"
+      << "drag left mouse to rotate\n" << endl;
+      break;
+    case 's':
+      glFlush();
+      writePpmScreenshot(g_windowWidth, g_windowHeight, "out.ppm");
+      break;
+    case 'f':
+      g_activeShader ^= 1;
+      break;
+    case 'v':
+      g_currentViewIndex += 1;
+      g_currentViewIndex %= (g_numObjects + 1);
+      if (g_currentViewIndex == 0) {
+        cout << "Using sky view" << endl;
+      } else {
+        cout << "Using object " << g_currentViewIndex << " view" << endl;
+      }
+      break;
   }
   glutPostRedisplay();
 }
