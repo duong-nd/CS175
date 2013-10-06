@@ -466,8 +466,7 @@ static void cycleSkyAMatrix() {
  * current objectBeingManipulated is the SKY.
  */
 static void toggleEyeMode() {
-  g_currentViewIndex += 1;
-  g_currentViewIndex %= (g_numberOfViews);
+  g_currentViewIndex = (g_currentViewIndex + 1) % g_numberOfViews;
   if (g_currentViewIndex == 0) {
     cout << "Using sky view" << endl;
   } else {
