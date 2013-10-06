@@ -203,7 +203,7 @@ int NumberOfObjects = 3;
  * available objects. Should always be less than NumberOfObjects.
  */
 enum WorldObject { RED_CUBE, GREEN_CUBE, SKY };
-WorldObject objectBeingMainpulated = RED_CUBE;
+static WorldObject objectBeingManipulated = RED_CUBE;
 /**
  * Frame that we're manipulating the current object with respect to. This is:
  * - If we're manipulating a cube and the eye is the sky, this should be the
@@ -389,15 +389,6 @@ static void mouse(const int button, const int state, const int x, const int y) {
 }
 
 /**
- * Cycles which object is being manipulated, and also sets the correct a_frame.
- */
-static void cycleManipulation() {
-  objectBeingMainpulated =
-    static_cast<WorldObject>(objectBeingMainpulated + 1 % NumberOfObjects);
-  setWrtFrame(objectBeingMainpulated);
-}
-
-/**
  * - If we're manipulating a cube and the eye is the sky, this should be the
  *   cube-sky frame.
  * - If we're manipulating cube i and eye is cube j, this should be the
@@ -422,10 +413,20 @@ static void setWrtFrame(WorldObject manipulatedObject) {
 }
 
 /**
- * Toggles the frame to be used with the sky camera.
+ * Toggles the frame to be used with the sky camera. Also updates a_frame if the
+ * current objectBeingManipulated is the SKY.
  */
 static void toggleEyeMode() {
 
+}
+
+/**
+ * Cycles which object is being manipulated, and also sets the correct a_frame.
+ */
+static void cycleManipulation() {
+  objectBeingManipulated =
+    static_cast<WorldObject>(objectBeingManipulated + 1 % NumberOfObjects);
+  setWrtFrame(objectBeingManipulated);
 }
 
 static void keyboard(const unsigned char key, const int x, const int y) {
