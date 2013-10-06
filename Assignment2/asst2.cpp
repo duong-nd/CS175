@@ -197,7 +197,7 @@ static Cvec3f g_objectColors[g_numObjects] = {Cvec3f(1, 0, 0), Cvec3f(0, 1, 0)};
  * The object currently being manipulated. Pressing the 'o' key cycles between
  * available objects.
  */
-int objectBeingMainpulate = 0;
+static int objectBeingManipulated = 0;
 /**
  * Frame that we're manipulating the current object with respect to. This is:
  * - If we're manipulating a cube and the eye is the sky, this should be the
