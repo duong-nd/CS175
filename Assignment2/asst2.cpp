@@ -364,7 +364,7 @@ static void motion(const int x, const int y) {
   }
 
   if (g_mouseClickDown) {
-    g_objectRbt[0] *= m; // Simply right-multiply is WRONG
+    g_objectRbt[0] = a_frame * m * inv(a_frame) * g_objectRbt[0]; // Simply right-multiply is WRONG
     glutPostRedisplay(); // we always redraw if we changed the scene
   }
 
