@@ -216,7 +216,6 @@ public:
     r(3,2) = -1.0; // 4th row
     return r;
   }
-
 };
 
 inline bool isAffine(const Matrix4& m) {

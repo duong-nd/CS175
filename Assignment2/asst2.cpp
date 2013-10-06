@@ -371,14 +371,13 @@ static void motion(const int x, const int y) {
 
   Matrix4 m;
   if (g_mouseLClickButton && !g_mouseRClickButton) { // left button down?
-    // TODO: IT'S NOT ROTATING CORRECTLY. IT'S CURRENTLY ROTATING ACCORDING TO
-    // ITS OWN ORIENTATION. REALLY, WE WANT IT TO ROTATE ACCORDING TO THE EYE'S
-    // ORIENTATION. WE DO THIS BY FIRST PULLING THE OBJECT TO BE ON THE EYE,
-    // THEN ROTATING IT WITH RESPECT TO THE EYE, THEN PUTTING IT BACK WHERE IT
-    // WAS ORIGINALLY.
     m = Matrix4::makeXRotation(-dy) * Matrix4::makeYRotation(dx);
     const Matrix4 object = (g_objectBeingManipulated == 0) ? g_skyRbt : g_objectRbt[g_objectBeingManipulated - 1];
-    m = object * m * inv(object);
+
+    const Matrix4 bringToMe = transFact(g_aFrame - object);
+    const Matrix4 returnFromMe = transFact(object - g_aFrame);
+
+    m = returnFromMe * g_aFrame * m * inv(g_aFrame) * bringToMe;
   }
   else if (g_mouseRClickButton && !g_mouseLClickButton) { // right button down?
     m = Matrix4::makeTranslation(Cvec3(dx, dy, 0) * 0.01);
