@@ -191,6 +191,24 @@ static Matrix4 g_skyRbt = Matrix4::makeTranslation(Cvec3(0.0, 0.25, 4.0));
 static Matrix4 g_objectRbt[2] = {Matrix4::makeTranslation(Cvec3(-1,0,0)), Matrix4::makeTranslation(Cvec3(1,0,0))};
 static Cvec3f g_objectColors[2] = {Cvec3f(1, 0, 0), Cvec3f(0, 1, 0)};
 
+/**
+ * The object currently being manipulated. Pressing the 'o' key cycles between
+ * available objects.
+ */
+int objectBeingMainpulate = 0;
+/**
+ * Frame that we're manipulating the current object with respect to. This is:
+ * - If we're manipulating a cube and the eye is the sky, this should be the
+ *   cube-sky frame.
+ * - If we're manipulating cube i and eye is cube j, this should be the
+ *   cube i-cube j frame.
+ * - If we're manipulating the sky camera and eye is the sky, we have two
+ *   viable frames, and pressing 'm' switches between them:
+ *   - World-sky frame (like orbiting around the world)
+ *   - Sky-sky frame (like moving your head)
+ */
+static Matrix4 a_frame = g_skyRbt;
+
 ///////////////// END OF G L O B A L S //////////////////////////////////////////////////
 
 
