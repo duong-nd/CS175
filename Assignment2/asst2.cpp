@@ -187,6 +187,7 @@ static shared_ptr<Geometry> g_ground, g_cube, g_cube2;
 // --------- Scene
 
 static const Cvec3 g_light1(2.0, 3.0, 14.0), g_light2(-2, -3.0, -5.0);  // define two lights positions in world space
+static Matrix4 g_worldRbt = Matrix4::makeTranslation(Cvec3(0.0, 0.0, 0.0));
 static Matrix4 g_skyRbt = Matrix4::makeTranslation(Cvec3(0.0, 0.25, 4.0));
 static const int g_numObjects = 2;
 static int g_currentViewIndex = 0;
@@ -215,7 +216,20 @@ static WorldObject objectBeingManipulated = RED_CUBE;
  *   - World-sky frame (like orbiting around the world)
  *   - Sky-sky frame (like moving your head)
  */
-static Matrix4 a_frame = g_skyRbt;
+static Matrix4 g_a_frame = g_skyRbt;
+
+
+/** start with the sky camera as the object that's manipulated by the mouse */
+static int g_objectBeingManipulated = 0;
+
+/**
+ * controls whether we use the world-sky or sky-sky frame
+ * when modifying the sky while the using the sky camera
+ *
+ * 0 = world-sky
+ * 1 = sky-sky
+ */
+static int g_skyAMatrixChoice = 0;
 
 ///////////////// END OF G L O B A L S //////////////////////////////////////////////////
 
@@ -352,22 +366,30 @@ static void motion(const int x, const int y) {
   const double dx = x - g_mouseClickX;
   const double dy = g_windowHeight - y - 1 - g_mouseClickY;
 
+  /* don't allow the sky frame to be manipulated if we're in a cube view */
+  if (g_currentViewIndex != 0 && g_objectBeingManipulated == 0) return;
+
   Matrix4 m;
   if (g_mouseLClickButton && !g_mouseRClickButton) { // left button down?
     m = Matrix4::makeXRotation(-dy) * Matrix4::makeYRotation(dx);
-    m = g_objectRbt[0] * m * inv(g_objectRbt[0]);
+    const Matrix4 object = (g_objectBeingManipulated == 0) ? g_skyRbt : g_objectRbt[g_objectBeingManipulated - 1];
+    m = object * m * inv(object);
   }
   else if (g_mouseRClickButton && !g_mouseLClickButton) { // right button down?
     m = Matrix4::makeTranslation(Cvec3(dx, dy, 0) * 0.01);
-    m = a_frame * m * inv(a_frame);
+    m = g_a_frame * m * inv(g_a_frame);
   }
   else if (g_mouseMClickButton || (g_mouseLClickButton && g_mouseRClickButton)) {  // middle or (left and right) button down?
     m = Matrix4::makeTranslation(Cvec3(0, 0, -dy) * 0.01);
-    m = a_frame * m * inv(a_frame);
+    m = g_a_frame * m * inv(g_a_frame);
   }
 
   if (g_mouseClickDown) {
-    g_objectRbt[0] = m * g_objectRbt[0]; // Simply right-multiply is WRONG
+    if (g_objectBeingManipulated == 0) {
+      g_skyRbt = m * g_skyRbt;
+    } else {
+      g_objectRbt[g_objectBeingManipulated - 1] = m * g_objectRbt[g_objectBeingManipulated - 1];
+    }
     glutPostRedisplay(); // we always redraw if we changed the scene
   }
 
@@ -401,17 +423,17 @@ static void mouse(const int button, const int state, const int x, const int y) {
  *   - World-sky frame (like orbiting around the world)
  *   - Sky-sky frame (like moving your head)
  */
-static void setWrtFrame(WorldObject manipulatedObject) {
+static void setWrtFrame() {
   // switch(manipulatedObject) {
   //   case RED_CUBE:
-  //     if (a_frame == g_skyRbt) {
+  //     if (g_a_frame == g_skyRbt) {
 
   //     } else {
 
   //     }
   //     break;
   //   case GREEN_CUBE:
-  //     if (a_frame == g_skyRbt) {
+  //     if (g_a_frame == g_skyRbt) {
 
   //     } else {
 
@@ -421,23 +443,68 @@ static void setWrtFrame(WorldObject manipulatedObject) {
 
   //     break;
   // }
+
+  if (g_objectBeingManipulated == 0) {
+    /* manipulating sky */
+    if (g_currentViewIndex == 0) {
+      /* view is sky */
+      if (g_skyAMatrixChoice == 0) {
+        g_a_frame = g_skyRbt * g_worldRbt;
+      } else {
+        g_a_frame = g_skyRbt;
+      }
+    } else {
+      /* view is cube */
+      /* we don't allow this */
+    }
+  } else {
+    /* manipulating cube */
+    if (g_currentViewIndex == 0) {
+      /* view is sky */
+      g_a_frame = g_objectRbt[g_objectBeingManipulated] * g_skyRbt;
+    } else {
+      /* view is cube */
+      g_a_frame = g_objectRbt[g_objectBeingManipulated] * g_objectRbt[g_currentViewIndex];
+    }
+  }
+}
+
+static void cycleSkyAMatrix() {
+  /* only allow this to be toggled if we're manipulating the sky while using the sky camera */
+  if (g_objectBeingManipulated == 0 && g_currentViewIndex == 0) {
+    g_skyAMatrixChoice = (g_skyAMatrixChoice + 1) % 2;
+  }
+  setWrtFrame();
 }
 
 /**
- * Toggles the frame to be used with the sky camera. Also updates a_frame if the
+ * Toggles the frame to be used with the sky camera. Also updates g_a_frame if the
  * current objectBeingManipulated is the SKY.
  */
 static void toggleEyeMode() {
+  g_currentViewIndex += 1;
+  g_currentViewIndex %= (g_numberOfViews);
+  if (g_currentViewIndex == 0) {
+    cout << "Using sky view" << endl;
+  } else {
+    cout << "Using object " << g_currentViewIndex << " view" << endl;
+  }
 
+  setWrtFrame();
 }
 
 /**
- * Cycles which object is being manipulated, and also sets the correct a_frame.
+ * Cycles which object is being manipulated, and also sets the correct g_a_frame.
  */
 static void cycleManipulation() {
-  objectBeingManipulated =
-    static_cast<WorldObject>(objectBeingManipulated + 1 % g_numberOfViews);
-  setWrtFrame(objectBeingManipulated);
+  // objectBeingManipulated =
+  //   static_cast<WorldObject>(objectBeingManipulated + 1 % g_numberOfViews);
+  // setWrtFrame(objectBeingManipulated);
+
+  g_objectBeingManipulated += 1;
+  g_objectBeingManipulated %= g_numberOfViews;
+
+  setWrtFrame();
 }
 
 static void keyboard(const unsigned char key, const int x, const int y) {
@@ -461,16 +528,13 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       g_activeShader ^= 1;
       break;
     case 'v':
-      g_currentViewIndex += 1;
-      g_currentViewIndex %= (g_numberOfViews);
-      if (g_currentViewIndex == 0) {
-        cout << "Using sky view" << endl;
-      } else {
-        cout << "Using object " << g_currentViewIndex << " view" << endl;
-      }
+      toggleEyeMode();
       break;
     case 'o':
       cycleManipulation();
+      break;
+    case 'm':
+      cycleSkyAMatrix();
       break;
   }
   glutPostRedisplay();
