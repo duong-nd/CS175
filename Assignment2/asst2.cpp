@@ -399,25 +399,25 @@ static void mouse(const int button, const int state, const int x, const int y) {
  *   - Sky-sky frame (like moving your head)
  */
 static void setWrtFrame(WorldObject manipulatedObject) {
-  switch(manipulatedObject) {
-    case RED_CUBE:
-      if (a_frame == g_skyRbt) {
+  // switch(manipulatedObject) {
+  //   case RED_CUBE:
+  //     if (a_frame == g_skyRbt) {
 
-      } else {
+  //     } else {
 
-      }
-      break;
-    case GREEN_CUBE:
-      if (a_frame == g_skyRbt) {
+  //     }
+  //     break;
+  //   case GREEN_CUBE:
+  //     if (a_frame == g_skyRbt) {
 
-      } else {
+  //     } else {
 
-      }
-      break;
-    case SKY:
+  //     }
+  //     break;
+  //   case SKY:
 
-      break;
-  }
+  //     break;
+  // }
 }
 
 /**
