@@ -448,7 +448,7 @@ static void setWrtFrame() {
       g_aFrame = g_objectRbt[g_objectBeingManipulated - 1] * g_skyRbt;
     } else {
       /* view is cube */
-      g_aFrame = g_objectRbt[g_objectBeingManipulated - 1] * g_objectRbt[g_currentViewIndex];
+      g_aFrame = g_objectRbt[g_objectBeingManipulated - 1] * g_objectRbt[g_currentViewIndex - 1];
     }
   }
 }
