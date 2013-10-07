@@ -2,7 +2,7 @@ Computer Science 175
 ====================
 Assignment 2
 ------------
-This README was written using Markdown syntax -- consider using a Markdown viewer like [Dillinger](http://dillinger.io/) for a more pleasureable viewing experience!
+This README was written using Markdown syntax -- consider using a Markdown viewer like [Dillinger](http://dillinger.io/) for a more pleasurable viewing experience!
 
 ### Authors
 - Michael Tingley <michaeltingley@college.harvard.edu>
@@ -30,7 +30,7 @@ This README was written using Markdown syntax -- consider using a Markdown viewe
 * ppm.h: (as provided)
 
 ### Platform
-We developed on two differnet platforms. Michael Tingley developed on his personal laptop, running Ubuntu 13.04. Michael Traver developed on his personal laptop, running Mac OSX. We developed using OpenGL2, however, for consistency with each other's code.
+We developed on two different platforms. Michael Tingley developed on his personal laptop, running Ubuntu 13.04. Michael Traver developed on his personal laptop, running Mac OSX. We developed using OpenGL2, however, for consistency with each other's code.
 
 ### Compiling and Running
 Simply run the command `make all; ./asst2` to compile and run the code.
@@ -43,9 +43,9 @@ We filled in the bodies of `transFact` and `linFact` in `matrix4.h`. We have to 
 
 To create the second cube, we simply modified `init_cubes` to add a new cube geometry.
 
-Much of the user interaction to this program was done by calling functions in the `keyboard` callback. When we receive a `v` keypress, we call the `toggleEyeMode` function, which is responsible for setting a new `g_currentViewIndex`. When we receive an `o` keypress, we call `cycleManipulation`, which is responsible for setting a new `g_objectBeingManipulated`. When we receive an `m` keypress, we call `cycleSkyAMatrix`, which toggles our view mode for whenour eye is in the sky.
+Much of the user interaction to this program was done by calling functions in the `keyboard` callback. When we receive a `v` keypress, we call the `toggleEyeMode` function, which is responsible for setting a new `g_currentViewIndex`. When we receive an `o` keypress, we call `cycleManipulation`, which is responsible for setting a new `g_objectBeingManipulated`. When we receive an `m` keypress, we call `cycleSkyAMatrix`, which toggles our view mode for when our eye is in the sky.
 
-The transformations were all carried out by modifying `motion`. The main modifications were to correctly set what the cubes were being transformed with respect to and then do the correct transformation, as per the `doMtoOwrtA` algorithm outlined in class. We first call `setWrtFrame`, which correclty updates `g_aFrame` according to whatever the user had set (these are stored in global variables). This uses `transFact` and `linFact` to extract the correct translation and rotation components to ensure that the correct axis is being rotated or translated upon. Then, we set invert modifiers as necessary if we're transforming the object that we're viewing from so that translation and rotation behaves as per the spec. Finally, we actually carry out the `doMtoOwrtA` algorithm, and update object states.
+The transformations were all carried out by modifying `motion`. The main modifications were to correctly set what the cubes were being transformed with respect to and then do the correct transformation, as per the `doMtoOwrtA` algorithm outlined in class. We first call `setWrtFrame`, which correctly updates `g_aFrame` according to whatever the user had set (these are stored in global variables). This uses `transFact` and `linFact` to extract the correct translation and rotation components to ensure that the correct axis is being rotated or translated upon. Then, we set invert modifiers as necessary if we're transforming the object that we're viewing from so that translation and rotation behaves as per the spec. Finally, we actually carry out the `doMtoOwrtA` algorithm, and update object states.
 
 ### Testing
 Testing is straightforward from the assignment specification.
@@ -68,8 +68,8 @@ Testing is straightforward from the assignment specification.
    * Press the `m` key to switch to the 'pivot' view mode.
    * TODO ...
  * Test transforming the red cube when the eye is in the sky:
-  * Press the `o` key to switch to transformting the first cube.
-  * Rotate the cube. It should rotate inuitively as if you were moving it with your hand.
+  * Press the `o` key to switch to transforming the first cube.
+  * Rotate the cube. It should rotate intuitively as if you were moving it with your hand.
   * Translate the cube. It should translate intuitively as if you were sliding it with your hand.
   * Rotate it again. It should rotate along its own axis, not the world or sky's axis.
   * Translate it again. It should translate along your view's axis, not its axis or the world's axis.
