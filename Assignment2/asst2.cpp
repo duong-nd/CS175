@@ -379,9 +379,9 @@ static void setWrtFrame() {
     if (g_currentViewIndex == 0) {
       /* view is sky */
       if (g_skyAMatrixChoice == 0) {
-        g_aFrame = linFact(g_skyRbt);
+        g_aFrame = linFact(g_skyRbt); // world-sky
       } else {
-        g_aFrame = g_skyRbt;
+        g_aFrame = g_skyRbt; // sky-sky
       }
     } else {
       /* view is cube */
@@ -400,11 +400,26 @@ static void setWrtFrame() {
 }
 
 static void motion(const int x, const int y) {
-  const double dx = x - g_mouseClickX;
-  const double dy = g_windowHeight - y - 1 - g_mouseClickY;
-
   /* don't allow the sky frame to be manipulated if we're in a cube view */
   if (g_currentViewIndex != 0 && g_objectBeingManipulated == 0) return;
+
+  const double raw_dx = x - g_mouseClickX;
+  const double raw_dy = g_windowHeight - y - 1 - g_mouseClickY;
+
+  /* invert dx and/or dy depending on the situation */
+  double dx_t, dx_r, dy_t, dy_r;
+  if (g_objectBeingManipulated != 0 && g_currentViewIndex != g_objectBeingManipulated) {
+    /* manipulating cube, and view not from that cube */
+    dx_t = raw_dx; dx_r = raw_dx;
+    dy_t = raw_dy; dy_r = raw_dy;
+  } else if (g_objectBeingManipulated == 0 && g_currentViewIndex == 0 && g_skyAMatrixChoice == 0) {
+    /* manipulating sky camera, while eye is sky camera, and while in world-sky mode */
+    dx_t = -raw_dx; dx_r = -raw_dx;
+    dy_t = -raw_dy; dy_r = -raw_dy;
+  } else {
+    dx_t = raw_dx; dx_r = -raw_dx;
+    dy_t = raw_dy; dy_r = -raw_dy;
+  }
 
   /* setting the auxiliary frame here because it needs to be updated
    * whenever a translation occurs; this also covers all other cases
@@ -414,17 +429,13 @@ static void motion(const int x, const int y) {
 
   Matrix4 m;
   if (g_mouseLClickButton && !g_mouseRClickButton) { // left button down?
-    if (g_currentViewIndex == g_objectBeingManipulated) { // Currently manipulating the sky?
-      m = Matrix4::makeXRotation(dy) * Matrix4::makeYRotation(-dx);
-    } else {
-      m = Matrix4::makeXRotation(-dy) * Matrix4::makeYRotation(dx);
-    }
+    m = Matrix4::makeXRotation(-dy_r) * Matrix4::makeYRotation(dx_r);
   }
   else if (g_mouseRClickButton && !g_mouseLClickButton) { // right button down?
-    m = Matrix4::makeTranslation(Cvec3(dx, dy, 0) * 0.01);
+    m = Matrix4::makeTranslation(Cvec3(dx_t, dy_t, 0) * 0.01);
   }
   else if (g_mouseMClickButton || (g_mouseLClickButton && g_mouseRClickButton)) {  // middle or (left and right) button down?
-    m = Matrix4::makeTranslation(Cvec3(0, 0, -dy) * 0.01);
+    m = Matrix4::makeTranslation(Cvec3(0, 0, -dy_t) * 0.01);
   }
   m = g_aFrame * m * inv(g_aFrame);
 
