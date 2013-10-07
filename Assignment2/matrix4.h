@@ -283,7 +283,7 @@ inline Matrix4 normalMatrix(const Matrix4& m) {
  */
 inline Matrix4 transFact(const Matrix4& m) {
   Matrix4 translationMatrix;
-  // Extract the translation part of m into the return matrix
+  /* Extract the translation part of m into the return matrix. */
   for (int i = 0; i < 3; i++) {
     translationMatrix(i,3) = m(i,3);
   }
@@ -297,13 +297,13 @@ inline Matrix4 transFact(const Matrix4& m) {
  */
 inline Matrix4 linFact(const Matrix4& m) {
   Matrix4 rotationMatrix(0);
-  // Extract the rotation part of m into the 3x3 portion of the rotationMatrix
+  /* Extract the rotation part of m into the 3x3 part of the rotationMatrix */
   for (int i = 0; i < 3; i++) {
     for (int j = 0; j < 3; j++) {
       rotationMatrix(i,j) = m(i,j);
     }
   }
-  // Set the bottom right corner of rotationMatrix to 1 (the rest will be 0)
+  /* Set the bottom right corner of rotationMatrix to 1 (the rest will be 0) */
   rotationMatrix(3,3) = 1;
   return rotationMatrix;
 }
