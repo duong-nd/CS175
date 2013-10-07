@@ -363,12 +363,54 @@ static void reshape(const int w, const int h) {
   glutPostRedisplay();
 }
 
+/**
+ * - If we're manipulating a cube and the eye is the sky, this should be the
+ *   cube-sky frame.
+ * - If we're manipulating cube i and eye is cube j, this should be the
+ *   cube i-cube j frame.
+ * - If we're manipulating the sky camera and eye is the sky, we have two
+ *   viable frames, and pressing 'm' switches between them:
+ *   - World-sky frame (like orbiting around the world)
+ *   - Sky-sky frame (like moving your head)
+ */
+static void setWrtFrame() {
+  if (g_objectBeingManipulated == 0) {
+    /* manipulating sky */
+    if (g_currentViewIndex == 0) {
+      /* view is sky */
+      if (g_skyAMatrixChoice == 0) {
+        g_aFrame = linFact(g_skyRbt);
+      } else {
+        g_aFrame = g_skyRbt;
+      }
+    } else {
+      /* view is cube */
+      /* we don't allow this */
+    }
+  } else {
+    /* manipulating cube */
+    if (g_currentViewIndex == 0) {
+      /* view is sky */
+      g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_skyRbt);
+    } else {
+      /* view is cube */
+      g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_objectRbt[g_currentViewIndex - 1]);
+    }
+  }
+}
+
 static void motion(const int x, const int y) {
   const double dx = x - g_mouseClickX;
   const double dy = g_windowHeight - y - 1 - g_mouseClickY;
 
   /* don't allow the sky frame to be manipulated if we're in a cube view */
   if (g_currentViewIndex != 0 && g_objectBeingManipulated == 0) return;
+
+  /* setting the auxiliary frame here because it needs to be updated
+   * whenever a translation occurs; this also covers all other cases
+   * for which it needs to be updated, including view and object
+   * manipulation changes */
+  setWrtFrame();
 
   Matrix4 m;
   if (g_mouseLClickButton && !g_mouseRClickButton) { // left button down?
@@ -411,42 +453,6 @@ static void mouse(const int button, const int state, const int x, const int y) {
   g_mouseClickDown = g_mouseLClickButton || g_mouseRClickButton || g_mouseMClickButton;
 }
 
-/**
- * - If we're manipulating a cube and the eye is the sky, this should be the
- *   cube-sky frame.
- * - If we're manipulating cube i and eye is cube j, this should be the
- *   cube i-cube j frame.
- * - If we're manipulating the sky camera and eye is the sky, we have two
- *   viable frames, and pressing 'm' switches between them:
- *   - World-sky frame (like orbiting around the world)
- *   - Sky-sky frame (like moving your head)
- */
-static void setWrtFrame() {
-  if (g_objectBeingManipulated == 0) {
-    /* manipulating sky */
-    if (g_currentViewIndex == 0) {
-      /* view is sky */
-      if (g_skyAMatrixChoice == 0) {
-        g_aFrame = linFact(g_skyRbt);
-      } else {
-        g_aFrame = g_skyRbt;
-      }
-    } else {
-      /* view is cube */
-      /* we don't allow this */
-    }
-  } else {
-    /* manipulating cube */
-    if (g_currentViewIndex == 0) {
-      /* view is sky */
-      g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_skyRbt);
-    } else {
-      /* view is cube */
-      g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_objectRbt[g_currentViewIndex - 1]);
-    }
-  }
-}
-
 static void cycleSkyAMatrix() {
   /* only allow this to be toggled if we're manipulating the sky while using the sky camera */
   if (g_objectBeingManipulated == 0 && g_currentViewIndex == 0) {
@@ -459,12 +465,10 @@ static void cycleSkyAMatrix() {
   } else {
     cout << "Unable to change sky manipulation mode while in this view." << endl;
   }
-  setWrtFrame();
 }
 
 /**
- * Toggles the frame to be used with the sky camera. Also updates g_aFrame if the
- * current objectBeingManipulated is the SKY.
+ * Toggles the frame to be used with the sky camera.
  */
 static void toggleEyeMode() {
   g_currentViewIndex = (g_currentViewIndex + 1) % g_numberOfViews;
@@ -473,12 +477,10 @@ static void toggleEyeMode() {
   } else {
     cout << "Using object " << g_currentViewIndex << " view" << endl;
   }
-
-  setWrtFrame();
 }
 
 /**
- * Cycles which object is being manipulated, and also sets the correct g_aFrame.
+ * Cycles which object is being manipulated.
  */
 static void cycleManipulation() {
   g_objectBeingManipulated = (g_objectBeingManipulated + 1) % g_numberOfViews;
@@ -487,7 +489,6 @@ static void cycleManipulation() {
   } else {
     cout << "Manipulating object " << g_objectBeingManipulated << endl;
   }
-  setWrtFrame();
 }
 
 static void keyboard(const unsigned char key, const int x, const int y) {
