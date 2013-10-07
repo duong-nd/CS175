@@ -372,7 +372,11 @@ static void motion(const int x, const int y) {
 
   Matrix4 m;
   if (g_mouseLClickButton && !g_mouseRClickButton) { // left button down?
-    m = Matrix4::makeXRotation(-dy) * Matrix4::makeYRotation(dx);
+    if (g_currentViewIndex == g_objectBeingManipulated) { // Currently manipulating the sky?
+      m = Matrix4::makeXRotation(dy) * Matrix4::makeYRotation(-dx);
+    } else {
+      m = Matrix4::makeXRotation(-dy) * Matrix4::makeYRotation(dx);
+    }
   }
   else if (g_mouseRClickButton && !g_mouseLClickButton) { // right button down?
     m = Matrix4::makeTranslation(Cvec3(dx, dy, 0) * 0.01);
