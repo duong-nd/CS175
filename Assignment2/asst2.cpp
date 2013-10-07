@@ -214,7 +214,6 @@ static const int g_numberOfViews = g_numObjects + 1;
  */
 static Matrix4 g_aFrame = linFact(g_skyRbt);
 
-
 /** start with the sky camera as the object that's manipulated by the mouse */
 static int g_objectBeingManipulated = 0;
 
@@ -369,26 +368,18 @@ static void reshape(const int w, const int h) {
  *   - Sky-sky frame (like moving your head)
  */
 static void setWrtFrame() {
-  if (g_objectBeingManipulated == 0) {
-    /* manipulating sky */
-    if (g_currentViewIndex == 0) {
-      /* view is sky */
+  if (g_objectBeingManipulated == 0) { /* manipulating sky */
+    if (g_currentViewIndex == 0) { /* view is sky */
       if (g_skyAMatrixChoice == 0) {
-        g_aFrame = linFact(g_skyRbt); // world-sky
+        g_aFrame = linFact(g_skyRbt); /* world-sky */
       } else {
-        g_aFrame = g_skyRbt; // sky-sky
+        g_aFrame = g_skyRbt; /* sky-sky */
       }
-    } else {
-      /* view is cube */
-      /* we don't allow this */
     }
-  } else {
-    /* manipulating cube */
-    if (g_currentViewIndex == 0) {
-      /* view is sky */
+  } else { /* manipulating cube */
+    if (g_currentViewIndex == 0) { /* view is sky */
       g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_skyRbt);
-    } else {
-      /* view is cube */
+    } else { /* view is cube */
       g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_objectRbt[g_currentViewIndex - 1]);
     }
   }
