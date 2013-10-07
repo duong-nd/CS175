@@ -63,10 +63,12 @@ Testing is straightforward from the assignment specification.
 * Step 4
  * Test the eye's behavior when the eye is in the sky:
   * Test the 'orbit' (world-sky) view mode behavior:
-   * TODO ...
+   * Ensure that orbiting is done as is done in the binary solution.
+   * Ensure that translation is done as is done in the binary solution.
   * Test the 'pivot' (sky-sky) view mode behavior:
    * Press the `m` key to switch to the 'pivot' view mode.
-   * TODO ...
+   * Ensure that pivoting is done as is done in the binary solution.
+   * Ensure that translation is done as is done in the binary solution.
  * Test transforming the red cube when the eye is in the sky:
   * Press the `o` key to switch to transforming the first cube.
   * Rotate the cube. It should rotate intuitively as if you were moving it with your hand.
