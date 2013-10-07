@@ -198,12 +198,7 @@ static Cvec3f g_objectColors[g_numObjects] = {Cvec3f(1, 0, 0), Cvec3f(0, 1, 0)};
  * the sky).
  */
 static const int g_numberOfViews = g_numObjects + 1;
-/**
- * The object currently being manipulated. Pressing the 'o' key cycles between
- * available objects. Should always be less than g_numberOfViews.
- */
-enum WorldObject { RED_CUBE, GREEN_CUBE, SKY };
-static WorldObject objectBeingManipulated = RED_CUBE;
+
 /**
  * Frame that we're manipulating the current object with respect to. This is:
  * - If we're manipulating a cube and the eye is the sky, this should be the
