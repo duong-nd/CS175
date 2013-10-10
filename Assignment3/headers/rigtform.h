@@ -17,15 +17,16 @@ public:
   }
 
   RigTForm(const Cvec3& t, const Quat& r) {
-    //TODO
+    t_ = t;
+    r_ = r;
   }
 
   explicit RigTForm(const Cvec3& t) {
-    // TODO
+    RigTForm(t, r_); // TODO 
   }
 
   explicit RigTForm(const Quat& r) {
-    // TODO
+    RigTForm(t_, r); // TODO 
   }
 
   Cvec3 getTranslation() const {
@@ -47,11 +48,16 @@ public:
   }
 
   Cvec4 operator * (const Cvec4& a) const {
-    // TODO
+    if (a[3] == 0) {
+      return r_ * a;
+    }
+    return r_ * a + Cvec4(t_, 0);
   }
 
-  RigTForm operator * (const RigTForm& a) const {
-    // TODO
+  RigTForm operator * (const RigTForm& a) const {5t
+    Cvec3 foo = Cvec4(t_, 0) + r_ * Cvec4(a.t_, 0);
+    // Quat bar = r_ * Cvec4(a.r_, 0);
+    // return RigTForm(foo, bar);
   }
 };
 
