@@ -54,10 +54,10 @@ public:
     return r_ * a + Cvec4(t_, 0);
   }
 
-  RigTForm operator * (const RigTForm& a) const {5t
-    Cvec3 foo = Cvec4(t_, 0) + r_ * Cvec4(a.t_, 0);
-    // Quat bar = r_ * Cvec4(a.r_, 0);
-    // return RigTForm(foo, bar);
+  RigTForm operator * (const RigTForm& a) const {
+    Cvec3 foo = Cvec3(Cvec4(t_, 0) + r_ * Cvec4(a.t_, 0));
+    Quat bar = r_ * a.r_;
+    return RigTForm(foo, bar);
   }
 };
 
