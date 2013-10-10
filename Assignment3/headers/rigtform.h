@@ -22,11 +22,11 @@ public:
   }
 
   explicit RigTForm(const Cvec3& t) {
-    RigTForm(t, r_); // TODO 
+    RigTForm(t, r_); // TODO
   }
 
   explicit RigTForm(const Quat& r) {
-    RigTForm(t_, r); // TODO 
+    RigTForm(t_, r); // TODO
   }
 
   Cvec3 getTranslation() const {
@@ -48,21 +48,23 @@ public:
   }
 
   Cvec4 operator * (const Cvec4& a) const {
-    if (a[3] == 0) {
-      return r_ * a;
-    }
-    return r_ * a + Cvec4(t_, 0);
+    return r_ * a + Cvec4(t_, 0) * a[3];
   }
 
   RigTForm operator * (const RigTForm& a) const {
-    Cvec3 foo = Cvec3(Cvec4(t_, 0) + r_ * Cvec4(a.t_, 0));
-    Quat bar = r_ * a.r_;
-    return RigTForm(foo, bar);
+    return RigTForm(
+      Cvec3(Cvec4(t_, 0) + r_ * Cvec4(a.t_, 0)),
+      r_ * a.getRotation()
+    );
   }
 };
 
 inline RigTForm inv(const RigTForm& tform) {
-  // TODO
+  Quat r_inv = inv(tform.getRotation());
+  return RigTForm(
+    Cvec3(r_inv * -1.0 * Cvec4(tform.getTranslation(), 0)),
+    r_inv
+  );
 }
 
 inline RigTForm transFact(const RigTForm& tform) {
