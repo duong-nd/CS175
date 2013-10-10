@@ -22,11 +22,11 @@ public:
   }
 
   explicit RigTForm(const Cvec3& t) {
-    RigTForm(t, r_); // TODO is this right?
+    RigTForm(t, Quat());
   }
 
   explicit RigTForm(const Quat& r) {
-    RigTForm(t_, r); // TODO is this right?
+    RigTForm(Cvec3(0, 0, 0), r);
   }
 
   Cvec3 getTranslation() const {
