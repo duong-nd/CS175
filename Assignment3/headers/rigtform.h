@@ -69,7 +69,8 @@ inline RigTForm linFact(const RigTForm& tform) {
 
 inline Matrix4 rigTFormToMatrix(const RigTForm& tform) {
   // TODO
-  return m;
+  // return m;
+  return NULL;
 }
 
 #endif

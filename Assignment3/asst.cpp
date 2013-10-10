@@ -1,10 +1,11 @@
-////////////////////////////////////////////////////////////////////////
-//
-//   Harvard University
-//   CS175 : Computer Graphics
-//   Professor Steven Gortler
-//
-////////////////////////////////////////////////////////////////////////
+/*******************************************************************************
+ *
+ *   Harvard University
+ *   CS175 : Computer Graphics
+ *   Professor Steven Gortler
+ *   Problem Set by Michael Tingley and Michael Traver
+ *
+ ******************************************************************************/
 
 #include <vector>
 #include <string>
@@ -26,65 +27,65 @@
 #include "headers/geometrymaker.h"
 #include "headers/ppm.h"
 #include "headers/glsupport.h"
+#include "headers/arcball.h"
+#include "headers/quat.h"
+#include "headers/rigtform.h"
 
-using namespace std;      // for string, vector, iostream, and other standard C++ stuff
-using namespace tr1; // for shared_ptr
+#define ESCAPE_KEY 27
 
-// G L O B A L S ///////////////////////////////////////////////////
+/* For string, vector, iostream, and other standard C++ stuff */
+using namespace std;
+/* For shared_ptr */
+using namespace tr1;
 
-// --------- IMPORTANT --------------------------------------------------------
-// Before you start working on this assignment, set the following variable
-// properly to indicate whether you want to use OpenGL 2.x with GLSL 1.0 or
-// OpenGL 3.x+ with GLSL 1.3.
-//
-// Set g_Gl2Compatible = true to use GLSL 1.0 and g_Gl2Compatible = false to
-// use GLSL 1.3. Make sure that your machine supports the version of GLSL you
-// are using. In particular, on Mac OS X currently there is no way of using
-// OpenGL 3.x with GLSL 1.3 when GLUT is used.
-//
-// If g_Gl2Compatible=true, shaders with -gl2 suffix will be loaded.
-// If g_Gl2Compatible=false, shaders with -gl3 suffix will be loaded.
-// To complete the assignment you only need to edit the shader files that get
-// loaded
-// ----------------------------------------------------------------------------
+/** G L O B A L S *************************************************************/
 static const bool g_Gl2Compatible = true;
 
 
-static const float g_frustMinFov = 60.0;  // A minimal of 60 degree field of view
-static float g_frustFovY = g_frustMinFov; // FOV in y direction (updated by updateFrustFovY)
+/** A minimal of 60 degree field of view */
+static const float g_frustMinFov = 60.0;
+/** FOV in y direction (updated by updateFrustFovY) */
+static float g_frustFovY = g_frustMinFov;
 
-static const float g_frustNear = -0.1;    // near plane
-static const float g_frustFar = -50.0;    // far plane
-static const float g_groundY = -2.0;      // y coordinate of the ground
-static const float g_groundSize = 10.0;   // half the ground length
+/** Near plane */
+static const float g_frustNear = -0.1;
+/** Far plane */
+static const float g_frustFar = -50.0;
+/** Y-coordinate of the ground */
+static const float g_groundY = -2.0;
+/** Half the ground length */
+static const float g_groundSize = 10.0;
 
 static int g_windowWidth = 512;
 static int g_windowHeight = 512;
-static bool g_mouseClickDown = false;    // is the mouse button pressed
+/** Is the mouse button pressed */
+static bool g_mouseClickDown = false;
 static bool g_mouseLClickButton, g_mouseRClickButton, g_mouseMClickButton;
-static int g_mouseClickX, g_mouseClickY; // coordinates for mouse click event
+/** Coordinates for mouse click event */
+static int g_mouseClickX, g_mouseClickY;
 static int g_activeShader = 0;
 
 struct ShaderState {
   GlProgram program;
 
-  // Handles to uniform variables
+  /** Handles to uniform variables */
   GLint h_uLight, h_uLight2;
   GLint h_uProjMatrix;
   GLint h_uModelViewMatrix;
   GLint h_uNormalMatrix;
   GLint h_uColor;
 
-  // Handles to vertex attributes
+  /** Handles to vertex attributes */
   GLint h_aPosition;
   GLint h_aNormal;
 
   ShaderState(const char* vsfn, const char* fsfn) {
     readAndCompileShader(program, vsfn, fsfn);
 
-    const GLuint h = program; // short hand
+    /** Short hand reference for the program */
+    const GLuint h = program;
 
-    // Retrieve handles to uniform variables
+    /** Retrieve handles to uniform variables */
     h_uLight = safe_glGetUniformLocation(h, "uLight");
     h_uLight2 = safe_glGetUniformLocation(h, "uLight2");
     h_uProjMatrix = safe_glGetUniformLocation(h, "uProjMatrix");
@@ -92,7 +93,7 @@ struct ShaderState {
     h_uNormalMatrix = safe_glGetUniformLocation(h, "uNormalMatrix");
     h_uColor = safe_glGetUniformLocation(h, "uColor");
 
-    // Retrieve handles to vertex attributes
+    /** Retrieve handles to vertex attributes */
     h_aPosition = safe_glGetAttribLocation(h, "aPosition");
     h_aNormal = safe_glGetAttribLocation(h, "aNormal");
 
@@ -112,14 +113,15 @@ static const char * const g_shaderFilesGl2[g_numShaders][2] = {
   {"./shaders/basic-gl2.vshader", "./shaders/diffuse-gl2.fshader"},
   {"./shaders/basic-gl2.vshader", "./shaders/solid-gl2.fshader"}
 };
-static vector<shared_ptr<ShaderState> > g_shaderStates; // our global shader states
+/** Our global shader states */
+static vector<shared_ptr<ShaderState> > g_shaderStates;
 
-// --------- Geometry
+/** GEOMETRY */
 
-// Macro used to obtain relative offset of a field within a struct
+/** Macro used to obtain relative offset of a field within a struct */
 #define FIELD_OFFSET(StructType, field) &(((StructType *)0)->field)
 
-// A vertex with floating point position and normal
+/** A vertex with floating point position and normal */
 struct VertexPN {
   Cvec3f p, n;
 
@@ -129,8 +131,10 @@ struct VertexPN {
     : p(x,y,z), n(nx, ny, nz)
   {}
 
-  // Define copy constructor and assignment operator from GenericVertex so we can
-  // use make* functions from geometrymaker.h
+  /**
+   * Define copy constructor and assignment operator from GenericVertex so we
+   * can use make* functions from geometrymaker.h.
+   */
   VertexPN(const GenericVertex& v) {
     *this = v;
   }
@@ -150,7 +154,7 @@ struct Geometry {
     this->vboLen = vboLen;
     this->iboLen = iboLen;
 
-    // Now create the VBO and IBO
+    /* Now create the VBO and IBO */
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(VertexPN) * vboLen, vtx, GL_STATIC_DRAW);
 
@@ -159,34 +163,37 @@ struct Geometry {
   }
 
   void draw(const ShaderState& curSS) {
-    // Enable the attributes used by our shader
+    /* Enable the attributes used by our shader */
     safe_glEnableVertexAttribArray(curSS.h_aPosition);
     safe_glEnableVertexAttribArray(curSS.h_aNormal);
 
-    // bind vbo
+    /* Bind vbo */
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     safe_glVertexAttribPointer(curSS.h_aPosition, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPN), FIELD_OFFSET(VertexPN, p));
     safe_glVertexAttribPointer(curSS.h_aNormal, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPN), FIELD_OFFSET(VertexPN, n));
 
-    // bind ibo
+    /* Bind ibo */
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
 
-    // draw!
+    /* Draw! */
     glDrawElements(GL_TRIANGLES, iboLen, GL_UNSIGNED_SHORT, 0);
 
-    // Disable the attributes used by our shader
+    /* Disable the attributes used by our shader */
     safe_glDisableVertexAttribArray(curSS.h_aPosition);
     safe_glDisableVertexAttribArray(curSS.h_aNormal);
   }
 };
 
 
-// Vertex buffer and index buffer associated with the ground and cube geometry
+/**
+ * Vertex buffer and index buffer associated with the ground and cube geometry
+ */
 static shared_ptr<Geometry> g_ground, g_cube, g_cube2;
 
-// --------- Scene
+/** SCENE */
 
-static const Cvec3 g_light1(2.0, 3.0, 14.0), g_light2(-2, -3.0, -5.0);  // define two lights positions in world space
+/** Define two lights positions in world space */
+static const Cvec3 g_light1(2.0, 3.0, 14.0), g_light2(-2, -3.0, -5.0);
 static Matrix4 g_skyRbt = Matrix4::makeTranslation(Cvec3(0.0, 0.25, 4.0));
 static const int g_numObjects = 2;
 static int g_currentViewIndex = 0;
@@ -214,7 +221,7 @@ static const int g_numberOfViews = g_numObjects + 1;
  */
 static Matrix4 g_aFrame = linFact(g_skyRbt);
 
-/** start with the sky camera as the object that's manipulated by the mouse */
+/** Start with the sky camera as the object that's manipulated by the mouse */
 static int g_objectBeingManipulated = 0;
 
 /**
@@ -226,13 +233,12 @@ static int g_objectBeingManipulated = 0;
  */
 static int g_skyAMatrixChoice = 0;
 
-///////////////// END OF G L O B A L S //////////////////////////////////////////////////
-
-
-
+/** METHODS *******************************************************************/
 
 static void initGround() {
-  // A x-z plane at y = g_groundY of dimension [-g_groundSize, g_groundSize]^2
+  /**
+   * An x-z plane at y = g_groundY of dimension [-g_groundSize, g_groundSize]^2
+   */
   VertexPN vtx[4] = {
     VertexPN(-g_groundSize, g_groundY, -g_groundSize, 0, 1, 0),
     VertexPN(-g_groundSize, g_groundY,  g_groundSize, 0, 1, 0),
@@ -247,7 +253,7 @@ static void initCubes() {
   int ibLen, vbLen;
   getCubeVbIbLen(vbLen, ibLen);
 
-  // Temporary storage for cube geometry
+  /* Temporary storage for cube geometry */
   vector<VertexPN> vtx(vbLen);
   vector<unsigned short> idx(ibLen);
 
@@ -260,24 +266,27 @@ static void initCubes() {
   g_cube2.reset(new Geometry(&vtx_2[0], &idx_2[0], vbLen, ibLen));
 }
 
-// takes a projection matrix and send to the the shaders
+/** Takes a projection matrix and send to the the shaders */
 static void sendProjectionMatrix(const ShaderState& curSS, const Matrix4& projMatrix) {
   GLfloat glmatrix[16];
-  projMatrix.writeToColumnMajorMatrix(glmatrix); // send projection matrix
+  /* Send projection matrix */
+  projMatrix.writeToColumnMajorMatrix(glmatrix);
   safe_glUniformMatrix4fv(curSS.h_uProjMatrix, glmatrix);
 }
 
-// takes MVM and its normal matrix to the shaders
+/** Takes MVM and its normal matrix to the shaders */
 static void sendModelViewNormalMatrix(const ShaderState& curSS, const Matrix4& MVM, const Matrix4& NMVM) {
   GLfloat glmatrix[16];
-  MVM.writeToColumnMajorMatrix(glmatrix); // send MVM
+  /* Send MVM */
+  MVM.writeToColumnMajorMatrix(glmatrix);
   safe_glUniformMatrix4fv(curSS.h_uModelViewMatrix, glmatrix);
 
-  NMVM.writeToColumnMajorMatrix(glmatrix); // send NMVM
+  /* Send NMVM */
+  NMVM.writeToColumnMajorMatrix(glmatrix);
   safe_glUniformMatrix4fv(curSS.h_uNormalMatrix, glmatrix);
 }
 
-// update g_frustFovY from g_frustMinFov, g_windowWidth, and g_windowHeight
+/** Update g_frustFovY from g_frustMinFov, g_windowWidth, and g_windowHeight */
 static void updateFrustFovY() {
   if (g_windowWidth >= g_windowHeight)
     g_frustFovY = g_frustMinFov;
@@ -294,36 +303,36 @@ static Matrix4 makeProjectionMatrix() {
 }
 
 static void drawStuff() {
-  // short hand for current shader state
+  /* Short hand for current shader state */
   const ShaderState& curSS = *g_shaderStates[g_activeShader];
 
-  // build & send proj. matrix to vshader
+  /* Build & send proj. matrix to vshader */
   const Matrix4 projmat = makeProjectionMatrix();
   sendProjectionMatrix(curSS, projmat);
 
-  // set the camera view
+  /* Set the camera view */
   const Matrix4 eyeRbt = (g_currentViewIndex == 0) ? g_skyRbt : g_objectRbt[g_currentViewIndex - 1];
 
-  // const Matrix4 eyeRbt = views[g_currentViewIndex];
   const Matrix4 invEyeRbt = inv(eyeRbt);
 
-  const Cvec3 eyeLight1 = Cvec3(invEyeRbt * Cvec4(g_light1, 1)); // g_light1 position in eye coordinates
-  const Cvec3 eyeLight2 = Cvec3(invEyeRbt * Cvec4(g_light2, 1)); // g_light2 position in eye coordinates
+  /* g_light1 position in eye coordinates */
+  const Cvec3 eyeLight1 = Cvec3(invEyeRbt * Cvec4(g_light1, 1));
+  /* g_light2 position in eye coordinates */
+  const Cvec3 eyeLight2 = Cvec3(invEyeRbt * Cvec4(g_light2, 1));
   safe_glUniform3f(curSS.h_uLight, eyeLight1[0], eyeLight1[1], eyeLight1[2]);
   safe_glUniform3f(curSS.h_uLight2, eyeLight2[0], eyeLight2[1], eyeLight2[2]);
 
-  // draw ground
-  // ===========
-  //
-  const Matrix4 groundRbt = Matrix4();  // identity
+  /* Now we'll draw the ground. */
+  /* Identity */
+  const Matrix4 groundRbt = Matrix4();
   Matrix4 MVM = invEyeRbt * groundRbt;
   Matrix4 NMVM = normalMatrix(MVM);
   sendModelViewNormalMatrix(curSS, MVM, NMVM);
-  safe_glUniform3f(curSS.h_uColor, 0.1, 0.95, 0.1); // set color
+  /* Set color */
+  safe_glUniform3f(curSS.h_uColor, 0.1, 0.95, 0.1);
   g_ground->draw(curSS);
 
-  // draw cubes
-  // ==========
+  /* Now we'll draw the cubes. */
   MVM = invEyeRbt * g_objectRbt[0];
   NMVM = normalMatrix(MVM);
   sendModelViewNormalMatrix(curSS, MVM, NMVM);
@@ -339,11 +348,13 @@ static void drawStuff() {
 
 static void display() {
   glUseProgram(g_shaderStates[g_activeShader]->program);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);                   // clear framebuffer color&depth
+  /* Clear framebuffer color & depth */
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   drawStuff();
 
-  glutSwapBuffers();                                    // show the back buffer (where we rendered stuff)
+  /* Show the back buffer (where we rendered stuff) */
+  glutSwapBuffers();
 
   checkGlErrors();
 }
@@ -407,20 +418,22 @@ static void motion(const int x, const int y) {
     dy_t = raw_dy; dy_r = -raw_dy;
   }
 
-  /* setting the auxiliary frame here because it needs to be updated
-   * whenever a translation occurs; this also covers all other cases
-   * for which it needs to be updated, including view and object
-   * manipulation changes */
+  /* Setting the auxiliary frame here because it needs to be updated whenever a
+   * translation occurs; this also covers all other cases for which it needs to
+   * be updated, including view and object manipulation changes. */
   setWrtFrame();
 
   Matrix4 m;
-  if (g_mouseLClickButton && !g_mouseRClickButton) { // left button down?
+  /* Left button down? */
+  if (g_mouseLClickButton && !g_mouseRClickButton) {
     m = Matrix4::makeXRotation(-dy_r) * Matrix4::makeYRotation(dx_r);
   }
-  else if (g_mouseRClickButton && !g_mouseLClickButton) { // right button down?
+  /* Right button down? */
+  else if (g_mouseRClickButton && !g_mouseLClickButton) {
     m = Matrix4::makeTranslation(Cvec3(dx_t, dy_t, 0) * 0.01);
   }
-  else if (g_mouseMClickButton || (g_mouseLClickButton && g_mouseRClickButton)) {  // middle or (left and right) button down?
+  /* Middle or (left and right) button down? */
+  else if (g_mouseMClickButton || (g_mouseLClickButton && g_mouseRClickButton)) {
     m = Matrix4::makeTranslation(Cvec3(0, 0, -dy_t) * 0.01);
   }
   m = g_aFrame * m * inv(g_aFrame);
@@ -431,7 +444,8 @@ static void motion(const int x, const int y) {
     } else {
       g_objectRbt[g_objectBeingManipulated - 1] = m * g_objectRbt[g_objectBeingManipulated - 1];
     }
-    glutPostRedisplay(); // we always redraw if we changed the scene
+    /* Always redraw if we changed the scene */
+    glutPostRedisplay();
   }
 
   g_mouseClickX = x;
@@ -441,7 +455,8 @@ static void motion(const int x, const int y) {
 
 static void mouse(const int button, const int state, const int x, const int y) {
   g_mouseClickX = x;
-  g_mouseClickY = g_windowHeight - y - 1;  // conversion from GLUT window-coordinate-system to OpenGL window-coordinate-system
+  /* Conversion from GLUT window-coordinate-system to OpenGL window-coordinate-system */
+  g_mouseClickY = g_windowHeight - y - 1;
 
   g_mouseLClickButton |= (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN);
   g_mouseRClickButton |= (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN);
@@ -494,8 +509,8 @@ static void cycleManipulation() {
 
 static void keyboard(const unsigned char key, const int x, const int y) {
   switch (key) {
-    case 27:
-      exit(0);                                  // ESC
+    case ESCAPE_KEY:
+      exit(0);
     case 'h':
       cout << " ============== H E L P ==============\n\n"
       << "h\t\thelp menu\n"
@@ -526,15 +541,23 @@ static void keyboard(const unsigned char key, const int x, const int y) {
 }
 
 static void initGlutState(int argc, char * argv[]) {
-  glutInit(&argc, argv);                                  // initialize Glut based on cmd-line args
-  glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE|GLUT_DEPTH);  //  RGBA pixel channels and double buffering
-  glutInitWindowSize(g_windowWidth, g_windowHeight);      // create a window
-  glutCreateWindow("Assignment 2");                       // title the window
+  /* Initialize Glut based on cmd-line args */
+  glutInit(&argc, argv);
+  /* RGBA pixel channels and double buffering */
+  glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE|GLUT_DEPTH);
+  /* Create a window */
+  glutInitWindowSize(g_windowWidth, g_windowHeight);
+  /* Title the window */
+  glutCreateWindow("Assignment 2");
 
-  glutDisplayFunc(display);                               // display rendering callback
-  glutReshapeFunc(reshape);                               // window reshape callback
-  glutMotionFunc(motion);                                 // mouse movement callback
-  glutMouseFunc(mouse);                                   // mouse click callback
+  /* Display rendering callback */
+  glutDisplayFunc(display);
+  /* Window reshape callback */
+  glutReshapeFunc(reshape);
+  /* Mouse movement callback */
+  glutMotionFunc(motion);
+  /* Mouse click callback */
+  glutMouseFunc(mouse);
   glutKeyboardFunc(keyboard);
 }
 
@@ -571,7 +594,8 @@ int main(int argc, char * argv[]) {
   try {
     initGlutState(argc,argv);
 
-    glewInit(); // load the OpenGL extensions
+    /* Load the OpenGL extensions */
+    glewInit();
 
     cout << (g_Gl2Compatible ? "Will use OpenGL 2.x / GLSL 1.0" : "Will use OpenGL 3.x / GLSL 1.3") << endl;
     if ((!g_Gl2Compatible) && !GLEW_VERSION_3_0)
