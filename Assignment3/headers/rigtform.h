@@ -22,11 +22,19 @@ public:
   }
 
   explicit RigTForm(const Cvec3& t) {
+<<<<<<< HEAD
     RigTForm(t, r_); // TODO
   }
 
   explicit RigTForm(const Quat& r) {
     RigTForm(t_, r); // TODO
+=======
+    RigTForm(t, r_); // TODO is this right?
+  }
+
+  explicit RigTForm(const Quat& r) {
+    RigTForm(t_, r); // TODO is this right?
+>>>>>>> 57c4b62f80ae2cb8f1539343fd954d2898d22f2f
   }
 
   Cvec3 getTranslation() const {
