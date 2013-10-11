@@ -411,11 +411,14 @@ static void drawStuff() {
     sphereTarget = g_objectRbt[g_objectBeingManipulated - 1];
   }
 
-  g_arcballScale = getScreenToEyeScale(
-    (inv(eyeRbt) * sphereTarget).getTranslation()[2],
-    g_frustFovY,
-    g_windowHeight
-  );
+  /* don't update g_arcballScale if we're translating in the z direction */
+  if (!g_mouseMClickButton && !(g_mouseLClickButton && g_mouseRClickButton)) {
+    g_arcballScale = getScreenToEyeScale(
+      (inv(eyeRbt) * sphereTarget).getTranslation()[2],
+      g_frustFovY,
+      g_windowHeight
+    );
+  }
 
   /* draw wireframes */
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -553,6 +556,8 @@ static void mouse(const int button, const int state, const int x, const int y) {
   g_mouseMClickButton &= !(button == GLUT_MIDDLE_BUTTON && state == GLUT_UP);
 
   g_mouseClickDown = g_mouseLClickButton || g_mouseRClickButton || g_mouseMClickButton;
+
+  glutPostRedisplay();
 }
 
 static void cycleSkyAChoice() {
