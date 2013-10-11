@@ -409,7 +409,7 @@ static void drawStuff() {
   RigTForm sphereTarget;
   if (g_objectBeingManipulated == 0) {
     if (g_skyViewChoice == 0) {
-      sphereTarget = linFact(g_skyRbt);
+      sphereTarget = inv(RigTForm());
     } else {
       sphereTarget = eyeRbt;
     }
