@@ -359,6 +359,14 @@ static void drawStuff() {
   // TODO need to call this here so that the arcball moves when we change the object we're manipulating; any way to call this function less?
   setWrtFrame();
 
+  const double z = g_objectRbt[0].getTranslation()[2];
+  cout << "z: " << z << endl;
+  if (z < 0) {
+    g_arcballScale = getScreenToEyeScale(-z, g_frustFovY, g_windowHeight);
+  } else {
+    g_arcballScale = getScreenToEyeScale(z, g_frustFovY, g_windowHeight);
+  }
+
   /* Short hand for current shader state */
   const ShaderState& curSS = *g_shaderStates[g_activeShader];
 
@@ -406,6 +414,7 @@ static void drawStuff() {
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   const Matrix4 scale = Matrix4::makeScale(g_arcballScale * g_arcballScreenRadius);
+  cout << g_arcballScale * g_arcballScreenRadius << endl;
   RigTForm sphereTarget;
   if (g_objectBeingManipulated == 0) {
     if (g_skyViewChoice == 0) {
