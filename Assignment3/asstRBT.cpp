@@ -415,7 +415,17 @@ static void drawStuff() {
 
   const Matrix4 scale = Matrix4::makeScale(g_arcballScale * g_arcballScreenRadius);
   cout << g_arcballScale * g_arcballScreenRadius << endl;
-  MVM = rigTFormToMatrix(invEyeRbt * g_aFrame) * scale;
+  RigTForm sphereTarget;
+  if (g_objectBeingManipulated == 0) {
+    if (g_skyViewChoice == 0) {
+      sphereTarget = linFact(g_skyRbt);
+    } else {
+      sphereTarget = eyeRbt;
+    }
+  } else {
+    sphereTarget = g_objectRbt[g_objectBeingManipulated - 1];
+  }
+  MVM = rigTFormToMatrix(invEyeRbt * sphereTarget);
   NMVM = normalMatrix(MVM);
   sendModelViewNormalMatrix(curSS, MVM, NMVM);
   safe_glUniform3f(curSS.h_uColor, g_arcballColor[0], g_arcballColor[1], g_arcballColor[2]);

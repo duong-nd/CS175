@@ -39,6 +39,7 @@ using namespace std;
 using namespace tr1;
 
 /** G L O B A L S *************************************************************/
+
 static const bool g_Gl2Compatible = true;
 
 
