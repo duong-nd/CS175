@@ -509,6 +509,14 @@ static void motion(const int x, const int y) {
     dy_t = raw_dy; dy_r = -raw_dy;
   }
 
+  /* use g_arcballScale to scale translation, unless we're in ego motion */
+  double translateFactor;
+  if (g_objectBeingManipulated != g_currentViewIndex) {
+    translateFactor = g_arcballScale;
+  } else {
+    translateFactor = 0.01;
+  }
+
   /* Setting the auxiliary frame here because it needs to be updated whenever a
    * translation occurs; this also covers all other cases for which it needs to
    * be updated, including view and object manipulation changes. */
@@ -521,11 +529,11 @@ static void motion(const int x, const int y) {
   }
   /* Right button down? */
   else if (g_mouseRClickButton && !g_mouseLClickButton) {
-    m = RigTForm(Cvec3(dx_t, dy_t, 0) * 0.01);
+    m = RigTForm(Cvec3(dx_t, dy_t, 0) * translateFactor);
   }
   /* Middle or (left and right) button down? */
   else if (g_mouseMClickButton || (g_mouseLClickButton && g_mouseRClickButton)) {
-    m = RigTForm(Cvec3(0, 0, -dy_t) * 0.01);
+    m = RigTForm(Cvec3(0, 0, -dy_t) * translateFactor);
   }
   m = g_aFrame * m * inv(g_aFrame);
 
