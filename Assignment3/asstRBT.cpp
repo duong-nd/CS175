@@ -406,7 +406,17 @@ static void drawStuff() {
   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
   const Matrix4 scale = Matrix4::makeScale(g_arcballScale * g_arcballScreenRadius);
-  MVM = rigTFormToMatrix(invEyeRbt * g_aFrame);
+  RigTForm sphereTarget;
+  if (g_objectBeingManipulated == 0) {
+    if (g_skyViewChoice == 0) {
+      sphereTarget = linFact(g_skyRbt);
+    } else {
+      sphereTarget = eyeRbt;
+    }
+  } else {
+    sphereTarget = g_objectRbt[g_objectBeingManipulated - 1];
+  }
+  MVM = rigTFormToMatrix(invEyeRbt * sphereTarget);
   NMVM = normalMatrix(MVM);
   sendModelViewNormalMatrix(curSS, MVM, NMVM);
   safe_glUniform3f(curSS.h_uColor, g_arcballColor[0], g_arcballColor[1], g_arcballColor[2]);
