@@ -63,6 +63,7 @@ static bool g_mouseClickDown = false;
 static bool g_mouseLClickButton, g_mouseRClickButton, g_mouseMClickButton;
 /** Coordinates for mouse click event */
 static int g_mouseClickX, g_mouseClickY;
+static int g_originalMouseClickX, g_originalMouseClickY;
 static int g_activeShader = 0;
 
 struct ShaderState {
@@ -491,6 +492,9 @@ static void motion(const int x, const int y) {
   cout << "c_x: " << c_x << endl;
   cout << "c_y: " << c_y << endl;
   cout << "z: " << sphere_z << endl;
+  double original_sphere_z = sqrt(max(0.0, pow(r, 2) - pow(g_originalMouseClickX-c_x, 2) - pow(g_originalMouseClickY-c_y, 2)));
+  Cvec3 v_1 = Cvec3(g_originalMouseClickX, g_originalMouseClickY, original_sphere_z);
+  cout << "v_1: " << v_1[0] << ", " << v_1[1] << ", " << v_1[2] << endl;
   Cvec3 v_2 = Cvec3(sphere_x, sphere_y, sphere_z) - (inv(eyeRbt) * object).getTranslation();
   cout << "v_2: " << v_2[0] << ", " << v_2[1] << ", " << v_2[2] << endl;
 
@@ -545,9 +549,9 @@ static void motion(const int x, const int y) {
 
 
 static void mouse(const int button, const int state, const int x, const int y) {
-  g_mouseClickX = x;
+  g_originalMouseClickX = g_mouseClickX = x;
   /* Conversion from GLUT window-coordinate-system to OpenGL window-coordinate-system */
-  g_mouseClickY = g_windowHeight - y - 1;
+  g_originalMouseClickY = g_mouseClickY = g_windowHeight - y - 1;
 
   g_mouseLClickButton |= (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN);
   g_mouseRClickButton |= (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN);
