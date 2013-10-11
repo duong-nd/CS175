@@ -463,6 +463,32 @@ static void motion(const int x, const int y) {
   const double raw_dx = x - g_mouseClickX;
   const double raw_dy = g_windowHeight - y - 1 - g_mouseClickY;
 
+  const RigTForm eyeRbt =
+      (g_currentViewIndex == 0) ? g_skyRbt : g_objectRbt[g_currentViewIndex - 1];
+  RigTForm object = (g_objectBeingManipulated == 0) ? g_skyRbt : g_objectRbt[g_objectBeingManipulated - 1];
+  Cvec2 sphereOnScreenCoords = getScreenSpaceCoord(
+    (inv(eyeRbt) * object).getTranslation(),
+    makeProjectionMatrix(),
+    g_frustNear,
+    g_frustFovY,
+    g_windowWidth,
+    g_windowHeight
+  );
+  double screen_x = g_mouseClickX;
+  double screen_y = g_mouseClickY;
+  double r = g_arcballScreenRadius;
+  double c_x = sphereOnScreenCoords[0];
+  double c_y = sphereOnScreenCoords[1];
+  double z = sqrt(max(0.0, pow(r, 2) - pow(screen_x-c_x, 2) - pow(screen_y-c_y, 2)));
+  cout << "Mouse click x: " << g_mouseClickX << endl;
+  cout << "Mouse click y: " << g_mouseClickY << endl;
+  cout << "object x: " << object.getTranslation()[0] << endl;
+  cout << "object y: " << object.getTranslation()[1] << endl;
+  cout << "object z: " << object.getTranslation()[2] << endl;
+  cout << "c_x: " << c_x << endl;
+  cout << "c_y: " << c_y << endl;
+  cout << "z: " << z << endl;
+
   /* invert dx and/or dy depending on the situation */
   double dx_t, dx_r, dy_t, dy_r;
   if (g_objectBeingManipulated != 0 && g_currentViewIndex != g_objectBeingManipulated) {
