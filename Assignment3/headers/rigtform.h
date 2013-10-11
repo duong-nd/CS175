@@ -16,18 +16,11 @@ public:
     assert(norm2(Quat(1,0,0,0) - r_) < CS175_EPS2);
   }
 
-  RigTForm(const Cvec3& t, const Quat& r) {
-    t_ = t;
-    r_ = r;
-  }
+  RigTForm(const Cvec3& t, const Quat& r) : t_(t), r_(r) {}
 
-  explicit RigTForm(const Cvec3& t) {
-    RigTForm(t, Quat());
-  }
+  explicit RigTForm(const Cvec3& t) : t_(t), r_() {}
 
-  explicit RigTForm(const Quat& r) {
-    RigTForm(Cvec3(0, 0, 0), r);
-  }
+  explicit RigTForm(const Quat& r) : t_(0), r_(r) {}
 
   Cvec3 getTranslation() const {
     return t_;
@@ -53,7 +46,7 @@ public:
 
   RigTForm operator * (const RigTForm& a) const {
     return RigTForm(
-      Cvec3(Cvec4(t_, 0) + r_ * Cvec4(a.t_, 0)),
+      t_ + Cvec3(r_ * Cvec4(a.getTranslation(), 0)),
       r_ * a.getRotation()
     );
   }
@@ -62,9 +55,8 @@ public:
 inline RigTForm inv(const RigTForm& tform) {
   Quat r_inv = inv(tform.getRotation());
   return RigTForm(
-    Cvec3(r_inv * -1.0 * Cvec4(tform.getTranslation(), 0)),
-    r_inv
-  );
+    Cvec3(r_inv * Cvec4(-tform.getTranslation(), 1)),
+    r_inv);
 }
 
 inline RigTForm transFact(const RigTForm& tform) {
