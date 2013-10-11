@@ -497,7 +497,9 @@ static void motion(const int x, const int y) {
   cout << "v_1: " << v_1[0] << ", " << v_1[1] << ", " << v_1[2] << endl;
   Cvec3 v_2 = Cvec3(sphere_x, sphere_y, sphere_z) - (inv(eyeRbt) * object).getTranslation();
   cout << "v_2: " << v_2[0] << ", " << v_2[1] << ", " << v_2[2] << endl;
-
+  Quat rotQuat = Quat(0, v_1) * Quat(0, v_2 * -1.0);
+  double angle = dot(v_1, v_2);//acos(dot(v_1, v_2));
+  cout << "Rotating by phi = " << angle << endl;
   /* invert dx and/or dy depending on the situation */
   double dx_t, dx_r, dy_t, dy_r;
   if (g_objectBeingManipulated != 0 && g_currentViewIndex != g_objectBeingManipulated) {
