@@ -478,12 +478,12 @@ static void motion(const int x, const int y) {
     g_windowWidth,
     g_windowHeight
   );
-  double screen_x = g_mouseClickX;
-  double screen_y = g_mouseClickY;
+  double sphere_x = g_mouseClickX;
+  double sphere_y = g_mouseClickY;
   double r = g_arcballScreenRadius;
   double c_x = sphereOnScreenCoords[0];
   double c_y = sphereOnScreenCoords[1];
-  double z = sqrt(max(0.0, pow(r, 2) - pow(screen_x-c_x, 2) - pow(screen_y-c_y, 2)));
+  double sphere_z = sqrt(max(0.0, pow(r, 2) - pow(sphere_x-c_x, 2) - pow(sphere_y-c_y, 2)));
   cout << "Mouse click x: " << g_mouseClickX << endl;
   cout << "Mouse click y: " << g_mouseClickY << endl;
   cout << "object x: " << object.getTranslation()[0] << endl;
@@ -491,7 +491,9 @@ static void motion(const int x, const int y) {
   cout << "object z: " << object.getTranslation()[2] << endl;
   cout << "c_x: " << c_x << endl;
   cout << "c_y: " << c_y << endl;
-  cout << "z: " << z << endl;
+  cout << "z: " << sphere_z << endl;
+  Cvec3 v_2 = Cvec3(sphere_x, sphere_y, sphere_z) - (inv(eyeRbt) * object).getTranslation();
+  cout << "v_2: " << v_2[0] << ", " << v_2[1] << ", " << v_2[2] << endl;
 
   /* invert dx and/or dy depending on the situation */
   double dx_t, dx_r, dy_t, dy_r;
