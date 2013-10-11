@@ -359,14 +359,6 @@ static void drawStuff() {
   // TODO need to call this here so that the arcball moves when we change the object we're manipulating; any way to call this function less?
   setWrtFrame();
 
-  const double z = g_objectRbt[0].getTranslation()[2];
-  cout << "z: " << z << endl;
-  if (z < 0) {
-    g_arcballScale = getScreenToEyeScale(-z, g_frustFovY, g_windowHeight);
-  } else {
-    g_arcballScale = getScreenToEyeScale(z, g_frustFovY, g_windowHeight);
-  }
-
   /* Short hand for current shader state */
   const ShaderState& curSS = *g_shaderStates[g_activeShader];
 
@@ -388,12 +380,10 @@ static void drawStuff() {
   safe_glUniform3f(curSS.h_uLight2, eyeLight2[0], eyeLight2[1], eyeLight2[2]);
 
   /* Now we'll draw the ground. */
-  /* Identity */
-  const RigTForm groundRbt = RigTForm();
+  const RigTForm groundRbt = RigTForm(); // identity
   Matrix4 MVM = rigTFormToMatrix(invEyeRbt * groundRbt);
   Matrix4 NMVM = normalMatrix(MVM);
   sendModelViewNormalMatrix(curSS, MVM, NMVM);
-  /* Set color */
   safe_glUniform3f(curSS.h_uColor, 0.1, 0.95, 0.1);
   g_ground->draw(curSS);
 
@@ -410,11 +400,6 @@ static void drawStuff() {
   safe_glUniform3f(curSS.h_uColor, g_objectColors[1][0], g_objectColors[1][1], g_objectColors[1][2]);
   g_cube2->draw(curSS);
 
-  /* draw wireframes */
-  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-  const Matrix4 scale = Matrix4::makeScale(g_arcballScale * g_arcballScreenRadius);
-  cout << g_arcballScale * g_arcballScreenRadius << endl;
   RigTForm sphereTarget;
   if (g_objectBeingManipulated == 0) {
     if (g_skyViewChoice == 0) {
@@ -425,7 +410,18 @@ static void drawStuff() {
   } else {
     sphereTarget = g_objectRbt[g_objectBeingManipulated - 1];
   }
-  MVM = rigTFormToMatrix(invEyeRbt * sphereTarget);
+
+  g_arcballScale = getScreenToEyeScale(
+    (inv(eyeRbt) * sphereTarget).getTranslation()[2],
+    g_frustFovY,
+    g_windowHeight
+  );
+
+  /* draw wireframes */
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+  const Matrix4 scale = Matrix4::makeScale(g_arcballScale * g_arcballScreenRadius);
+  MVM = rigTFormToMatrix(invEyeRbt * sphereTarget) * scale;
   NMVM = normalMatrix(MVM);
   sendModelViewNormalMatrix(curSS, MVM, NMVM);
   safe_glUniform3f(curSS.h_uColor, g_arcballColor[0], g_arcballColor[1], g_arcballColor[2]);
