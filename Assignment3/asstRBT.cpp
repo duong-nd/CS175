@@ -188,7 +188,7 @@ struct Geometry {
 /**
  * Vertex buffer and index buffer associated with the ground and cube geometry
  */
-static shared_ptr<Geometry> g_ground, g_cube, g_cube2;
+static shared_ptr<Geometry> g_ground, g_cube, g_cube2, g_sphere;
 
 /** SCENE */
 
@@ -205,6 +205,10 @@ static Cvec3f g_objectColors[g_numObjects] = {
   Cvec3f(1, 0, 0),
   Cvec3f(0, 1, 0)
 };
+
+static const Cvec3f g_arcballColor = Cvec3f(1, 0, 1);
+static double g_arcballScreenRadius = 1.0;
+static double g_arcballScale = 1.0;
 
 /**
  * Global constant representing the number of objects in the world (including
@@ -272,6 +276,21 @@ static void initCubes() {
   g_cube2.reset(new Geometry(&vtx_2[0], &idx_2[0], vbLen, ibLen));
 }
 
+static void initSpheres() {
+  const int slices = 25;
+  const int stacks = 25;
+
+  int ibLen, vbLen;
+  getSphereVbIbLen(slices, stacks, vbLen, ibLen);
+
+  /* Temporary storage for sphere geometry */
+  vector<VertexPN> vtx(vbLen);
+  vector<unsigned short> idx(ibLen);
+
+  makeSphere(1, slices, stacks, vtx.begin(), idx.begin());
+  g_sphere.reset(new Geometry(&vtx[0], &idx[0], vbLen, ibLen));
+}
+
 /** Takes a projection matrix and send to the the shaders */
 static void sendProjectionMatrix(const ShaderState& curSS, const Matrix4& projMatrix) {
   GLfloat glmatrix[16];
@@ -308,7 +327,38 @@ static Matrix4 makeProjectionMatrix() {
            g_frustNear, g_frustFar);
 }
 
+/**
+ * - If we're manipulating a cube and the eye is the sky, this should be the
+ *   cube-sky frame.
+ * - If we're manipulating cube i and eye is cube j, this should be the
+ *   cube i-cube j frame.
+ * - If we're manipulating the sky camera and eye is the sky, we have two
+ *   viable frames, and pressing 'm' switches between them:
+ *   - World-sky frame (like orbiting around the world)
+ *   - Sky-sky frame (like moving your head)
+ */
+static void setWrtFrame() {
+  if (g_objectBeingManipulated == 0) { /* manipulating sky */
+    if (g_currentViewIndex == 0) { /* view is sky */
+      if (g_skyViewChoice == 0) {
+        g_aFrame = linFact(g_skyRbt); /* world-sky */
+      } else {
+        g_aFrame = g_skyRbt; /* sky-sky */
+      }
+    }
+  } else { /* manipulating cube */
+    if (g_currentViewIndex == 0) { /* view is sky */
+      g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_skyRbt);
+    } else { /* view is cube */
+      g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_objectRbt[g_currentViewIndex - 1]);
+    }
+  }
+}
+
 static void drawStuff() {
+  // TODO need to call this here so that the arcball moves when we change the object we're manipulating; any way to call this function less?
+  setWrtFrame();
+
   /* Short hand for current shader state */
   const ShaderState& curSS = *g_shaderStates[g_activeShader];
 
@@ -351,6 +401,19 @@ static void drawStuff() {
   sendModelViewNormalMatrix(curSS, MVM, NMVM);
   safe_glUniform3f(curSS.h_uColor, g_objectColors[1][0], g_objectColors[1][1], g_objectColors[1][2]);
   g_cube2->draw(curSS);
+
+  /* draw wireframes */
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+  const Matrix4 scale = Matrix4::makeScale(g_arcballScale * g_arcballScreenRadius);
+  MVM = rigTFormToMatrix(invEyeRbt * g_aFrame);
+  NMVM = normalMatrix(MVM);
+  sendModelViewNormalMatrix(curSS, MVM, NMVM);
+  safe_glUniform3f(curSS.h_uColor, g_arcballColor[0], g_arcballColor[1], g_arcballColor[2]);
+  g_sphere->draw(curSS);
+
+  /* draw filled */
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // draw filled again
 }
 
 static void display() {
@@ -371,36 +434,11 @@ static void reshape(const int w, const int h) {
   g_windowHeight = h;
   glViewport(0, 0, w, h);
   cerr << "Size of window is now " << w << "x" << h << endl;
+
+  g_arcballScreenRadius = 0.25 * min(g_windowWidth, g_windowHeight);
+
   updateFrustFovY();
   glutPostRedisplay();
-}
-
-/**
- * - If we're manipulating a cube and the eye is the sky, this should be the
- *   cube-sky frame.
- * - If we're manipulating cube i and eye is cube j, this should be the
- *   cube i-cube j frame.
- * - If we're manipulating the sky camera and eye is the sky, we have two
- *   viable frames, and pressing 'm' switches between them:
- *   - World-sky frame (like orbiting around the world)
- *   - Sky-sky frame (like moving your head)
- */
-static void setWrtFrame() {
-  if (g_objectBeingManipulated == 0) { /* manipulating sky */
-    if (g_currentViewIndex == 0) { /* view is sky */
-      if (g_skyViewChoice == 0) {
-        g_aFrame = linFact(g_skyRbt); /* world-sky */
-      } else {
-        g_aFrame = g_skyRbt; /* sky-sky */
-      }
-    }
-  } else { /* manipulating cube */
-    if (g_currentViewIndex == 0) { /* view is sky */
-      g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_skyRbt);
-    } else { /* view is cube */
-      g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_objectRbt[g_currentViewIndex - 1]);
-    }
-  }
 }
 
 static void motion(const int x, const int y) {
@@ -595,6 +633,7 @@ static void initShaders() {
 static void initGeometry() {
   initGround();
   initCubes();
+  initSpheres();
 }
 
 int main(int argc, char * argv[]) {
