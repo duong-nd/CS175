@@ -212,6 +212,13 @@ static double g_arcballScreenRadius = 1.0;
 static double g_arcballScale = 1.0;
 
 /**
+ * The RigTForm state of the object currently being manipulated when the mouse
+ * was first pressed down. NEeds to be updated when the mouse is put down
+ * or when we change the object being manipulated.
+ */
+static RigTForm g_originalObjectState;
+
+/**
  * Global constant representing the number of objects in the world (including
  * the sky).
  */
