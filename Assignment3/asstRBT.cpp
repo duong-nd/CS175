@@ -555,9 +555,9 @@ static void motion(const int x, const int y) {
 
   if (g_mouseClickDown) {
     if (g_objectBeingManipulated == 0) {
-      g_skyRbt = m * g_skyRbt;
+      g_skyRbt = m * g_originalObjectState;
     } else {
-      g_objectRbt[g_objectBeingManipulated - 1] = m * g_objectRbt[g_objectBeingManipulated - 1];
+      g_objectRbt[g_objectBeingManipulated - 1] = m * g_originalObjectState;
     }
     /* Always redraw if we changed the scene */
     glutPostRedisplay();
@@ -572,6 +572,8 @@ static void mouse(const int button, const int state, const int x, const int y) {
   g_originalMouseClickX = g_mouseClickX = x;
   /* Conversion from GLUT window-coordinate-system to OpenGL window-coordinate-system */
   g_originalMouseClickY = g_mouseClickY = g_windowHeight - y - 1;
+  g_originalObjectState = (g_objectBeingManipulated == 0) ?
+    g_skyRbt : g_objectRbt[g_objectBeingManipulated - 1];
 
   g_mouseLClickButton |= (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN);
   g_mouseRClickButton |= (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN);
