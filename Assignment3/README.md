@@ -38,7 +38,7 @@ We developed on two differnet platforms. Michael Tingley developed on his person
 Simply run the command `make all; ./asst` to compile and run the code.
 
 ### Requirements
-We met most of the problem set requirements. In particular, we completed all of part 1 and all of part 3. For part 2, the arcball renders correctly and with the correct orientation, and we compute the screen coordinates for where the ball is being handled and create vectors for them. When the user rotates using the arcball in this manner, the rotation is path-invariant. However, the rotation seems to behave strangely: when rotating the ball, it doesnt' rotate in the intuitive manner that we would expect, and instead rotates at an angle. This is probably because of some bad math or because at some point we set the wrong respect frame to rotate around.
+We met most of the problem set requirements. In particular, we completed all of part 1 and all of part 3. For part 2, the arcball renders correctly and with the correct orientation, and we compute the screen coordinates for where the ball is being handled and create vectors for them. When the user rotates using the arcball in this manner, the rotation is path-invariant. However, the rotation seems to behave strangely: when rotating the ball, it doesn't rotate in the intuitive manner that we would expect, and instead rotates at an angle. This is probably because of some bad math or because at some point we set the wrong respect frame to rotate around.
 
 ### Code Design
 We completed the specification for the Rigid Body Transforms in `RigTForm.h`. We updated all of the existing code to use `RigTForm`s instead of using `Matrix4`s.
