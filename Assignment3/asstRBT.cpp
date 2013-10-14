@@ -500,14 +500,14 @@ static void motion(const int x, const int y) {
   cout << "c_y: " << c_y << endl;
   cout << "z: " << sphere_z << endl;
   double original_sphere_z = sqrt(max(0.0, pow(r, 2) - pow(g_originalMouseClickX-c_x, 2) - pow(g_originalMouseClickY-c_y, 2)));
-  Cvec3 v_1 = Cvec3(g_originalMouseClickX, g_originalMouseClickY, original_sphere_z);
+  Cvec3 v_1 = Cvec3(g_originalMouseClickX, g_originalMouseClickY, original_sphere_z) - (inv(eyeRbt) * object).getTranslation();
   v_1 = normalize(v_1);
   cout << "v_1: " << v_1[0] << ", " << v_1[1] << ", " << v_1[2] << endl;
   Cvec3 v_2 = Cvec3(sphere_x, sphere_y, sphere_z) - (inv(eyeRbt) * object).getTranslation();
   v_2 = normalize(v_2);
   cout << "v_2: " << v_2[0] << ", " << v_2[1] << ", " << v_2[2] << endl;
   Quat rotQuat = Quat(0, v_2) * Quat(0, v_1 * -1.0);
-  double angle = dot(v_1, v_2);//acos(dot(v_1, v_2));
+  double angle = acos(dot(v_1, v_2));//acos(dot(v_1, v_2));
   cout << "Rotating by phi = " << angle << endl;
   /* invert dx and/or dy depending on the situation */
   double dx_t, dx_r, dy_t, dy_r;
