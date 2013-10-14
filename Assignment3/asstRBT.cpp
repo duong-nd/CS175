@@ -542,26 +542,38 @@ static void motion(const int x, const int y) {
   if (g_mouseLClickButton && !g_mouseRClickButton) {
     // m = RigTForm(Quat::makeXRotation(-dy_r) * Quat::makeYRotation(dx_r));
     m = RigTForm(rotQuat);
-  }
-  /* Right button down? */
-  else if (g_mouseRClickButton && !g_mouseLClickButton) {
-    m = RigTForm(Cvec3(dx_t, dy_t, 0) * translateFactor);
-  }
-  /* Middle or (left and right) button down? */
-  else if (g_mouseMClickButton || (g_mouseLClickButton && g_mouseRClickButton)) {
-    m = RigTForm(Cvec3(0, 0, -dy_t) * translateFactor);
-  }
-  m = g_aFrame * m * inv(g_aFrame);
+    m = g_aFrame * m * inv(g_aFrame);
 
-  if (g_mouseClickDown) {
-    if (g_objectBeingManipulated == 0) {
-      g_skyRbt = m * g_originalObjectState;
-    } else {
-      g_objectRbt[g_objectBeingManipulated - 1] = m * g_originalObjectState;
+    if (g_mouseClickDown) {
+      if (g_objectBeingManipulated == 0) {
+        g_skyRbt = m * g_originalObjectState;
+      } else {
+        g_objectRbt[g_objectBeingManipulated - 1] = m * g_originalObjectState;
+      }
     }
-    /* Always redraw if we changed the scene */
-    glutPostRedisplay();
+  } else {
+    /* Right button down? */
+    if (g_mouseRClickButton && !g_mouseLClickButton) {
+      m = RigTForm(Cvec3(dx_t, dy_t, 0) * translateFactor);
+    }
+    /* Middle or (left and right) button down? */
+    else if (g_mouseMClickButton || (g_mouseLClickButton && g_mouseRClickButton)) {
+      m = RigTForm(Cvec3(0, 0, -dy_t) * translateFactor);
+    }
+    m = g_aFrame * m * inv(g_aFrame);
+
+    if (g_mouseClickDown) {
+      if (g_objectBeingManipulated == 0) {
+        g_skyRbt = m * g_skyRbt;
+      } else {
+        g_objectRbt[g_objectBeingManipulated - 1] = m * g_objectRbt[g_objectBeingManipulated - 1];
+      }
+    }
   }
+
+
+  /* Always redraw if we changed the scene */
+  glutPostRedisplay();
 
   g_mouseClickX = x;
   g_mouseClickY = g_windowHeight - y - 1;
