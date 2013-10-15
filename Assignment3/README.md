@@ -45,7 +45,7 @@ We completed the specification for the rigid body transforms in `RigTForm.h`. We
 
 `drawStuff` handles all of the main logic for drawing the arcball. In `drawStuff`, we set the arcball scale in a global called `g_arcballScale`. We also set the center of the arcball to be the current object being manipulated, with its corresponding frame. We render the arcball. It's also worth pointing out that we call `glutPostRedisplay` in the `mouse` function in order to reset the arcball radius when the mouse is released.
 
-Arcball rotation is implemented in the `getArcballRotation` function. The function returns the appropriate `RigTForm` for an arcball rotation from the point where the mouse was clicked to the current mouse location. `getArcballRotation` is called in `motion` in the cases for which we use arcball.
+Arcball rotation is implemented in the `getArcballRotation` function. The function returns the appropriate `RigTForm` for an arcball rotation from the point where the mouse was clicked to the current mouse location. `getArcballRotation` is called in the `motion` function in the cases for which we use arcball.
 
 ### Testing
 Part 1: We simply ran the code with the `RigidTForm`s in it, and ensured that its behavior didn't change.
