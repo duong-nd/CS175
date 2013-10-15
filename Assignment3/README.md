@@ -38,7 +38,7 @@ We developed on two different platforms. Michael Tingley developed on his person
 Simply run the command `make all; ./asst` to compile and run the code.
 
 ### Requirements
-We met all problem set requirements. We compared our result against the solution binary and it behaves the same.
+We met all problem set requirements. We compared our result against the solution binary and it behaves in the the same way.
 
 ### Code Design
 We completed the specification for the rigid body transforms in `RigTForm.h`. We updated all of the existing code to use `RigTForm`s instead of using `Matrix4`s.
