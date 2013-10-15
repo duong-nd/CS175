@@ -63,7 +63,6 @@ static bool g_mouseClickDown = false;
 static bool g_mouseLClickButton, g_mouseRClickButton, g_mouseMClickButton;
 /** Coordinates for mouse click event */
 static int g_mouseClickX, g_mouseClickY;
-static int g_originalMouseClickX, g_originalMouseClickY;
 static int g_activeShader = 0;
 
 struct ShaderState {
@@ -210,13 +209,6 @@ static Cvec3f g_objectColors[g_numObjects] = {
 static const Cvec3f g_arcballColor = Cvec3f(1, 0, 1);
 static double g_arcballScreenRadius = 1.0;
 static double g_arcballScale = 1.0;
-
-/**
- * The RigTForm state of the object currently being manipulated when the mouse
- * was first pressed down. NEeds to be updated when the mouse is put down
- * or when we change the object being manipulated.
- */
-static RigTForm g_originalObjectState;
 
 /**
  * Global constant representing the number of objects in the world (including
@@ -467,17 +459,18 @@ static void reshape(const int w, const int h) {
   glutPostRedisplay();
 }
 
-static void motion(const int x, const int y) {
-  /* don't allow the sky frame to be manipulated if we're in a cube view */
-  if (g_currentViewIndex != 0 && g_objectBeingManipulated == 0) return;
+/**
+ * Return a RigTForm representing an arcball rotation from the point where the mouse was clicked to its current location.
+ * 
+ * @param  x Curent x coord of the mouse, in OpenGL coordinates (NOT raw GLUT coords)
+ * @param  y Curent y coord of the mouse, in OpenGL coordinates (NOT raw GLUT coords)
+ * @return   A RigTForm representing the arcball rotation
+ */
+static RigTForm getArcballRotation(const int x, const int y) {
+  const RigTForm eyeRbt = (g_currentViewIndex == 0) ? g_skyRbt : g_objectRbt[g_currentViewIndex - 1];
+  const RigTForm object = (g_objectBeingManipulated == 0) ? g_skyRbt : g_objectRbt[g_objectBeingManipulated - 1];
 
-  const double raw_dx = x - g_mouseClickX;
-  const double raw_dy = g_windowHeight - y - 1 - g_mouseClickY;
-
-  const RigTForm eyeRbt =
-      (g_currentViewIndex == 0) ? g_skyRbt : g_objectRbt[g_currentViewIndex - 1];
-  RigTForm object = (g_objectBeingManipulated == 0) ? g_skyRbt : g_objectRbt[g_objectBeingManipulated - 1];
-  Cvec2 sphereOnScreenCoords = getScreenSpaceCoord(
+  const Cvec2 sphereOnScreenCoords = getScreenSpaceCoord(
     (inv(eyeRbt) * object).getTranslation(),
     makeProjectionMatrix(),
     g_frustNear,
@@ -485,30 +478,35 @@ static void motion(const int x, const int y) {
     g_windowWidth,
     g_windowHeight
   );
-  double sphere_x = g_mouseClickX;
-  double sphere_y = g_mouseClickY;
-  double r = g_arcballScreenRadius;
-  double c_x = sphereOnScreenCoords[0];
-  double c_y = sphereOnScreenCoords[1];
-  double sphere_z = sqrt(max(0.0, pow(r, 2) - pow(sphere_x-c_x, 2) - pow(sphere_y-c_y, 2)));
-  cout << "Mouse click x: " << g_mouseClickX << endl;
-  cout << "Mouse click y: " << g_mouseClickY << endl;
-  cout << "object x: " << object.getTranslation()[0] << endl;
-  cout << "object y: " << object.getTranslation()[1] << endl;
-  cout << "object z: " << object.getTranslation()[2] << endl;
-  cout << "c_x: " << c_x << endl;
-  cout << "c_y: " << c_y << endl;
-  cout << "z: " << sphere_z << endl;
-  double original_sphere_z = sqrt(max(0.0, pow(r, 2) - pow(g_originalMouseClickX-c_x, 2) - pow(g_originalMouseClickY-c_y, 2)));
-  Cvec3 v_1 = Cvec3(g_originalMouseClickX, g_originalMouseClickY, original_sphere_z) - (inv(eyeRbt) * object).getTranslation();
-  v_1 = normalize(v_1);
-  cout << "v_1: " << v_1[0] << ", " << v_1[1] << ", " << v_1[2] << endl;
-  Cvec3 v_2 = Cvec3(sphere_x, sphere_y, sphere_z) - (inv(eyeRbt) * object).getTranslation();
-  v_2 = normalize(v_2);
-  cout << "v_2: " << v_2[0] << ", " << v_2[1] << ", " << v_2[2] << endl;
-  Quat rotQuat = Quat(0, v_2) * Quat(0, v_1 * -1.0);
-  double angle = acos(dot(v_1, v_2));//acos(dot(v_1, v_2));
-  cout << "Rotating by phi = " << angle << endl;
+  
+  const Cvec3 sphere_center = Cvec3(sphereOnScreenCoords, 0);
+  const Cvec3 p1 = Cvec3(g_mouseClickX, g_mouseClickY, 0) - sphere_center;
+  const Cvec3 p2 = Cvec3(x, y, 0) - sphere_center;
+
+  const Cvec3 v1 = normalize(Cvec3(p1[0], p1[1],
+    sqrt(max(0.0, pow(g_arcballScreenRadius, 2) - pow(p1[0], 2) - pow(p1[1], 2)))));
+  const Cvec3 v2 = normalize(Cvec3(p2[0], p2[1],
+    sqrt(max(0.0, pow(g_arcballScreenRadius, 2) - pow(p2[0], 2) - pow(p2[1], 2)))));
+
+  /* If we're manipulating the sky camera, the eye is the sky camera, and
+   * we're in world-sky mode, negate the rotation so it behaves intuituvely. */
+  if (g_objectBeingManipulated == 0 && g_currentViewIndex == 0 && g_skyViewChoice == 0) {
+    /* reversing dot product to accomplish the negation described above */
+    return RigTForm(Quat(0, v1 * -1.0) * Quat(0, v2));
+  } else {
+    return RigTForm(Quat(0, v2) * Quat(0, v1 * -1.0));
+  }
+}
+
+static void motion(const int x, const int y) {
+  /* don't allow the sky frame to be manipulated if we're in a cube view */
+  if (g_currentViewIndex != 0 && g_objectBeingManipulated == 0) return;
+
+  const double curr_x = x;
+  const double curr_y = g_windowHeight - y - 1;
+  const double raw_dx = curr_x - g_mouseClickX;
+  const double raw_dy = curr_y - g_mouseClickY;
+
   /* invert dx and/or dy depending on the situation */
   double dx_t, dx_r, dy_t, dy_r;
   if (g_objectBeingManipulated != 0 && g_currentViewIndex != g_objectBeingManipulated) {
@@ -524,9 +522,19 @@ static void motion(const int x, const int y) {
     dy_t = raw_dy; dy_r = -raw_dy;
   }
 
-  /* use g_arcballScale to scale translation, unless we're in ego motion */
+  /* Use arcball is either of the following conditions are true:
+   * 
+   * 1. manipulating sky camera w.r.t world-sky frame
+   * 2. manipulating cube, and view not from that cube
+   * 
+   * Otherwise use standard dx and dy rotation.
+   */
+  const bool use_arcball = (g_objectBeingManipulated == 0 && g_skyViewChoice == 0)
+    || (g_objectBeingManipulated != 0 && g_currentViewIndex != g_objectBeingManipulated);
+
+  /* use g_arcballScale to scale translation, unless we're not using arcball */
   double translateFactor;
-  if (g_objectBeingManipulated != g_currentViewIndex) {
+  if (use_arcball) {
     translateFactor = g_arcballScale;
   } else {
     translateFactor = 0.01;
@@ -540,52 +548,43 @@ static void motion(const int x, const int y) {
   RigTForm m;
   /* Left button down? */
   if (g_mouseLClickButton && !g_mouseRClickButton) {
-    // m = RigTForm(Quat::makeXRotation(-dy_r) * Quat::makeYRotation(dx_r));
-    m = RigTForm(rotQuat);
+    if (use_arcball) {
+      m = getArcballRotation(curr_x, curr_y);
+    } else {
+      m = RigTForm(Quat::makeXRotation(-dy_r) * Quat::makeYRotation(dx_r));
+    }
+  }
+  /* Right button down? */
+  else if (g_mouseRClickButton && !g_mouseLClickButton) {
+    m = RigTForm(Cvec3(dx_t, dy_t, 0) * translateFactor);
+  }
+  /* Middle or (left and right) button down? */
+  else if (g_mouseMClickButton || (g_mouseLClickButton && g_mouseRClickButton)) {
+    m = RigTForm(Cvec3(0, 0, -dy_t) * translateFactor);
+  }
+  
+  /* apply the transformation */
+  if (g_mouseClickDown) {
     m = g_aFrame * m * inv(g_aFrame);
 
-    if (g_mouseClickDown) {
-      if (g_objectBeingManipulated == 0) {
-        g_skyRbt = m * g_originalObjectState;
-      } else {
-        g_objectRbt[g_objectBeingManipulated - 1] = m * g_originalObjectState;
-      }
-    }
-  } else {
-    /* Right button down? */
-    if (g_mouseRClickButton && !g_mouseLClickButton) {
-      m = RigTForm(Cvec3(dx_t, dy_t, 0) * translateFactor);
-    }
-    /* Middle or (left and right) button down? */
-    else if (g_mouseMClickButton || (g_mouseLClickButton && g_mouseRClickButton)) {
-      m = RigTForm(Cvec3(0, 0, -dy_t) * translateFactor);
-    }
-    m = g_aFrame * m * inv(g_aFrame);
-
-    if (g_mouseClickDown) {
-      if (g_objectBeingManipulated == 0) {
-        g_skyRbt = m * g_skyRbt;
-      } else {
-        g_objectRbt[g_objectBeingManipulated - 1] = m * g_objectRbt[g_objectBeingManipulated - 1];
-      }
+    if (g_objectBeingManipulated == 0) {
+      g_skyRbt = m * g_skyRbt;
+    } else {
+      g_objectRbt[g_objectBeingManipulated - 1] = m * g_objectRbt[g_objectBeingManipulated - 1];
     }
   }
 
+  g_mouseClickX = curr_x;
+  g_mouseClickY = curr_y;
 
   /* Always redraw if we changed the scene */
   glutPostRedisplay();
-
-  g_mouseClickX = x;
-  g_mouseClickY = g_windowHeight - y - 1;
 }
 
-
 static void mouse(const int button, const int state, const int x, const int y) {
-  g_originalMouseClickX = g_mouseClickX = x;
+  g_mouseClickX = x;
   /* Conversion from GLUT window-coordinate-system to OpenGL window-coordinate-system */
-  g_originalMouseClickY = g_mouseClickY = g_windowHeight - y - 1;
-  g_originalObjectState = (g_objectBeingManipulated == 0) ?
-    g_skyRbt : g_objectRbt[g_objectBeingManipulated - 1];
+  g_mouseClickY = g_windowHeight - y - 1;
 
   g_mouseLClickButton |= (button == GLUT_LEFT_BUTTON && state == GLUT_DOWN);
   g_mouseRClickButton |= (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN);
