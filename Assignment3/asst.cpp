@@ -206,7 +206,7 @@ static Cvec3f g_objectColors[g_numObjects] = {
   Cvec3f(0, 1, 0)
 };
 
-static const Cvec3f g_arcballColor = Cvec3f(1, 0, 1);
+static const Cvec3f g_arcballColor = Cvec3f(0, 0.47, 1);
 static double g_arcballScreenRadius = 1.0;
 static double g_arcballScale = 1.0;
 
