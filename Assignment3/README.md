@@ -17,7 +17,7 @@ This README was written using Markdown syntax -- consider using a Markdown viewe
  * matrix4.h: (as provided)
  * ppm.h: (as provided)
  * quat.h: (as provided)
- * rigtform.h: Filled in the interface for Rigid Body Transforms so that they support the essentially same interface as Matrix4s.
+ * rigtform.h: Filled in the interface for rigid body transforms so that they support the essentially same interface as Matrix4s.
 * shaders/
  * basic-gl2.vshader: (as provided)
  * diffuse-gl2.fshader: (as provided)
