@@ -355,8 +355,22 @@ static void setWrtFrame() {
   }
 }
 
+static bool nonEgoCubeManipulation() {
+  /* manipulating cube, and view not from that cube */
+  return g_objectBeingManipulated != 0 && g_currentViewIndex != g_objectBeingManipulated;
+}
+
+static bool useArcball() {
+  return (g_objectBeingManipulated == 0 && g_skyViewChoice == 0) || nonEgoCubeManipulation();
+}
+
+static bool worldSkyManipulation() {
+  /* manipulating sky camera, while eye is sky camera, and while in world-sky mode */
+  return g_objectBeingManipulated == 0 && g_currentViewIndex == 0 && g_skyViewChoice == 0;
+}
+
 static void drawStuff() {
-  // TODO need to call this here so that the arcball moves when we change the object we're manipulating; any way to call this function less?
+  /* need to call this here so that the arcball moves when we change the object we're manipulating */
   setWrtFrame();
 
   /* Short hand for current shader state */
@@ -412,7 +426,7 @@ static void drawStuff() {
   }
 
   /* don't update g_arcballScale if we're translating in the z direction */
-  if (!g_mouseMClickButton && !(g_mouseLClickButton && g_mouseRClickButton)) {
+  if (!g_mouseMClickButton && !(g_mouseLClickButton && g_mouseRClickButton) && useArcball()) {
     g_arcballScale = getScreenToEyeScale(
       (inv(eyeRbt) * sphereTarget).getTranslation()[2],
       g_frustFovY,
@@ -470,14 +484,22 @@ static RigTForm getArcballRotation(const int x, const int y) {
   const RigTForm eyeRbt = (g_currentViewIndex == 0) ? g_skyRbt : g_objectRbt[g_currentViewIndex - 1];
   const RigTForm object = (g_objectBeingManipulated == 0) ? g_skyRbt : g_objectRbt[g_objectBeingManipulated - 1];
 
-  const Cvec2 sphereOnScreenCoords = getScreenSpaceCoord(
-    (inv(eyeRbt) * object).getTranslation(),
-    makeProjectionMatrix(),
-    g_frustNear,
-    g_frustFovY,
-    g_windowWidth,
-    g_windowHeight
-  );
+  const bool world_sky_manipulation = worldSkyManipulation();
+
+  Cvec2 sphereOnScreenCoords;
+  if (world_sky_manipulation) {
+    /* use the screen center */
+    sphereOnScreenCoords = Cvec2((g_windowWidth - 1) / 2.0, (g_windowHeight - 1) / 2.0);
+  } else {
+    sphereOnScreenCoords = getScreenSpaceCoord(
+      (inv(eyeRbt) * object).getTranslation(),
+      makeProjectionMatrix(),
+      g_frustNear,
+      g_frustFovY,
+      g_windowWidth,
+      g_windowHeight
+    );
+  }
   
   const Cvec3 sphere_center = Cvec3(sphereOnScreenCoords, 0);
   const Cvec3 p1 = Cvec3(g_mouseClickX, g_mouseClickY, 0) - sphere_center;
@@ -490,7 +512,7 @@ static RigTForm getArcballRotation(const int x, const int y) {
 
   /* If we're manipulating the sky camera, the eye is the sky camera, and
    * we're in world-sky mode, negate the rotation so it behaves intuituvely. */
-  if (g_objectBeingManipulated == 0 && g_currentViewIndex == 0 && g_skyViewChoice == 0) {
+  if (world_sky_manipulation) {
     /* reversing dot product to accomplish the negation described above */
     return RigTForm(Quat(0, v1 * -1.0) * Quat(0, v2));
   } else {
@@ -509,12 +531,10 @@ static void motion(const int x, const int y) {
 
   /* invert dx and/or dy depending on the situation */
   double dx_t, dx_r, dy_t, dy_r;
-  if (g_objectBeingManipulated != 0 && g_currentViewIndex != g_objectBeingManipulated) {
-    /* manipulating cube, and view not from that cube */
+  if (nonEgoCubeManipulation()) {
     dx_t = raw_dx; dx_r = raw_dx;
     dy_t = raw_dy; dy_r = raw_dy;
-  } else if (g_objectBeingManipulated == 0 && g_currentViewIndex == 0 && g_skyViewChoice == 0) {
-    /* manipulating sky camera, while eye is sky camera, and while in world-sky mode */
+  } else if (worldSkyManipulation()) {
     dx_t = -raw_dx; dx_r = -raw_dx;
     dy_t = -raw_dy; dy_r = -raw_dy;
   } else {
@@ -529,8 +549,7 @@ static void motion(const int x, const int y) {
    * 
    * Otherwise use standard dx and dy rotation.
    */
-  const bool use_arcball = (g_objectBeingManipulated == 0 && g_skyViewChoice == 0)
-    || (g_objectBeingManipulated != 0 && g_currentViewIndex != g_objectBeingManipulated);
+  const bool use_arcball = useArcball();
 
   /* use g_arcballScale to scale translation, unless we're not using arcball */
   double translateFactor;
