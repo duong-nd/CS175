@@ -514,6 +514,8 @@ static RigTForm getArcballRotation(const int x, const int y) {
     );
   }
 
+  cout << "Sphere on screen coords: " << sphereOnScreenCoords[0] << "," << sphereOnScreenCoords[1] << endl;
+
   const Cvec3 sphere_center = Cvec3(sphereOnScreenCoords, 0);
   const Cvec3 p1 = Cvec3(g_mouseClickX, g_mouseClickY, 0) - sphere_center;
   const Cvec3 p2 = Cvec3(x, y, 0) - sphere_center;
