@@ -69,6 +69,7 @@ static bool g_mouseLClickButton, g_mouseRClickButton, g_mouseMClickButton;
 /** Coordinates for mouse click event */
 static int g_mouseClickX, g_mouseClickY;
 static int g_activeShader = 0;
+static int g_prevActiveShader = 0;
 
 static bool g_picking = false;
 static const int PICKING_SHADER = 2;
@@ -219,7 +220,8 @@ static int g_objectBeingManipulated = 0;
 static int g_skyViewChoice = 0;
 
 /** METHOD PROTOTYPES *********************************************************/
-static void setPickingMode(bool);
+static void enablePickingMode();
+static void disablePickingMode();
 
 /** METHODS *******************************************************************/
 
@@ -426,7 +428,9 @@ static void display() {
   drawStuff(*g_shaderStates[g_activeShader], g_picking);
 
   /* Show the back buffer (where we rendered stuff) */
-  glutSwapBuffers();
+  if (!g_picking) {
+    glutSwapBuffers();
+  }
 
   checkGlErrors();
 }
@@ -587,7 +591,7 @@ static void mouse(const int button, const int state, const int x, const int y) {
 
   // glFlush();
   glutPostRedisplay();
-  setPickingMode(0);
+  disablePickingMode();
 }
 
 static void cycleSkyAChoice() {
@@ -628,13 +632,16 @@ static void cycleManipulation() {
   }
 }
 
-/**
- * Enables or disables picking mode.
- */
-static void setPickingMode(bool enabled) {
-  if (!enabled)   display();
-  cout << "Picking mode:\t" << enabled << endl;
-  g_picking = enabled;
+static void enablePickingMode() {
+  g_picking = true;
+  g_prevActiveShader = g_activeShader;
+  g_activeShader = PICKING_SHADER;
+}
+
+static void disablePickingMode() {
+  display();
+  g_picking = false;
+  g_activeShader = g_prevActiveShader;
 }
 
 static void keyboard(const unsigned char key, const int x, const int y) {
@@ -667,7 +674,7 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       cycleSkyAChoice();
       break;
     case 'p':
-      setPickingMode(1);
+      enablePickingMode();
       break;
   }
   glutPostRedisplay();
