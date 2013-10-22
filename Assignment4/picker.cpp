@@ -41,7 +41,18 @@ bool Picker::postVisit(SgShapeNode& node) {
 }
 
 shared_ptr<SgRbtNode> Picker::getRbtNodeAtXY(int x, int y) {
-  // TODO
+  cout << "User has clicked the pixel at:\t(" << x << "," << y << ")." << endl;
+
+  vector<char> pixels(3);
+  glReadPixels(x,y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &pixels[0]);
+  /* In the style of ppm.cpp. */
+  PackedPixel p;
+  p.r = pixels[0];
+  p.g = pixels[1];
+  p.b = pixels[2];
+
+  cout << "The back-color of this pixel :\t(" << p.r << "," << p.g << "," << p.b << ")" << endl;
+  return Picker::find(Picker::colorToId(p));
   return shared_ptr<SgRbtNode>(); // return null for now
 }
 

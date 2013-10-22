@@ -218,6 +218,9 @@ static int g_objectBeingManipulated = 0;
  */
 static int g_skyViewChoice = 0;
 
+/** METHOD PROTOTYPES *********************************************************/
+static void setPickingMode(bool);
+
 /** METHODS *******************************************************************/
 
 static void initGround() {
@@ -420,7 +423,7 @@ static void display() {
   /* Clear framebuffer color & depth */
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  drawStuff(*g_shaderStates[g_activeShader], false);
+  drawStuff(*g_shaderStates[g_activeShader], g_picking);
 
   /* Show the back buffer (where we rendered stuff) */
   glutSwapBuffers();
@@ -442,7 +445,7 @@ static void reshape(const int w, const int h) {
 
 /**
  * Return a RigTForm representing an arcball rotation from the point where the mouse was clicked to its current location.
- * 
+ *
  * @param  x Curent x coord of the mouse, in OpenGL coordinates (NOT raw GLUT coords)
  * @param  y Curent y coord of the mouse, in OpenGL coordinates (NOT raw GLUT coords)
  * @return   A RigTForm representing the arcball rotation
@@ -467,7 +470,7 @@ static RigTForm getArcballRotation(const int x, const int y) {
       g_windowHeight
     );
   }
-  
+
   const Cvec3 sphere_center = Cvec3(sphereOnScreenCoords, 0);
   const Cvec3 p1 = Cvec3(g_mouseClickX, g_mouseClickY, 0) - sphere_center;
   const Cvec3 p2 = Cvec3(x, y, 0) - sphere_center;
@@ -510,10 +513,10 @@ static void motion(const int x, const int y) {
   }
 
   /* Use arcball is either of the following conditions are true:
-   * 
+   *
    * 1. manipulating sky camera w.r.t world-sky frame
    * 2. manipulating cube, and view not from that cube
-   * 
+   *
    * Otherwise use standard dx and dy rotation.
    */
   const bool use_arcball = useArcball();
@@ -548,7 +551,7 @@ static void motion(const int x, const int y) {
   else if (g_mouseMClickButton || (g_mouseLClickButton && g_mouseRClickButton)) {
     m = RigTForm(Cvec3(0, 0, -dy_t) * translateFactor);
   }
-  
+
   /* apply the transformation */
   if (g_mouseClickDown) {
     m = g_aFrame * m * inv(g_aFrame);
@@ -582,7 +585,9 @@ static void mouse(const int button, const int state, const int x, const int y) {
 
   g_mouseClickDown = g_mouseLClickButton || g_mouseRClickButton || g_mouseMClickButton;
 
+  // glFlush();
   glutPostRedisplay();
+  setPickingMode(0);
 }
 
 static void cycleSkyAChoice() {
@@ -623,6 +628,15 @@ static void cycleManipulation() {
   }
 }
 
+/**
+ * Enables or disables picking mode.
+ */
+static void setPickingMode(bool enabled) {
+  if (!enabled)   display();
+  cout << "Picking mode:\t" << enabled << endl;
+  g_picking = enabled;
+}
+
 static void keyboard(const unsigned char key, const int x, const int y) {
   switch (key) {
     case ESCAPE_KEY:
@@ -653,7 +667,7 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       cycleSkyAChoice();
       break;
     case 'p':
-      g_picking = true;
+      setPickingMode(1);
       break;
   }
   glutPostRedisplay();
