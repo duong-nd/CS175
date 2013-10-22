@@ -45,7 +45,7 @@ shared_ptr<SgRbtNode> Picker::getRbtNodeAtXY(int x, int y) {
 
   vector<char> pixels(3);
   glReadPixels(x,y, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, &pixels[0]);
-  cout << pixels[0] << ", " << pixels[1] << ", " << pixels[2] << endl;
+  cout << (int)pixels[0] << ", " << (int)pixels[1] << ", " << (int)pixels[2] << endl;
   /* In the style of ppm.cpp. */
   PackedPixel p;
   p.r = pixels[0];
