@@ -1,6 +1,6 @@
 #include <GL/glew.h>
 
-#include "picker.h"
+#include "headers/picker.h"
 
 using namespace std;
 using namespace std::tr1;

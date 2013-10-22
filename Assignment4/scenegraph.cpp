@@ -1,6 +1,6 @@
 #include <algorithm>
 
-#include "scenegraph.h"
+#include "headers/scenegraph.h"
 
 using namespace std;
 using namespace std::tr1;
