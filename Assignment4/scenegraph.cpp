@@ -44,11 +44,13 @@ public:
   }
 
   virtual bool visit(SgTransformNode& node) {
-    // TODO
+    if (node == target_) return false;
+    rbtStack_.push_back(node.getRbt());
+    return true;
   }
 
   virtual bool postVisit(SgTransformNode& node) {
-    // TODO
+    return true;
   }
 };
 
