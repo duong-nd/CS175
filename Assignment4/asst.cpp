@@ -69,7 +69,6 @@ static bool g_mouseLClickButton, g_mouseRClickButton, g_mouseMClickButton;
 /** Coordinates for mouse click event */
 static int g_mouseClickX, g_mouseClickY;
 static int g_activeShader = 0;
-static int g_prevActiveShader = 0;
 
 static bool g_picking = false;
 static const int PICKING_SHADER = 2;
@@ -170,7 +169,6 @@ static shared_ptr<SgRbtNode> g_currentPickedRbtNode; // used later when you do p
 
 /** Define two lights positions in world space */
 static const Cvec3 g_light1(2.0, 3.0, 14.0), g_light2(-2, -3.0, -5.0);
-static RigTForm g_skyRbt = RigTForm(Cvec3(0.0, 0.25, 4.0));
 static const int g_numObjects = 2;
 static int g_currentViewIndex = 0;
 static RigTForm g_objectRbt[g_numObjects] = {
@@ -203,9 +201,9 @@ static const int g_numberOfViews = g_numObjects + 1;
  *   - World-sky frame (like orbiting around the world)
  *   - Sky-sky frame (like moving your head)
  *
- * Initialize it to use world-sky.
+ * Initialize it to use world-sky in initScene() after g_SkyNode is initialized
  */
-static RigTForm g_aFrame = linFact(g_skyRbt);
+static RigTForm g_aFrame;
 
 /** Start with the sky camera as the object that's manipulated by the mouse */
 static int g_objectBeingManipulated = 0;
@@ -301,17 +299,38 @@ static Matrix4 makeProjectionMatrix() {
  *   - Sky-sky frame (like moving your head)
  */
 static void setWrtFrame() {
+  if (g_currentPickedRbtNode == g_skyNode) { /* manipulating sky */
+    if (g_currentViewIndex == 0) { /* view is sky */
+      if (g_skyViewChoice == 0) {
+        g_aFrame = linFact(g_skyNode->getRbt()); /* world-sky */
+      } else {
+        g_aFrame = g_skyNode->getRbt(); /* sky-sky */
+      }
+    }
+  } else {
+    if (g_currentViewIndex == 0) { /* view is sky */
+      // g_aFrame = transFact(g_currentPickedRbtNode->getRbt()) * linFact(g_skyNode->getRbt());
+      g_aFrame = transFact(getPathAccumRbt(g_world, g_currentPickedRbtNode)) * linFact(getPathAccumRbt(g_world, g_skyNode));
+      g_aFrame = inv(getPathAccumRbt(g_world, g_currentPickedRbtNode, 1)) * g_aFrame;
+    } else { /* view is cube */
+      // TODO update this
+      g_aFrame = transFact(g_currentPickedRbtNode->getRbt()) * linFact(g_currentPickedRbtNode->getRbt());
+    }
+  }
+
+  return;
+
   if (g_objectBeingManipulated == 0) { /* manipulating sky */
     if (g_currentViewIndex == 0) { /* view is sky */
       if (g_skyViewChoice == 0) {
-        g_aFrame = linFact(g_skyRbt); /* world-sky */
+        g_aFrame = linFact(g_skyNode->getRbt()); /* world-sky */
       } else {
-        g_aFrame = g_skyRbt; /* sky-sky */
+        g_aFrame = g_skyNode->getRbt(); /* sky-sky */
       }
     }
   } else { /* manipulating cube */
     if (g_currentViewIndex == 0) { /* view is sky */
-      g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_skyRbt);
+      g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_skyNode->getRbt());
     } else { /* view is cube */
       g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_objectRbt[g_currentViewIndex - 1]);
     }
@@ -391,14 +410,16 @@ static void drawStuff(const ShaderState& curSS, bool picking) {
     g_world->accept(drawer);
 
     RigTForm sphereTarget;
-    if (g_objectBeingManipulated == 0) {
+    // if (g_objectBeingManipulated == 0) {
+    if (g_currentPickedRbtNode == g_skyNode) {
       if (g_skyViewChoice == 0) {
         sphereTarget = inv(RigTForm());
       } else {
         sphereTarget = eyeRbt;
       }
     } else {
-      sphereTarget = g_objectRbt[g_objectBeingManipulated - 1];
+      // sphereTarget = g_objectRbt[g_objectBeingManipulated - 1];
+      sphereTarget = g_currentPickedRbtNode->getRbt();
     }
 
     /* don't update g_arcballScale if we're translating in the z direction */
@@ -427,8 +448,9 @@ static void drawStuff(const ShaderState& curSS, bool picking) {
     g_world->accept(picker);
     glFlush();
     g_currentPickedRbtNode = picker.getRbtNodeAtXY(g_mouseClickX, g_mouseClickY);
-    if (g_currentPickedRbtNode == g_groundNode)
-      g_currentPickedRbtNode = shared_ptr<SgRbtNode>();   // set to NULL
+    if (g_currentPickedRbtNode == g_groundNode || g_currentPickedRbtNode == NULL)
+      // g_currentPickedRbtNode = shared_ptr<SgRbtNode>();   // set to NULL
+      g_currentPickedRbtNode = g_skyNode;
   }
 }
 
@@ -469,7 +491,7 @@ static void reshape(const int w, const int h) {
 static RigTForm getArcballRotation(const int x, const int y) {
   // const RigTForm eyeRbt = (g_currentViewIndex == 0) ? g_skyRbt : g_objectRbt[g_currentViewIndex - 1];
   const RigTForm eyeRbt = getEyeRBT();
-  const RigTForm object = (g_objectBeingManipulated == 0) ? g_skyRbt : g_objectRbt[g_objectBeingManipulated - 1];
+  const RigTForm object = (g_objectBeingManipulated == 0) ? g_skyNode->getRbt() : g_objectRbt[g_objectBeingManipulated - 1];
 
   const bool world_sky_manipulation = worldSkyManipulation();
 
@@ -573,11 +595,15 @@ static void motion(const int x, const int y) {
   if (g_mouseClickDown) {
     m = g_aFrame * m * inv(g_aFrame);
 
-    if (g_objectBeingManipulated == 0) {
-      g_skyRbt = m * g_skyRbt;
-    } else {
-      g_objectRbt[g_objectBeingManipulated - 1] = m * g_objectRbt[g_objectBeingManipulated - 1];
-    }
+    g_currentPickedRbtNode->setRbt(m * g_currentPickedRbtNode->getRbt());
+
+    // if (g_objectBeingManipulated == 0) {
+    //   g_skyNode->setRbt(m * g_skyNode->getRbt());
+    //   // g_skyNode = m * g_skyNode->getRbt();
+    // } else {
+    //   g_currentPickedRbtNode->setRbt(m * g_currentPickedRbtNode->getRbt());
+    //   // g_objectRbt[g_objectBeingManipulated - 1] = m * g_objectRbt[g_objectBeingManipulated - 1];
+    // }
   }
 
   g_mouseClickX = curr_x;
@@ -585,6 +611,30 @@ static void motion(const int x, const int y) {
 
   /* Always redraw if we changed the scene */
   glutPostRedisplay();
+}
+
+static void pick() {
+  // We need to set the clear color to black, for pick rendering.
+  // so let's save the clear color
+  GLdouble clearColor[4];
+  glGetDoublev(GL_COLOR_CLEAR_VALUE, clearColor);
+
+  glClearColor(0, 0, 0, 0);
+
+  // using PICKING_SHADER as the shader
+  glUseProgram(g_shaderStates[PICKING_SHADER]->program);
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  drawStuff(*g_shaderStates[PICKING_SHADER], true);
+
+  // Uncomment below and comment out the glutPostRedisplay in mouse(...) call back
+  // to see result of the pick rendering pass
+  // glutSwapBuffers();
+
+  //Now set back the clear color
+  glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
+
+  checkGlErrors();
 }
 
 static void mouse(const int button, const int state, const int x, const int y) {
@@ -602,9 +652,11 @@ static void mouse(const int button, const int state, const int x, const int y) {
 
   g_mouseClickDown = g_mouseLClickButton || g_mouseRClickButton || g_mouseMClickButton;
 
-  // glFlush();
+  if (g_picking && g_mouseLClickButton && !g_mouseRClickButton) {
+    pick();
+    disablePickingMode();
+  }
   glutPostRedisplay();
-  disablePickingMode();
 }
 
 static void cycleSkyAChoice() {
@@ -647,14 +699,12 @@ static void cycleManipulation() {
 
 static void enablePickingMode() {
   g_picking = true;
-  g_prevActiveShader = g_activeShader;
-  g_activeShader = PICKING_SHADER;
+  cout << "picking enabled" << endl;
 }
 
 static void disablePickingMode() {
-  display();
   g_picking = false;
-  g_activeShader = g_prevActiveShader;
+  cout << "picking disabled" << endl;
 }
 
 static void keyboard(const unsigned char key, const int x, const int y) {
@@ -802,6 +852,8 @@ static void initScene() {
   g_world.reset(new SgRootNode());
 
   g_skyNode.reset(new SgRbtNode(RigTForm(Cvec3(0.0, 0.25, 4.0))));
+  g_aFrame = linFact(g_skyNode->getRbt());
+  g_currentPickedRbtNode = g_skyNode;
 
   g_groundNode.reset(new SgRbtNode());
   g_groundNode->addChild(shared_ptr<MyShapeNode>(

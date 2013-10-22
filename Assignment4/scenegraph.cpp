@@ -44,20 +44,17 @@ public:
    * @return                        The accumulated RBT.
    */
   const RigTForm getAccumulatedRbt(int offsetFromDestination = 0) {
-    RigTForm accumulation = RigTForm();
-
-    for (int i = 0; i < offsetFromDestination; i++) { rbtStack_.pop_back(); }
-    for (int i = rbtStack_.size() - 1; i > 0; i--) {
-      accumulation = rbtStack_[i] * accumulation;
-    }
-
-    return accumulation;
+    return rbtStack_[rbtStack_.size() - 1 - offsetFromDestination];
   }
 
   virtual bool visit(SgTransformNode& node) {
-    rbtStack_.push_back(node.getRbt());
-    if (node == target_) return false;
-    return true;
+    if (rbtStack_.size() == 0) {
+      rbtStack_.push_back(RigTForm());
+    } else {
+      rbtStack_.push_back(rbtStack_.back() * node.getRbt());
+    }
+    
+    return (node != target_);
   }
 
   virtual bool postVisit(SgTransformNode& node) {
