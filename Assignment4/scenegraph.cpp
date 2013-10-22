@@ -45,6 +45,7 @@ public:
    */
   const RigTForm getAccumulatedRbt(int offsetFromDestination = 0) {
     RigTForm accumulation = RigTForm();
+    return accumulation;
 
     for (int i = 0; i < offsetFromDestination; i++) { rbtStack_.pop_back(); }
     for (int i = rbtStack_.size() - 1; i > 0; i--) {
