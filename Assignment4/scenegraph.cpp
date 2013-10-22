@@ -59,6 +59,7 @@ public:
   }
 
   virtual bool postVisit(SgTransformNode& node) {
+    if (!rbtStack_.empty()) rbtStack_.pop_back();
     return true;
   }
 };
