@@ -596,7 +596,7 @@ static void motion(const int x, const int y) {
 
   /* apply the transformation */
   if (g_mouseClickDown) {
-    m = g_aFrame * m * inv(g_aFrame);
+    m = g_aFrame * inv(m) * inv(g_aFrame);
 
     g_currentPickedRbtNode->setRbt(m * g_currentPickedRbtNode->getRbt());
 
