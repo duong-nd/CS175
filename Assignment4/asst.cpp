@@ -318,6 +318,17 @@ static void setWrtFrame() {
   }
 }
 
+static RigTForm getEyeRBT() {
+  switch (g_currentViewIndex) {
+    case 0:
+      return getPathAccumRbt(g_world, g_skyNode);
+    case 1:
+      return getPathAccumRbt(g_world, g_robot1Node);
+    case 2:
+      return getPathAccumRbt(g_world, g_robot2Node);
+  }
+}
+
 static bool nonEgoCubeManipulation() {
   /* manipulating cube, and view not from that cube */
   return g_objectBeingManipulated != 0 && g_currentViewIndex != g_objectBeingManipulated;
@@ -341,8 +352,9 @@ static void drawStuff(const ShaderState& curSS, bool picking) {
   sendProjectionMatrix(curSS, projmat);
 
   /* Set the camera view */
-  const RigTForm eyeRbt =
-    (g_currentViewIndex == 0) ? g_skyRbt : g_objectRbt[g_currentViewIndex - 1];
+  // const RigTForm eyeRbt =
+  //   (g_currentViewIndex == 0) ? g_skyRbt : g_objectRbt[g_currentViewIndex - 1];
+  const RigTForm eyeRbt = getEyeRBT();
 
   const RigTForm invEyeRbt = inv(eyeRbt);
 
@@ -455,7 +467,8 @@ static void reshape(const int w, const int h) {
  * @return   A RigTForm representing the arcball rotation
  */
 static RigTForm getArcballRotation(const int x, const int y) {
-  const RigTForm eyeRbt = (g_currentViewIndex == 0) ? g_skyRbt : g_objectRbt[g_currentViewIndex - 1];
+  // const RigTForm eyeRbt = (g_currentViewIndex == 0) ? g_skyRbt : g_objectRbt[g_currentViewIndex - 1];
+  const RigTForm eyeRbt = getEyeRBT();
   const RigTForm object = (g_objectBeingManipulated == 0) ? g_skyRbt : g_objectRbt[g_objectBeingManipulated - 1];
 
   const bool world_sky_manipulation = worldSkyManipulation();
