@@ -70,6 +70,7 @@ static bool g_mouseLClickButton, g_mouseRClickButton, g_mouseMClickButton;
 static int g_mouseClickX, g_mouseClickY;
 static int g_activeShader = 0;
 
+static bool g_picking = false;
 static const int PICKING_SHADER = 2;
 static const int g_numShaders = 3;
 static const char * const g_shaderFiles[g_numShaders][2] = {
@@ -650,6 +651,9 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       break;
     case 'm':
       cycleSkyAChoice();
+      break;
+    case 'p':
+      g_picking = true;
       break;
   }
   glutPostRedisplay();
