@@ -56,8 +56,8 @@ public:
   }
 
   virtual bool visit(SgTransformNode& node) {
-    if (node == target_) return false;
     rbtStack_.push_back(node.getRbt());
+    if (node == target_) return false;
     return true;
   }
 
