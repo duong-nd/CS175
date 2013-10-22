@@ -157,7 +157,7 @@ static void drawStuff(const ShaderState& curSS, bool picking) // { ...
 // So now whenever curSS is referred inside drawStuff, the passed
 // in argument is used.
 //
-// Replace the code for drawing the ground the two cubes with:
+// Replace the code for drawing the ground and the two cubes with:
 // =================================================================
 
 if (!picking) {
@@ -166,8 +166,7 @@ if (!picking) {
 
   // draw arcball as part of asst3
   ...
-}
-else {
+} else {
   Picker picker(invEyeRbt, curSS);
   g_world->accept(picker);
   glFlush();
