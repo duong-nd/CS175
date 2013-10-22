@@ -159,8 +159,7 @@ typedef SgGeometryShapeNode<Geometry> MyShapeNode;
 /**
  * Vertex buffer and index buffer associated with the ground and cube geometry
  */
-static shared_ptr<Geometry> g_ground, g_cube, g_cube2, g_sphere; // TODO kill these
-
+static shared_ptr<Geometry> g_ground, g_cube, g_sphere;
 static shared_ptr<SgRootNode> g_world;
 static shared_ptr<SgRbtNode> g_skyNode, g_groundNode, g_robot1Node, g_robot2Node;
 static shared_ptr<SgRbtNode> g_currentPickedRbtNode; // used later when you do picking
@@ -244,11 +243,6 @@ static void initCubes() {
 
   makeCube(1, vtx.begin(), idx.begin());
   g_cube.reset(new Geometry(&vtx[0], &idx[0], vbLen, ibLen));
-
-  vector<VertexPN> vtx_2(vbLen);
-  vector<unsigned short> idx_2(ibLen);
-  makeCube(1, vtx_2.begin(), idx_2.begin());
-  g_cube2.reset(new Geometry(&vtx_2[0], &idx_2[0], vbLen, ibLen));
 }
 
 static void initSpheres() {
