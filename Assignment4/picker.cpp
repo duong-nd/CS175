@@ -11,22 +11,32 @@ Picker::Picker(const RigTForm& initialRbt, const ShaderState& curSS)
   , srgbFrameBuffer_(!g_Gl2Compatible) {}
 
 bool Picker::visit(SgTransformNode& node) {
-  // TODO
+  nodeStack_.push_back(node.shared_from_this());
   return drawer_.visit(node);
 }
 
 bool Picker::postVisit(SgTransformNode& node) {
-  // TODO
+  nodeStack_.pop_back();
   return drawer_.postVisit(node);
 }
 
 bool Picker::visit(SgShapeNode& node) {
-  // TODO
+  idCounter_++;
+
+  shared_ptr<SgRbtNode> p;
+  for (int i = nodeStack_.size() - 1; i >= 0; i--) {
+    p = dynamic_pointer_cast<SgRbtNode>(nodeStack_[i]);
+    if (p != NULL) break;
+  }
+  addToMap(idCounter_, p);
+
+  const Cvec3 color = idToColor(idCounter_);
+  safe_glUniform3f(drawer_.getCurSS().h_uIdColor, color[0], color[1], color[2]);
   return drawer_.visit(node);
 }
 
 bool Picker::postVisit(SgShapeNode& node) {
-  // TODO
+  // TODO maybe nothing to add?
   return drawer_.postVisit(node);
 }
 
