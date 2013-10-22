@@ -42,6 +42,7 @@ shared_ptr<SgRbtNode> Picker::getRbtNodeAtXY(int x, int y) {
   p.b = pixels[2];
 
   cout << "The back-color of this pixel :\t(" << p.r << "," << p.g << "," << p.b << ")" << endl;
+  return Picker::find(Picker::colorToId(p));
   return shared_ptr<SgRbtNode>(); // return null for now
 }
 
