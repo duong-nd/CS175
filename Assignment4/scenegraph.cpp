@@ -54,7 +54,7 @@ public:
     } else {
       rbtStack_.push_back(rbtStack_.back() * node.getRbt());
     }
-    
+
     return (node != target_);
   }
 
