@@ -491,7 +491,8 @@ static void reshape(const int w, const int h) {
 static RigTForm getArcballRotation(const int x, const int y) {
   // const RigTForm eyeRbt = (g_currentViewIndex == 0) ? g_skyRbt : g_objectRbt[g_currentViewIndex - 1];
   const RigTForm eyeRbt = getEyeRBT();
-  const RigTForm object = (g_objectBeingManipulated == 0) ? g_skyNode->getRbt() : g_objectRbt[g_objectBeingManipulated - 1];
+  // const RigTForm object = (g_objectBeingManipulated == 0) ? g_skyNode->getRbt() : g_objectRbt[g_objectBeingManipulated - 1];
+  const RigTForm object = g_currentPickedRbtNode->getRbt();
 
   const bool world_sky_manipulation = worldSkyManipulation();
 
