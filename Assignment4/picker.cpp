@@ -42,7 +42,10 @@ shared_ptr<SgRbtNode> Picker::getRbtNodeAtXY(int x, int y) {
   p.b = pixels[2];
 
   cout << "The back-color of this pixel :\t(" << p.r << "," << p.g << "," << p.b << ")" << endl;
-  return Picker::find(Picker::colorToId(p));
+  int id = Picker::colorToId(p);
+  cout << "Congratulations! You've selected ID " << id << ". Whoop-dee-fucking-doo." << endl;
+  cout << "Does this id correspond to a null object? " << (Picker::find(id) == NULL) << endl;
+  return Picker::find(id);
   return shared_ptr<SgRbtNode>(); // return null for now
 }
 
