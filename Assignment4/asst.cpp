@@ -318,8 +318,6 @@ static void setWrtFrame() {
     }
   }
 
-  return;
-
   // if (g_objectBeingManipulated == 0) { /* manipulating sky */
   //   if (g_currentViewIndex == 0) { /* view is sky */
   //     if (g_skyViewChoice == 0) {
@@ -422,7 +420,7 @@ static void drawStuff(const ShaderState& curSS, bool picking) {
       // sphereTarget = g_aFrame;
       // sphereTarget = g_currentPickedRbtNode->getRbt();
       // sphereTarget = g_robot1Node->getRbt() * getPathAccumRbt(g_robot1Node, g_currentPickedRbtNode);
-      sphereTarget = getPathAccumRbt(g_robot1Node, g_currentPickedRbtNode);
+      sphereTarget = getPathAccumRbt(g_world, g_currentPickedRbtNode);
 
     }
 
