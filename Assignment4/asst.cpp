@@ -320,21 +320,21 @@ static void setWrtFrame() {
 
   return;
 
-  if (g_objectBeingManipulated == 0) { /* manipulating sky */
-    if (g_currentViewIndex == 0) { /* view is sky */
-      if (g_skyViewChoice == 0) {
-        g_aFrame = linFact(g_skyNode->getRbt()); /* world-sky */
-      } else {
-        g_aFrame = g_skyNode->getRbt(); /* sky-sky */
-      }
-    }
-  } else { /* manipulating cube */
-    if (g_currentViewIndex == 0) { /* view is sky */
-      g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_skyNode->getRbt());
-    } else { /* view is cube */
-      g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_objectRbt[g_currentViewIndex - 1]);
-    }
-  }
+  // if (g_objectBeingManipulated == 0) { /* manipulating sky */
+  //   if (g_currentViewIndex == 0) { /* view is sky */
+  //     if (g_skyViewChoice == 0) {
+  //       g_aFrame = linFact(g_skyNode->getRbt()); /* world-sky */
+  //     } else {
+  //       g_aFrame = g_skyNode->getRbt(); /* sky-sky */
+  //     }
+  //   }
+  // } else {  manipulating cube
+  //   if (g_currentViewIndex == 0) { /* view is sky */
+  //     g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_skyNode->getRbt());
+  //   } else { /* view is cube */
+  //     g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_objectRbt[g_currentViewIndex - 1]);
+  //   }
+  // }
 }
 
 static RigTForm getEyeRBT() {
@@ -419,7 +419,11 @@ static void drawStuff(const ShaderState& curSS, bool picking) {
       }
     } else {
       // sphereTarget = g_objectRbt[g_objectBeingManipulated - 1];
-      sphereTarget = g_currentPickedRbtNode->getRbt();
+      // sphereTarget = g_aFrame;
+      // sphereTarget = g_currentPickedRbtNode->getRbt();
+      // sphereTarget = g_robot1Node->getRbt() * getPathAccumRbt(g_robot1Node, g_currentPickedRbtNode);
+      sphereTarget = getPathAccumRbt(g_robot1Node, g_currentPickedRbtNode);
+
     }
 
     /* don't update g_arcballScale if we're translating in the z direction */
