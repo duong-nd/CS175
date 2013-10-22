@@ -35,12 +35,23 @@ protected:
   SgTransformNode& target_;
   bool found_;
 public:
-  RbtAccumVisitor(SgTransformNode& target)
-    : target_(target)
-    , found_(false) {}
+  RbtAccumVisitor(SgTransformNode& target): target_(target), found_(false) {}
 
-  const RigTForm getAccumulatedRbt(int offsetFromStackTop = 0) {
-    // TODO
+  /**
+   * Gets the last accumulated matrix from the saved stack in the visitor.
+   * @param  offsetFromDestination  Allows you to back up from the destination
+   *                                node.
+   * @return                        The accumulated RBT.
+   */
+  const RigTForm getAccumulatedRbt(int offsetFromDestination = 0) {
+    RigTForm accumulation = RigTForm();
+
+    for (int i = 0; i < offsetFromDestination; i++) { rbtStack_.pop_back(); }
+    for (int i = rbtStack_.size() - 1; i > 0; i--) {
+      accumulation = rbtStack_[i] * accumulation;
+    }
+
+    return accumulation;
   }
 
   virtual bool visit(SgTransformNode& node) {
