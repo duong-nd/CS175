@@ -807,9 +807,10 @@ static void constructRobot(shared_ptr<SgTransformNode> base, const Cvec3& color)
                ARM_THICK = 0.25,
                TORSO_LEN = 1.5,
                TORSO_THICK = 0.25,
-               TORSO_WIDTH = 1;
-  const int NUM_JOINTS = 3,
-            NUM_SHAPES = 3;
+               TORSO_WIDTH = 1,
+               HEAD_RADIUS = 0.5;
+  const int NUM_JOINTS = 10,
+            NUM_SHAPES = 10;
 
   struct JointDesc {
     int parent;
