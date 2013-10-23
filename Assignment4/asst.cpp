@@ -495,7 +495,7 @@ static void motion(const int x, const int y) {
     cout << "-----" << endl;
     return;
   }
-    
+
 
   const double curr_x = x;
   const double curr_y = g_windowHeight - y - 1;
@@ -755,9 +755,9 @@ static void constructRobot(shared_ptr<SgTransformNode> base, const Cvec3& color)
                TORSO_LEN = 1.5,
                TORSO_THICK = 0.25,
                TORSO_WIDTH = 1,
-               HEAD_RADIUS = 0.5;
-  const int NUM_JOINTS = 10,
-            NUM_SHAPES = 10;
+               HEAD_RADIUS = 0.35;
+  const int NUM_JOINTS = 11,
+            NUM_SHAPES = 11;
 
   struct JointDesc {
     int parent;
@@ -768,6 +768,14 @@ static void constructRobot(shared_ptr<SgTransformNode> base, const Cvec3& color)
     {-1}, // torso
     {0,  TORSO_WIDTH/2, TORSO_LEN/2, 0}, // upper right arm
     {1,  ARM_LEN, 0, 0}, // lower right arm
+    {0,  -TORSO_WIDTH/2, TORSO_LEN/2, 0}, // upper left arm
+    {3, -ARM_LEN, 0, 0}, // lower left arm
+    {0, 0, TORSO_LEN/2, 0}, // noggin
+    {0, TORSO_WIDTH/2-ARM_THICK/2, -TORSO_LEN/2, 0}, // upper right leg
+    {6, 0, -ARM_LEN, 0}, // lower right leg
+    {0, -(TORSO_WIDTH/2-ARM_THICK/2), -TORSO_LEN/2, 0}, // upper left leg
+    {8, 0, -ARM_LEN, 0}, // lower left leg
+    {0, 0, -TORSO_LEN/4, TORSO_THICK}, // penis
   };
 
   struct ShapeDesc {
@@ -778,8 +786,19 @@ static void constructRobot(shared_ptr<SgTransformNode> base, const Cvec3& color)
 
   ShapeDesc shapeDesc[NUM_SHAPES] = {
     {0, 0,         0, 0, TORSO_WIDTH, TORSO_LEN, TORSO_THICK, g_cube}, // torso
-    {1, ARM_LEN/2, 0, 0, ARM_LEN, ARM_THICK, ARM_THICK, g_cube}, // upper right arm
-    {2, ARM_LEN/2, 0, 0, ARM_LEN, ARM_THICK, ARM_THICK, g_cube}, // lower right arm
+
+    {1,  ARM_LEN/2, 0, 0, ARM_LEN, ARM_THICK, ARM_THICK, g_cube}, // upper right arm
+    {2,  ARM_LEN/2, 0, 0, ARM_LEN, ARM_THICK * 0.7, ARM_THICK, g_cube}, // lower right arm
+    {3, -ARM_LEN/2, 0, 0, ARM_LEN, ARM_THICK, ARM_THICK, g_cube}, // upper left arm
+    {4, -ARM_LEN/2, 0, 0, ARM_LEN, ARM_THICK * 0.7, ARM_THICK, g_cube}, // lower left arm
+
+    {5, 0,  HEAD_RADIUS, 0, HEAD_RADIUS, HEAD_RADIUS, HEAD_RADIUS, g_sphere}, // noggin
+
+    {6, 0, -ARM_LEN/2, 0, ARM_THICK, ARM_LEN, ARM_THICK, g_cube}, // upper right leg
+    {7, 0, -ARM_LEN/2, 0, ARM_THICK * 0.7, ARM_LEN, ARM_THICK, g_cube}, // lower right leg
+    {8, 0, -ARM_LEN/2, 0, ARM_THICK, ARM_LEN, ARM_THICK, g_cube}, // upper left leg
+    {9, 0, -ARM_LEN/2, 0, ARM_THICK * 0.7, ARM_LEN, ARM_THICK, g_cube}, // lower left leg
+    {10, 0, -ARM_LEN/2, 0, ARM_THICK * 0.7, ARM_THICK, ARM_LEN, g_cube}, // penis
   };
 
   shared_ptr<SgTransformNode> jointNodes[NUM_JOINTS];
@@ -794,11 +813,13 @@ static void constructRobot(shared_ptr<SgTransformNode> base, const Cvec3& color)
   }
   for (int i = 0; i < NUM_SHAPES; ++i) {
     shared_ptr<MyShapeNode> shape(
-      new MyShapeNode(shapeDesc[i].geometry,
-                      color,
-                      Cvec3(shapeDesc[i].x, shapeDesc[i].y, shapeDesc[i].z),
-                      Cvec3(0, 0, 0),
-                      Cvec3(shapeDesc[i].sx, shapeDesc[i].sy, shapeDesc[i].sz)));
+      new MyShapeNode(
+        shapeDesc[i].geometry,
+        color,
+        Cvec3(shapeDesc[i].x, shapeDesc[i].y, shapeDesc[i].z),
+        Cvec3(0, 0, 0),
+        Cvec3(shapeDesc[i].sx, shapeDesc[i].sy, shapeDesc[i].sz))
+      );
     jointNodes[shapeDesc[i].parentJointId]->addChild(shape);
   }
 }
