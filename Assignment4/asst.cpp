@@ -359,11 +359,7 @@ static void drawStuff(const ShaderState& curSS, bool picking) {
         sphereTarget = eyeRbt;
       }
     } else {
-      // sphereTarget = g_aFrame;
-      // sphereTarget = g_currentPickedRbtNode->getRbt();
-      // sphereTarget = g_robot1Node->getRbt() * getPathAccumRbt(g_robot1Node, g_currentPickedRbtNode);
       sphereTarget = getPathAccumRbt(g_world, g_currentPickedRbtNode);
-
     }
 
     /* don't update g_arcballScale if we're translating in the z direction */
@@ -393,7 +389,6 @@ static void drawStuff(const ShaderState& curSS, bool picking) {
     glFlush();
     g_currentPickedRbtNode = picker.getRbtNodeAtXY(g_mouseClickX, g_mouseClickY);
     if (g_currentPickedRbtNode == g_groundNode || g_currentPickedRbtNode == NULL)
-      // g_currentPickedRbtNode = shared_ptr<SgRbtNode>();   // set to NULL
       g_currentPickedRbtNode = g_skyNode;
   }
 }
@@ -475,14 +470,7 @@ static RigTForm getArcballRotation(const int x, const int y) {
 
 static void motion(const int x, const int y) {
   /* don't allow the sky frame to be manipulated if we're in a cube view */
-  if (g_currentView != g_skyNode && g_currentPickedRbtNode == g_skyNode) {
-    cout << "-----" << endl;
-    cout << (g_currentView != g_skyNode) << endl;
-    cout << (g_currentPickedRbtNode == g_skyNode) << endl;
-    cout << "-----" << endl;
-    return;
-  }
-
+  if (g_currentView != g_skyNode && g_currentPickedRbtNode == g_skyNode) return;
 
   const double curr_x = x;
   const double curr_y = g_windowHeight - y - 1;
@@ -557,24 +545,24 @@ static void motion(const int x, const int y) {
 }
 
 static void pick() {
-  // We need to set the clear color to black, for pick rendering.
-  // so let's save the clear color
+  /* We need to set the clear color to black, for pick
+   * rendering, so let's save the clear color */
   GLdouble clearColor[4];
   glGetDoublev(GL_COLOR_CLEAR_VALUE, clearColor);
 
   glClearColor(0, 0, 0, 0);
 
-  // using PICKING_SHADER as the shader
+  /* using PICKING_SHADER as the shader */
   glUseProgram(g_shaderStates[PICKING_SHADER]->program);
 
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
   drawStuff(*g_shaderStates[PICKING_SHADER], true);
 
-  // Uncomment below and comment out the glutPostRedisplay in mouse(...) call back
-  // to see result of the pick rendering pass
+  /* Uncomment below and comment out the glutPostRedisplay in mouse(...)
+   * call back to see result of the pick rendering pass */
   // glutSwapBuffers();
 
-  //Now set back the clear color
+  /* Now set back the clear color */
   glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
 
   checkGlErrors();

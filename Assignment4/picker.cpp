@@ -36,7 +36,6 @@ bool Picker::visit(SgShapeNode& node) {
 }
 
 bool Picker::postVisit(SgShapeNode& node) {
-  // TODO maybe nothing to add?
   return drawer_.postVisit(node);
 }
 

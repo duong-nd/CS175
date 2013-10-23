@@ -49,7 +49,6 @@ public:
 
   virtual bool visit(SgTransformNode& node) {
     if (rbtStack_.empty()) {
-      // rbtStack_.push_back(RigTForm());
       rbtStack_.push_back(node.getRbt());
     } else {
       rbtStack_.push_back(rbtStack_.back() * node.getRbt());
