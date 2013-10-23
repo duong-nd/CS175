@@ -442,7 +442,6 @@ static RigTForm getArcballRotation(const int x, const int y) {
 
   Cvec2 sphereOnScreenCoords;
   if (world_sky_manipulation) {
-    cout << "YOU FUCKING MOTHER FUCKER" << endl;
     /* use the screen center */
     sphereOnScreenCoords = Cvec2((g_windowWidth - 1) / 2.0, (g_windowHeight - 1) / 2.0);
   } else {
@@ -455,8 +454,6 @@ static RigTForm getArcballRotation(const int x, const int y) {
       g_windowHeight
     );
   }
-
-  cout << "Sphere on screen coords: " << sphereOnScreenCoords[0] << "," << sphereOnScreenCoords[1] << endl;
 
   const Cvec3 sphere_center = Cvec3(sphereOnScreenCoords, 0);
   const Cvec3 p1 = Cvec3(g_mouseClickX, g_mouseClickY, 0) - sphere_center;
