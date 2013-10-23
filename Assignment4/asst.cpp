@@ -205,11 +205,10 @@ static RigTForm g_aFrame;
 /**
  * controls whether we use the world-sky or sky-sky frame
  * when modifying the sky while the using the sky camera
- *
- * 0 = world-sky
- * 1 = sky-sky
  */
-static int g_skyViewChoice = 0;
+static const int WORLD_SKY = 0;
+static const int SKY_SKY = 1;
+static int g_skyViewChoice = WORLD_SKY;
 
 /** METHOD PROTOTYPES *********************************************************/
 static void enablePickingMode();
@@ -295,7 +294,7 @@ static Matrix4 makeProjectionMatrix() {
 static void setWrtFrame() {
   if (g_currentPickedRbtNode == g_skyNode) { /* manipulating sky */
     if (g_currentView == g_skyNode) { /* view is sky */
-      if (g_skyViewChoice == 0) {
+      if (g_skyViewChoice == WORLD_SKY) {
         g_aFrame = linFact(g_skyNode->getRbt()); /* world-sky */
       } else {
         g_aFrame = g_skyNode->getRbt(); /* sky-sky */
@@ -303,11 +302,10 @@ static void setWrtFrame() {
     }
   } else {
     if (g_currentView == g_skyNode) { /* view is sky */
-      // g_aFrame = transFact(g_currentPickedRbtNode->getRbt()) * linFact(g_skyNode->getRbt());
       g_aFrame = transFact(getPathAccumRbt(g_world, g_currentPickedRbtNode)) * linFact(getPathAccumRbt(g_world, g_skyNode));
       g_aFrame = inv(getPathAccumRbt(g_world, g_currentPickedRbtNode, 1)) * g_aFrame;
     } else { /* view is cube */
-      // TODO update this
+      // TODO update this?
       g_aFrame = transFact(g_currentPickedRbtNode->getRbt()) * linFact(g_currentPickedRbtNode->getRbt());
     }
   }
@@ -323,12 +321,12 @@ static bool nonEgoCubeManipulation() {
 }
 
 static bool useArcball() {
-  return (g_currentPickedRbtNode == g_skyNode && g_skyViewChoice == 0) || nonEgoCubeManipulation();
+  return (g_currentPickedRbtNode == g_skyNode && g_skyViewChoice == WORLD_SKY) || nonEgoCubeManipulation();
 }
 
 static bool worldSkyManipulation() {
   /* manipulating sky camera, while eye is sky camera, and while in world-sky mode */
-  return g_currentPickedRbtNode == g_skyNode && g_currentView == g_skyNode && g_skyViewChoice == 0;
+  return g_currentPickedRbtNode == g_skyNode && g_currentView == g_skyNode && g_skyViewChoice == WORLD_SKY;
 }
 
 static void drawStuff(const ShaderState& curSS, bool picking) {
@@ -356,7 +354,7 @@ static void drawStuff(const ShaderState& curSS, bool picking) {
 
     RigTForm sphereTarget;
     if (g_currentPickedRbtNode == g_skyNode) {
-      if (g_skyViewChoice == 0) {
+      if (g_skyViewChoice == WORLD_SKY) {
         sphereTarget = inv(RigTForm());
       } else {
         sphereTarget = eyeRbt;
@@ -612,7 +610,7 @@ static void cycleSkyAChoice() {
   /* Only allow this to be toggled if we're manipulating the sky while using the sky camera */
   if (g_currentPickedRbtNode == g_skyNode && g_currentView == g_skyNode) {
     g_skyViewChoice = (g_skyViewChoice + 1) % 2;
-    if (g_skyViewChoice == 0) {
+    if (g_skyViewChoice == WORLD_SKY) {
       cout << "Setting aux frame to world-sky" << endl;
     } else {
       cout << "Setting aux frame to sky-sky" << endl;
