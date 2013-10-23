@@ -644,12 +644,12 @@ static void toggleEyeMode() {
 
 static void enablePickingMode() {
   g_picking = true;
-  cout << "picking enabled" << endl;
+  cout << "Picking mode is on" << endl;
 }
 
 static void disablePickingMode() {
   g_picking = false;
-  cout << "picking disabled" << endl;
+  cout << "Picking mode is off" << endl;
 }
 
 static void keyboard(const unsigned char key, const int x, const int y) {
