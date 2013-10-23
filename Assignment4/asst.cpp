@@ -205,11 +205,10 @@ static RigTForm g_aFrame;
 /**
  * controls whether we use the world-sky or sky-sky frame
  * when modifying the sky while the using the sky camera
- *
- * 0 = world-sky
- * 1 = sky-sky
  */
-static int g_skyViewChoice = 0;
+static const int WORLD_SKY = 0;
+static const int SKY_SKY = 1;
+static int g_skyViewChoice = WORLD_SKY;
 
 /** METHOD PROTOTYPES *********************************************************/
 static void enablePickingMode();
@@ -295,7 +294,7 @@ static Matrix4 makeProjectionMatrix() {
 static void setWrtFrame() {
   if (g_currentPickedRbtNode == g_skyNode) { /* manipulating sky */
     if (g_currentView == g_skyNode) { /* view is sky */
-      if (g_skyViewChoice == 0) {
+      if (g_skyViewChoice == WORLD_SKY) {
         g_aFrame = linFact(g_skyNode->getRbt()); /* world-sky */
       } else {
         g_aFrame = g_skyNode->getRbt(); /* sky-sky */
@@ -303,25 +302,17 @@ static void setWrtFrame() {
     }
   } else {
     if (g_currentView == g_skyNode) { /* view is sky */
-      // g_aFrame = transFact(g_currentPickedRbtNode->getRbt()) * linFact(g_skyNode->getRbt());
       g_aFrame = transFact(getPathAccumRbt(g_world, g_currentPickedRbtNode)) * linFact(getPathAccumRbt(g_world, g_skyNode));
       g_aFrame = inv(getPathAccumRbt(g_world, g_currentPickedRbtNode, 1)) * g_aFrame;
     } else { /* view is cube */
-      // TODO update this
+      // TODO update this?
       g_aFrame = transFact(g_currentPickedRbtNode->getRbt()) * linFact(g_currentPickedRbtNode->getRbt());
     }
   }
 }
 
 static RigTForm getEyeRBT() {
-  switch (g_currentViewIndex) {
-    case 0:
-      return getPathAccumRbt(g_world, g_skyNode);
-    case 1:
-      return getPathAccumRbt(g_world, g_robot1Node);
-    case 2:
-      return getPathAccumRbt(g_world, g_robot2Node);
-  }
+  return getPathAccumRbt(g_world, g_currentView);
 }
 
 static bool nonEgoCubeManipulation() {
@@ -330,12 +321,12 @@ static bool nonEgoCubeManipulation() {
 }
 
 static bool useArcball() {
-  return (g_currentPickedRbtNode == g_skyNode && g_skyViewChoice == 0) || nonEgoCubeManipulation();
+  return (g_currentPickedRbtNode == g_skyNode && g_skyViewChoice == WORLD_SKY) || nonEgoCubeManipulation();
 }
 
 static bool worldSkyManipulation() {
   /* manipulating sky camera, while eye is sky camera, and while in world-sky mode */
-  return g_currentPickedRbtNode == g_skyNode && g_currentView == g_skyNode && g_skyViewChoice == 0;
+  return g_currentPickedRbtNode == g_skyNode && g_currentView == g_skyNode && g_skyViewChoice == WORLD_SKY;
 }
 
 static void drawStuff(const ShaderState& curSS, bool picking) {
@@ -363,7 +354,7 @@ static void drawStuff(const ShaderState& curSS, bool picking) {
 
     RigTForm sphereTarget;
     if (g_currentPickedRbtNode == g_skyNode) {
-      if (g_skyViewChoice == 0) {
+      if (g_skyViewChoice == WORLD_SKY) {
         sphereTarget = inv(RigTForm());
       } else {
         sphereTarget = eyeRbt;
@@ -451,7 +442,6 @@ static RigTForm getArcballRotation(const int x, const int y) {
 
   Cvec2 sphereOnScreenCoords;
   if (world_sky_manipulation) {
-    cout << "YOU FUCKING MOTHER FUCKER" << endl;
     /* use the screen center */
     sphereOnScreenCoords = Cvec2((g_windowWidth - 1) / 2.0, (g_windowHeight - 1) / 2.0);
   } else {
@@ -464,8 +454,6 @@ static RigTForm getArcballRotation(const int x, const int y) {
       g_windowHeight
     );
   }
-
-  cout << "Sphere on screen coords: " << sphereOnScreenCoords[0] << "," << sphereOnScreenCoords[1] << endl;
 
   const Cvec3 sphere_center = Cvec3(sphereOnScreenCoords, 0);
   const Cvec3 p1 = Cvec3(g_mouseClickX, g_mouseClickY, 0) - sphere_center;
@@ -619,7 +607,7 @@ static void cycleSkyAChoice() {
   /* Only allow this to be toggled if we're manipulating the sky while using the sky camera */
   if (g_currentPickedRbtNode == g_skyNode && g_currentView == g_skyNode) {
     g_skyViewChoice = (g_skyViewChoice + 1) % 2;
-    if (g_skyViewChoice == 0) {
+    if (g_skyViewChoice == WORLD_SKY) {
       cout << "Setting aux frame to world-sky" << endl;
     } else {
       cout << "Setting aux frame to sky-sky" << endl;
@@ -656,12 +644,12 @@ static void toggleEyeMode() {
 
 static void enablePickingMode() {
   g_picking = true;
-  cout << "picking enabled" << endl;
+  cout << "Picking mode is on" << endl;
 }
 
 static void disablePickingMode() {
   g_picking = false;
-  cout << "picking disabled" << endl;
+  cout << "Picking mode is off" << endl;
 }
 
 static void keyboard(const unsigned char key, const int x, const int y) {
