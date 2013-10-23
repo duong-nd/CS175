@@ -302,11 +302,10 @@ static void setWrtFrame() {
     }
   } else {
     if (g_currentView == g_skyNode) { /* view is sky */
-      g_aFrame = transFact(getPathAccumRbt(g_world, g_currentPickedRbtNode)) * linFact(getPathAccumRbt(g_world, g_skyNode));
-      g_aFrame = inv(getPathAccumRbt(g_world, g_currentPickedRbtNode, 1)) * g_aFrame;
+      g_aFrame = inv(getPathAccumRbt(g_world, g_currentPickedRbtNode, 1)) *
+        transFact(getPathAccumRbt(g_world, g_currentPickedRbtNode)) * linFact(getPathAccumRbt(g_world, g_skyNode));
     } else { /* view is cube */
-      // TODO update this?
-      g_aFrame = transFact(g_currentPickedRbtNode->getRbt()) * linFact(g_currentPickedRbtNode->getRbt());
+      g_aFrame = inv(getPathAccumRbt(g_world, g_currentPickedRbtNode, 1)) * getPathAccumRbt(g_world, g_currentPickedRbtNode);
     }
   }
 }
