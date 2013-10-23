@@ -314,14 +314,7 @@ static void setWrtFrame() {
 }
 
 static RigTForm getEyeRBT() {
-  switch (g_currentViewIndex) {
-    case 0:
-      return getPathAccumRbt(g_world, g_skyNode);
-    case 1:
-      return getPathAccumRbt(g_world, g_robot1Node);
-    case 2:
-      return getPathAccumRbt(g_world, g_robot2Node);
-  }
+  return getPathAccumRbt(g_world, g_currentView);
 }
 
 static bool nonEgoCubeManipulation() {
