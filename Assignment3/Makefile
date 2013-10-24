@@ -1,4 +1,4 @@
-BASE = asstRBT
+BASE = asst
 
 all: $(BASE)
 

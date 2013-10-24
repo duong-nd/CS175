@@ -39,7 +39,6 @@ using namespace std;
 using namespace tr1;
 
 /** G L O B A L S *************************************************************/
-
 static const bool g_Gl2Compatible = true;
 
 
@@ -189,17 +188,27 @@ struct Geometry {
 /**
  * Vertex buffer and index buffer associated with the ground and cube geometry
  */
-static shared_ptr<Geometry> g_ground, g_cube, g_cube2;
+static shared_ptr<Geometry> g_ground, g_cube, g_cube2, g_sphere;
 
 /** SCENE */
 
 /** Define two lights positions in world space */
 static const Cvec3 g_light1(2.0, 3.0, 14.0), g_light2(-2, -3.0, -5.0);
-static Matrix4 g_skyRbt = Matrix4::makeTranslation(Cvec3(0.0, 0.25, 4.0));
+static RigTForm g_skyRbt = RigTForm(Cvec3(0.0, 0.25, 4.0));
 static const int g_numObjects = 2;
 static int g_currentViewIndex = 0;
-static Matrix4 g_objectRbt[g_numObjects] = {Matrix4::makeTranslation(Cvec3(-1,0,0)), Matrix4::makeTranslation(Cvec3(1,0,0))};
-static Cvec3f g_objectColors[g_numObjects] = {Cvec3f(1, 0, 0), Cvec3f(0, 1, 0)};
+static RigTForm g_objectRbt[g_numObjects] = {
+  RigTForm(Cvec3(-1,0,0)),
+  RigTForm(Cvec3(1,0,0))
+};
+static Cvec3f g_objectColors[g_numObjects] = {
+  Cvec3f(1, 0, 0),
+  Cvec3f(0, 1, 0)
+};
+
+static const Cvec3f g_arcballColor = Cvec3f(0, 0.47, 1);
+static double g_arcballScreenRadius = 1.0;
+static double g_arcballScale = 1.0;
 
 /**
  * Global constant representing the number of objects in the world (including
@@ -220,7 +229,7 @@ static const int g_numberOfViews = g_numObjects + 1;
  *
  * Initialize it to use world-sky.
  */
-static Matrix4 g_aFrame = linFact(g_skyRbt);
+static RigTForm g_aFrame = linFact(g_skyRbt);
 
 /** Start with the sky camera as the object that's manipulated by the mouse */
 static int g_objectBeingManipulated = 0;
@@ -232,7 +241,7 @@ static int g_objectBeingManipulated = 0;
  * 0 = world-sky
  * 1 = sky-sky
  */
-static int g_skyAMatrixChoice = 0;
+static int g_skyViewChoice = 0;
 
 /** METHODS *******************************************************************/
 
@@ -265,6 +274,21 @@ static void initCubes() {
   vector<unsigned short> idx_2(ibLen);
   makeCube(1, vtx_2.begin(), idx_2.begin());
   g_cube2.reset(new Geometry(&vtx_2[0], &idx_2[0], vbLen, ibLen));
+}
+
+static void initSpheres() {
+  const int slices = 25;
+  const int stacks = 25;
+
+  int ibLen, vbLen;
+  getSphereVbIbLen(slices, stacks, vbLen, ibLen);
+
+  /* Temporary storage for sphere geometry */
+  vector<VertexPN> vtx(vbLen);
+  vector<unsigned short> idx(ibLen);
+
+  makeSphere(1, slices, stacks, vtx.begin(), idx.begin());
+  g_sphere.reset(new Geometry(&vtx[0], &idx[0], vbLen, ibLen));
 }
 
 /** Takes a projection matrix and send to the the shaders */
@@ -303,7 +327,52 @@ static Matrix4 makeProjectionMatrix() {
            g_frustNear, g_frustFar);
 }
 
+/**
+ * - If we're manipulating a cube and the eye is the sky, this should be the
+ *   cube-sky frame.
+ * - If we're manipulating cube i and eye is cube j, this should be the
+ *   cube i-cube j frame.
+ * - If we're manipulating the sky camera and eye is the sky, we have two
+ *   viable frames, and pressing 'm' switches between them:
+ *   - World-sky frame (like orbiting around the world)
+ *   - Sky-sky frame (like moving your head)
+ */
+static void setWrtFrame() {
+  if (g_objectBeingManipulated == 0) { /* manipulating sky */
+    if (g_currentViewIndex == 0) { /* view is sky */
+      if (g_skyViewChoice == 0) {
+        g_aFrame = linFact(g_skyRbt); /* world-sky */
+      } else {
+        g_aFrame = g_skyRbt; /* sky-sky */
+      }
+    }
+  } else { /* manipulating cube */
+    if (g_currentViewIndex == 0) { /* view is sky */
+      g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_skyRbt);
+    } else { /* view is cube */
+      g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_objectRbt[g_currentViewIndex - 1]);
+    }
+  }
+}
+
+static bool nonEgoCubeManipulation() {
+  /* manipulating cube, and view not from that cube */
+  return g_objectBeingManipulated != 0 && g_currentViewIndex != g_objectBeingManipulated;
+}
+
+static bool useArcball() {
+  return (g_objectBeingManipulated == 0 && g_skyViewChoice == 0) || nonEgoCubeManipulation();
+}
+
+static bool worldSkyManipulation() {
+  /* manipulating sky camera, while eye is sky camera, and while in world-sky mode */
+  return g_objectBeingManipulated == 0 && g_currentViewIndex == 0 && g_skyViewChoice == 0;
+}
+
 static void drawStuff() {
+  /* need to call this here so that the arcball moves when we change the object we're manipulating */
+  setWrtFrame();
+
   /* Short hand for current shader state */
   const ShaderState& curSS = *g_shaderStates[g_activeShader];
 
@@ -312,9 +381,10 @@ static void drawStuff() {
   sendProjectionMatrix(curSS, projmat);
 
   /* Set the camera view */
-  const Matrix4 eyeRbt = (g_currentViewIndex == 0) ? g_skyRbt : g_objectRbt[g_currentViewIndex - 1];
+  const RigTForm eyeRbt =
+    (g_currentViewIndex == 0) ? g_skyRbt : g_objectRbt[g_currentViewIndex - 1];
 
-  const Matrix4 invEyeRbt = inv(eyeRbt);
+  const RigTForm invEyeRbt = inv(eyeRbt);
 
   /* g_light1 position in eye coordinates */
   const Cvec3 eyeLight1 = Cvec3(invEyeRbt * Cvec4(g_light1, 1));
@@ -324,27 +394,58 @@ static void drawStuff() {
   safe_glUniform3f(curSS.h_uLight2, eyeLight2[0], eyeLight2[1], eyeLight2[2]);
 
   /* Now we'll draw the ground. */
-  /* Identity */
-  const Matrix4 groundRbt = Matrix4();
-  Matrix4 MVM = invEyeRbt * groundRbt;
+  const RigTForm groundRbt = RigTForm(); // identity
+  Matrix4 MVM = rigTFormToMatrix(invEyeRbt * groundRbt);
   Matrix4 NMVM = normalMatrix(MVM);
   sendModelViewNormalMatrix(curSS, MVM, NMVM);
-  /* Set color */
   safe_glUniform3f(curSS.h_uColor, 0.1, 0.95, 0.1);
   g_ground->draw(curSS);
 
   /* Now we'll draw the cubes. */
-  MVM = invEyeRbt * g_objectRbt[0];
+  MVM = rigTFormToMatrix(invEyeRbt * g_objectRbt[0]);
   NMVM = normalMatrix(MVM);
   sendModelViewNormalMatrix(curSS, MVM, NMVM);
   safe_glUniform3f(curSS.h_uColor, g_objectColors[0][0], g_objectColors[0][1], g_objectColors[0][2]);
   g_cube->draw(curSS);
 
-  MVM = invEyeRbt * g_objectRbt[1];
+  MVM = rigTFormToMatrix(invEyeRbt * g_objectRbt[1]);
   NMVM = normalMatrix(MVM);
   sendModelViewNormalMatrix(curSS, MVM, NMVM);
   safe_glUniform3f(curSS.h_uColor, g_objectColors[1][0], g_objectColors[1][1], g_objectColors[1][2]);
   g_cube2->draw(curSS);
+
+  RigTForm sphereTarget;
+  if (g_objectBeingManipulated == 0) {
+    if (g_skyViewChoice == 0) {
+      sphereTarget = inv(RigTForm());
+    } else {
+      sphereTarget = eyeRbt;
+    }
+  } else {
+    sphereTarget = g_objectRbt[g_objectBeingManipulated - 1];
+  }
+
+  /* don't update g_arcballScale if we're translating in the z direction */
+  if (!g_mouseMClickButton && !(g_mouseLClickButton && g_mouseRClickButton) && useArcball()) {
+    g_arcballScale = getScreenToEyeScale(
+      (inv(eyeRbt) * sphereTarget).getTranslation()[2],
+      g_frustFovY,
+      g_windowHeight
+    );
+  }
+
+  /* draw wireframes */
+  glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+  const Matrix4 scale = Matrix4::makeScale(g_arcballScale * g_arcballScreenRadius);
+  MVM = rigTFormToMatrix(invEyeRbt * sphereTarget) * scale;
+  NMVM = normalMatrix(MVM);
+  sendModelViewNormalMatrix(curSS, MVM, NMVM);
+  safe_glUniform3f(curSS.h_uColor, g_arcballColor[0], g_arcballColor[1], g_arcballColor[2]);
+  g_sphere->draw(curSS);
+
+  /* draw filled */
+  glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // draw filled again
 }
 
 static void display() {
@@ -365,35 +466,57 @@ static void reshape(const int w, const int h) {
   g_windowHeight = h;
   glViewport(0, 0, w, h);
   cerr << "Size of window is now " << w << "x" << h << endl;
+
+  g_arcballScreenRadius = 0.25 * min(g_windowWidth, g_windowHeight);
+
   updateFrustFovY();
   glutPostRedisplay();
 }
 
 /**
- * - If we're manipulating a cube and the eye is the sky, this should be the
- *   cube-sky frame.
- * - If we're manipulating cube i and eye is cube j, this should be the
- *   cube i-cube j frame.
- * - If we're manipulating the sky camera and eye is the sky, we have two
- *   viable frames, and pressing 'm' switches between them:
- *   - World-sky frame (like orbiting around the world)
- *   - Sky-sky frame (like moving your head)
+ * Return a RigTForm representing an arcball rotation from the point where the mouse was clicked to its current location.
+ * 
+ * @param  x Curent x coord of the mouse, in OpenGL coordinates (NOT raw GLUT coords)
+ * @param  y Curent y coord of the mouse, in OpenGL coordinates (NOT raw GLUT coords)
+ * @return   A RigTForm representing the arcball rotation
  */
-static void setWrtFrame() {
-  if (g_objectBeingManipulated == 0) { /* manipulating sky */
-    if (g_currentViewIndex == 0) { /* view is sky */
-      if (g_skyAMatrixChoice == 0) {
-        g_aFrame = linFact(g_skyRbt); /* world-sky */
-      } else {
-        g_aFrame = g_skyRbt; /* sky-sky */
-      }
-    }
-  } else { /* manipulating cube */
-    if (g_currentViewIndex == 0) { /* view is sky */
-      g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_skyRbt);
-    } else { /* view is cube */
-      g_aFrame = transFact(g_objectRbt[g_objectBeingManipulated - 1]) * linFact(g_objectRbt[g_currentViewIndex - 1]);
-    }
+static RigTForm getArcballRotation(const int x, const int y) {
+  const RigTForm eyeRbt = (g_currentViewIndex == 0) ? g_skyRbt : g_objectRbt[g_currentViewIndex - 1];
+  const RigTForm object = (g_objectBeingManipulated == 0) ? g_skyRbt : g_objectRbt[g_objectBeingManipulated - 1];
+
+  const bool world_sky_manipulation = worldSkyManipulation();
+
+  Cvec2 sphereOnScreenCoords;
+  if (world_sky_manipulation) {
+    /* use the screen center */
+    sphereOnScreenCoords = Cvec2((g_windowWidth - 1) / 2.0, (g_windowHeight - 1) / 2.0);
+  } else {
+    sphereOnScreenCoords = getScreenSpaceCoord(
+      (inv(eyeRbt) * object).getTranslation(),
+      makeProjectionMatrix(),
+      g_frustNear,
+      g_frustFovY,
+      g_windowWidth,
+      g_windowHeight
+    );
+  }
+  
+  const Cvec3 sphere_center = Cvec3(sphereOnScreenCoords, 0);
+  const Cvec3 p1 = Cvec3(g_mouseClickX, g_mouseClickY, 0) - sphere_center;
+  const Cvec3 p2 = Cvec3(x, y, 0) - sphere_center;
+
+  const Cvec3 v1 = normalize(Cvec3(p1[0], p1[1],
+    sqrt(max(0.0, pow(g_arcballScreenRadius, 2) - pow(p1[0], 2) - pow(p1[1], 2)))));
+  const Cvec3 v2 = normalize(Cvec3(p2[0], p2[1],
+    sqrt(max(0.0, pow(g_arcballScreenRadius, 2) - pow(p2[0], 2) - pow(p2[1], 2)))));
+
+  /* If we're manipulating the sky camera, the eye is the sky camera, and
+   * we're in world-sky mode, negate the rotation so it behaves intuituvely. */
+  if (world_sky_manipulation) {
+    /* reversing dot product to accomplish the negation described above */
+    return RigTForm(Quat(0, v1 * -1.0) * Quat(0, v2));
+  } else {
+    return RigTForm(Quat(0, v2) * Quat(0, v1 * -1.0));
   }
 }
 
@@ -401,17 +524,17 @@ static void motion(const int x, const int y) {
   /* don't allow the sky frame to be manipulated if we're in a cube view */
   if (g_currentViewIndex != 0 && g_objectBeingManipulated == 0) return;
 
-  const double raw_dx = x - g_mouseClickX;
-  const double raw_dy = g_windowHeight - y - 1 - g_mouseClickY;
+  const double curr_x = x;
+  const double curr_y = g_windowHeight - y - 1;
+  const double raw_dx = curr_x - g_mouseClickX;
+  const double raw_dy = curr_y - g_mouseClickY;
 
   /* invert dx and/or dy depending on the situation */
   double dx_t, dx_r, dy_t, dy_r;
-  if (g_objectBeingManipulated != 0 && g_currentViewIndex != g_objectBeingManipulated) {
-    /* manipulating cube, and view not from that cube */
+  if (nonEgoCubeManipulation()) {
     dx_t = raw_dx; dx_r = raw_dx;
     dy_t = raw_dy; dy_r = raw_dy;
-  } else if (g_objectBeingManipulated == 0 && g_currentViewIndex == 0 && g_skyAMatrixChoice == 0) {
-    /* manipulating sky camera, while eye is sky camera, and while in world-sky mode */
+  } else if (worldSkyManipulation()) {
     dx_t = -raw_dx; dx_r = -raw_dx;
     dy_t = -raw_dy; dy_r = -raw_dy;
   } else {
@@ -419,40 +542,63 @@ static void motion(const int x, const int y) {
     dy_t = raw_dy; dy_r = -raw_dy;
   }
 
+  /* Use arcball is either of the following conditions are true:
+   * 
+   * 1. manipulating sky camera w.r.t world-sky frame
+   * 2. manipulating cube, and view not from that cube
+   * 
+   * Otherwise use standard dx and dy rotation.
+   */
+  const bool use_arcball = useArcball();
+
+  /* use g_arcballScale to scale translation, unless we're not using arcball */
+  double translateFactor;
+  if (use_arcball) {
+    translateFactor = g_arcballScale;
+  } else {
+    translateFactor = 0.01;
+  }
+
   /* Setting the auxiliary frame here because it needs to be updated whenever a
    * translation occurs; this also covers all other cases for which it needs to
    * be updated, including view and object manipulation changes. */
   setWrtFrame();
 
-  Matrix4 m;
+  RigTForm m;
   /* Left button down? */
   if (g_mouseLClickButton && !g_mouseRClickButton) {
-    m = Matrix4::makeXRotation(-dy_r) * Matrix4::makeYRotation(dx_r);
+    if (use_arcball) {
+      m = getArcballRotation(curr_x, curr_y);
+    } else {
+      m = RigTForm(Quat::makeXRotation(-dy_r) * Quat::makeYRotation(dx_r));
+    }
   }
   /* Right button down? */
   else if (g_mouseRClickButton && !g_mouseLClickButton) {
-    m = Matrix4::makeTranslation(Cvec3(dx_t, dy_t, 0) * 0.01);
+    m = RigTForm(Cvec3(dx_t, dy_t, 0) * translateFactor);
   }
   /* Middle or (left and right) button down? */
   else if (g_mouseMClickButton || (g_mouseLClickButton && g_mouseRClickButton)) {
-    m = Matrix4::makeTranslation(Cvec3(0, 0, -dy_t) * 0.01);
+    m = RigTForm(Cvec3(0, 0, -dy_t) * translateFactor);
   }
-  m = g_aFrame * m * inv(g_aFrame);
-
+  
+  /* apply the transformation */
   if (g_mouseClickDown) {
+    m = g_aFrame * m * inv(g_aFrame);
+
     if (g_objectBeingManipulated == 0) {
       g_skyRbt = m * g_skyRbt;
     } else {
       g_objectRbt[g_objectBeingManipulated - 1] = m * g_objectRbt[g_objectBeingManipulated - 1];
     }
-    /* Always redraw if we changed the scene */
-    glutPostRedisplay();
   }
 
-  g_mouseClickX = x;
-  g_mouseClickY = g_windowHeight - y - 1;
-}
+  g_mouseClickX = curr_x;
+  g_mouseClickY = curr_y;
 
+  /* Always redraw if we changed the scene */
+  glutPostRedisplay();
+}
 
 static void mouse(const int button, const int state, const int x, const int y) {
   g_mouseClickX = x;
@@ -468,13 +614,15 @@ static void mouse(const int button, const int state, const int x, const int y) {
   g_mouseMClickButton &= !(button == GLUT_MIDDLE_BUTTON && state == GLUT_UP);
 
   g_mouseClickDown = g_mouseLClickButton || g_mouseRClickButton || g_mouseMClickButton;
+
+  glutPostRedisplay();
 }
 
-static void cycleSkyAMatrix() {
-  /* only allow this to be toggled if we're manipulating the sky while using the sky camera */
+static void cycleSkyAChoice() {
+  /* Only allow this to be toggled if we're manipulating the sky while using the sky camera */
   if (g_objectBeingManipulated == 0 && g_currentViewIndex == 0) {
-    g_skyAMatrixChoice = (g_skyAMatrixChoice + 1) % 2;
-    if (g_skyAMatrixChoice == 0) {
+    g_skyViewChoice = (g_skyViewChoice + 1) % 2;
+    if (g_skyViewChoice == 0) {
       cout << "Setting aux frame to world-sky" << endl;
     } else {
       cout << "Setting aux frame to sky-sky" << endl;
@@ -535,7 +683,7 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       cycleManipulation();
       break;
     case 'm':
-      cycleSkyAMatrix();
+      cycleSkyAChoice();
       break;
   }
   glutPostRedisplay();
@@ -589,6 +737,7 @@ static void initShaders() {
 static void initGeometry() {
   initGround();
   initCubes();
+  initSpheres();
 }
 
 int main(int argc, char * argv[]) {
