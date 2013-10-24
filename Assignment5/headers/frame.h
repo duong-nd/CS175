@@ -1,3 +1,6 @@
+#ifndef FRAME_H
+#define FRAME_H
+
 #include <vector>
 #include <memory>
 #include <stdexcept>
@@ -8,13 +11,29 @@
 #include "scenegraph.h"
 #include "sgutils.h"
 
+using namespace std;
+using namespace tr1;
+
 class Frame {
 private:
-    std::vector<std::tr1::shared_ptr<SgNode> > nodes;
-    std::vector<RigTForm> rbts;
+  vector< shared_ptr<SgRbtNode> > nodes;
+  vector<RigTForm> rbts = vector<RigTForm>();
 
 public:
-    Frame(shared_ptr<SgNode> root) {
-        dumpSgRbtNodes(root, nodes);
+  Frame(shared_ptr<SgNode> root) {
+    /* Dumps the current scene into nodes. */
+    dumpSgRbtNodes(root, nodes);
+    /* Iterates through the nodes and stores their corresponding RBTs into rbts. */
+    for (int i = 0; i < nodes.size(); i++) {
+      rbts.push_back(nodes[i]->getRbt());
     }
-}
+  }
+
+  void showFrameInScene() {
+    for (int i = 0; i < nodes.size(); i++) {
+      nodes[i]->setRbt(rbts[i]);
+    }
+  }
+};
+
+#endif

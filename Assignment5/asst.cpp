@@ -36,7 +36,12 @@
 #include "headers/drawer.h"
 #include "headers/picker.h"
 
+#include "headers/sgutils.h"
+#include "headers/frame.h"
+#include "headers/script.h"
+
 #define ESCAPE_KEY 27
+#define SPACE_KEY  32
 
 /* For string, vector, iostream, and other standard C++ stuff */
 using namespace std;
@@ -85,6 +90,8 @@ static const char * const g_shaderFilesGl2[g_numShaders][2] = {
 };
 /** Our global shader states */
 static vector<shared_ptr<ShaderState> > g_shaderStates;
+
+static Script keyframes = Script();
 
 /** GEOMETRY */
 
@@ -667,6 +674,30 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       break;
     case 'p':
       enablePickingMode();
+      break;
+    case SPACE_KEY:
+      keyframes.showCurrentFrameInScene();
+      break;
+    case 'u':
+      keyframes.replaceCurrentFrameFromScene();
+      break;
+    case '>':
+      keyframes.advanceCurrentFrame();
+      break;
+    case '<':
+      keyframes.regressCurrentFrame();
+      break;
+    case 'd':
+      keyframes.deleteCurrentFrame();
+      break;
+    case 'n':
+      keyframes.createNewFrameFromSceneAfterCurrentFrame();
+      break;
+    case 'i':
+      keyframes.loadKeyFramesFromFile();
+      break;
+    case 'w':
+      keyframes.writeKeyFramesToFile();
       break;
   }
   glutPostRedisplay();
