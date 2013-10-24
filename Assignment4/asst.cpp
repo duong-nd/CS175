@@ -36,6 +36,8 @@
 #include "headers/drawer.h"
 #include "headers/picker.h"
 
+#include "headers/sgutils.h"
+
 #define ESCAPE_KEY 27
 
 /* For string, vector, iostream, and other standard C++ stuff */
