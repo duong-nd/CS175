@@ -16,22 +16,22 @@ using namespace tr1;
 
 class Frame {
 private:
-  vector< shared_ptr<SgRbtNode> > nodes;
-  vector<RigTForm> rbts = vector<RigTForm>();
+  vector< shared_ptr<SgRbtNode> > nodesInScene;
+  vector<RigTForm> frameRBTs = vector<RigTForm>();
 
 public:
   Frame(shared_ptr<SgNode> root) {
     /* Dumps the current scene into nodes. */
-    dumpSgRbtNodes(root, nodes);
+    dumpSgRbtNodes(root, nodesInScene);
     /* Iterates through the nodes and stores their corresponding RBTs into rbts. */
-    for (int i = 0; i < nodes.size(); i++) {
-      rbts.push_back(nodes[i]->getRbt());
+    for (int i = 0; i < nodesInScene.size(); i++) {
+      frameRBTs.push_back(nodesInScene[i]->getRbt());
     }
   }
 
   void showFrameInScene() {
-    for (int i = 0; i < nodes.size(); i++) {
-      nodes[i]->setRbt(rbts[i]);
+    for (int i = 0; i < nodesInScene.size(); i++) {
+      nodesInScene[i]->setRbt(frameRBTs[i]);
     }
   }
 };

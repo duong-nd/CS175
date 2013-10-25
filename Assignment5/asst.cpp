@@ -217,6 +217,11 @@ static const int WORLD_SKY = 0;
 static const int SKY_SKY = 1;
 static int g_skyViewChoice = WORLD_SKY;
 
+/**
+ * The name of the file to save and load the script to and from.
+ */
+static const string DEFAULT_SCRIPT_FILENAME = "script.script";
+
 /** METHOD PROTOTYPES *********************************************************/
 static void enablePickingMode();
 static void disablePickingMode();
@@ -679,7 +684,7 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       keyframes.showCurrentFrameInScene();
       break;
     case 'u':
-      keyframes.replaceCurrentFrameFromScene();
+      keyframes.replaceCurrentFrameFromScene(g_world);
       break;
     case '>':
       keyframes.advanceCurrentFrame();
@@ -691,13 +696,13 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       keyframes.deleteCurrentFrame();
       break;
     case 'n':
-      keyframes.createNewFrameFromSceneAfterCurrentFrame();
+      keyframes.createNewFrameFromSceneAfterCurrentFrame(g_world);
       break;
     case 'i':
-      keyframes.loadKeyFramesFromFile();
+      keyframes.loadScriptFromFile(DEFAULT_SCRIPT_FILENAME);
       break;
     case 'w':
-      keyframes.writeKeyFramesToFile();
+      keyframes.writeScriptToFile(DEFAULT_SCRIPT_FILENAME);
       break;
   }
   glutPostRedisplay();

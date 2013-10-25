@@ -18,9 +18,6 @@ using namespace tr1;
 
 class Script {
 private:
-
-  const string DEFAULT_SCRIPT_FILENAME = "script.script";
-
   class CurrentFrame {
   private:
     list<Frame> frames = list<Frame>();
@@ -36,26 +33,25 @@ private:
 
   public:
     /**
-     * Returns the current frame to be rendered.
+     * Updates the scene to show the new current frame.
      */
-    Frame getFrame() {
-      return iter*;
+    void showCurrentFrameInScene() {
+      iter->showFrameInScene();
     }
 
     /**
      * Replaces the current frame with the given frame if the current frame is
      * defined. Otherwise creates a `newFrame`.
      *
-     * Returns the Frame that is the CurrentFrame.
+     * Updates the scene to show the new current frame.
      */
-    Frame update(Frame frame) {
+    void update(Frame frame) {
       if (defined()) {
         *iter = frame;
+        iter->showFrameInScene();
       } else {
         newFrame(frame);
       }
-
-      return *iter;
     }
 
     /**
@@ -64,9 +60,9 @@ private:
      * scene graph RBT data to the new key frame. Set the current key frame to
      * the newly created key frame.
      *
-     * Returns the Frame that is the CurrentFrame.
+     * Updates the scene to show the new current frame.
      */
-    Frame newFrame(Frame frame) {
+    void newFrame(Frame frame) {
       if (defined()) {
         iter++;
         /* Insert inserts before current iterator position. */
@@ -77,7 +73,7 @@ private:
         iter = frames.begin();
       }
 
-      return *iter;
+      iter->showFrameInScene();
     }
 
     /**
@@ -93,9 +89,9 @@ private:
      *     - Else set the current frame to the frame immediately after the
      *       deleted frame.
      *
-     * Returns the Frame that is the CurrentFrame.
+     * Updates the scene to show the new current frame.
      */
-    Frame deleteFrame() {
+    void deleteFrame() {
       if (defined()) {
         list<Frame>::iterator temp = iter;
 
@@ -110,65 +106,114 @@ private:
         iter = temp;
       }
 
-      return *iter;
+      if (defined()) {
+        iter->showFrameInScene();
+      }
+    }
+
+    /**
+     * Steps the current frame forward if possible.
+     *
+     * Updates the scene to show the new current frame.
+     */
+    void stepForward() {
+      if (defined()) {
+        iter++;
+        if (iter == frames.end()) {
+          iter--;
+        } else {
+          iter->showFrameInScene();
+        }
+      }
+    }
+
+    /**
+     * Steps the current frame backward if possible.
+     *
+     * Updates the scene to show the new current frame.
+     */
+    void stepBackward() {
+      if (defined()) {
+        if (iter != frames.begin()) {
+          iter--;
+          iter->showFrameInScene();
+        }
+      }
+    }
+
+    void DEBUG() {
+      for (list<Frame>::iterator it = frames.begin(); it != frames.end(); ++it) {
+        cout << "  ";
+        if (it == iter) cout << "[[";
+        cout << &it;
+        if (it == iter) cout << "]]";
+        cout << "  ";
+      }
+      cout << endl;
     }
 
   } currentFrame = CurrentFrame();
 
 public:
   /**
-   * Renders the current frame.
+   * Renders the current frame in the scene.
    */
   void showCurrentFrameInScene() {
-
+    currentFrame.showCurrentFrameInScene();
+    currentFrame.DEBUG();
   }
 
   /**
    * Replace CurrentFrame with the current frame from the scene.
    */
-  void replaceCurrentFrameFromScene() {
-
+  void replaceCurrentFrameFromScene(shared_ptr<SgRootNode> rootNode) {
+    currentFrame.update(Frame(rootNode));
+    currentFrame.DEBUG();
   }
 
   /**
    * Steps the current frame forward.
    */
   void advanceCurrentFrame() {
-
+    currentFrame.stepForward();
+    currentFrame.DEBUG();
   }
 
   /**
    * Steps the current frame backwards.
    */
   void regressCurrentFrame() {
-
+    currentFrame.stepBackward();
+    currentFrame.DEBUG();
   }
 
   /**
    * Deletes the current frame.
    */
   void deleteCurrentFrame() {
-
+    currentFrame.deleteFrame();
+    currentFrame.DEBUG();
   }
 
   /**
    * Creates a new frame (after the current frame) from the scene.
    */
-  void createNewFrameFromSceneAfterCurrentFrame() {
-
+  void createNewFrameFromSceneAfterCurrentFrame(shared_ptr<SgRootNode> rootNode) {
+    currentFrame.newFrame(Frame(rootNode));
+    currentFrame.DEBUG();
   }
 
   /**
    * Loads a script from the default file.
    */
-  void loadScriptFromFile() {
+  void loadScriptFromFile(string filename) {
 
   }
 
   /**
    * Writes a script to the default file.
    */
-  void writeScriptToFile() {
+  void writeScriptToFile(string filename) {
 
   }
 };
