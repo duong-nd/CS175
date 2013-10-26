@@ -86,7 +86,7 @@ public:
     return Cvec4(r[1], r[2], r[3], a[3]);
   }
 
-  Quat operator ^ (const double alpha) {
+  Quat raisedTo(const double alpha) {
     /* First extract the unit axis k-hat by normalizing the last three entries
        of the quaternion. */
     Cvec3 kHat = Cvec3(q_[1], q_[2], q_[3]).normalize();

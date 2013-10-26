@@ -67,7 +67,7 @@ public:
   }
 
   static Quat slerp(Quat q_0, Quat q_1, double alpha) {
-    return ((cn(q_1 * (q_0 ^ (-1)))) ^ alpha) * q_0;
+    return ((cn(q_1 * (q_0.raisedTo(-1)))) ^ alpha).raisedTo(q_0);
   }
 
   static Quat cn(Quat q) {
