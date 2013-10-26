@@ -100,6 +100,7 @@ public:
           )
         )
       );
+      cout << "done one -- " << endl;
     }
 
     return Frame(firstFrame.getNodesInScene(), interpolatedRBTs);

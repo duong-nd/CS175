@@ -87,8 +87,10 @@ public:
   }
 
   Quat raisedTo(const double alpha) {
+    std::cout << "RAISED TO: " << alpha << std::endl;
     /* First extract the unit axis k-hat by normalizing the last three entries
        of the quaternion. */
+    std::cout << "trying to normlze: " << q_[1] << "," << q_[2] << "," << q_[3] << std::endl;
     Cvec3 kHat = Cvec3(q_[1], q_[2], q_[3]).normalize();
     /* This gives us
         /       w      \
@@ -101,6 +103,7 @@ public:
        atan2(Beta, w) returns a unique phi in [-pi, pi] s.t. sin(phi) = Beta and
        cos(phi) = w. */
     double phi = atan2(Beta, w);
+
     /* To be clear, the original quaternion is equivalently expressed with:
         /    cos(phi)   \
         \ sin(phi)*kHat / */
