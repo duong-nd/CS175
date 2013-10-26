@@ -705,7 +705,7 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       keyframes.writeScriptToFile(DEFAULT_SCRIPT_FILENAME);
       break;
     case 'q':
-      getEyeRBT().getRotation() ^ 0.6;
+      getEyeRBT().getRotation().raisedTo(0.6);
       break;
 
   }
