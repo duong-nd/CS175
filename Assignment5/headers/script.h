@@ -35,7 +35,7 @@ private:
       for (list<Frame>::iterator it = frames.begin(); it != frames.end(); ++it) {
         cout << "  ";
         if (it == iter) cout << "[[";
-        cout << &it;
+        cout << it->DEBUG_STRING();
         if (it == iter) cout << "]]";
         cout << "  ";
       }
@@ -51,9 +51,31 @@ public:
   }
 
   /**
+   * Returns true if we're not undefined or the last frame.
+   */
+  bool canAnimate() {
+    cout << "Called canAnimate... ";
+    if (!defined()) {
+      cout << "Can't because we're not defined." << endl;
+      return false;
+    }
+    iter++;
+    if (iter == frames.end()) {
+      iter--;
+      cout << "Can't because we're at the last real frame." << endl;
+      return false;
+    } else {
+      iter--;
+      cout << "Can." << endl;
+      return true;
+    }
+  }
+
+  /**
    * Renders the current frame in the scene.
    */
   void showCurrentFrameInScene() {
+    cout << "Called showCurrentFrameInScene." << endl;
     if (defined()) {
       iter->showFrameInScene();
     }
@@ -79,6 +101,7 @@ public:
    * Steps the current frame forward.
    */
   void advanceCurrentFrame() {
+    cout << "Called advanceCurrentFrame." << endl;
     if (defined()) {
       iter++;
       if (iter == frames.end()) {
@@ -95,11 +118,25 @@ public:
    * Steps the current frame backwards.
    */
   void regressCurrentFrame() {
+    cout << "Called regressCurrentFrame." << endl;
     if (defined()) {
       if (iter != frames.begin()) {
         iter--;
         iter->showFrameInScene();
       }
+    }
+
+    DEBUG();
+  }
+
+  /**
+   * Sets the current frame to the beginning of the frames sequence.
+   */
+  void goToBeginning() {
+    cout << "Called go to beginning." << endl;
+    iter = frames.begin();
+    if (defined()) {
+      iter->showFrameInScene();
     }
 
     DEBUG();
@@ -146,6 +183,7 @@ public:
    * the newly created key frame.
    */
   void createNewFrameFromSceneAfterCurrentFrame(shared_ptr<SgRootNode> rootNode) {
+    cout << "Called createNewFrameFromSceneAfterCurrentFrame." << endl;
     Frame frame = Frame(rootNode);
 
     if (defined()) {
@@ -164,23 +202,21 @@ public:
   }
 
   /**
-   * Interpolates between the frame with index frameNumber and frameNumber + 1,
-   * as if we were alpha % between these two frames. Will fail if you try to
-   * interpolate on a frame before the first frame, on the last frame, or with
-   * an alpha not in [0, 1]
-   * @param rootNode    The root node of the scene, so that we can display to
-   *                    the scene's current nodes.
-   * @param frameNumber First of the pair of frames to interpolate between. This
-   *                    should be between 1 and frames.size() - 2.
+   * Interpolates between the current frame and the next frame as if they were
+   * alpha % between these two frames. Can't do this on the last frame.
    * @param alpha       The "weight" of the second frame relative to the first.
    *                    0 means the first frame is shown, 0 means the second
    *                    frame is shown. This should be between 0 and 1.
    */
-  void interpolate(
-      shared_ptr<SgRootNode> rootNode,
-      int frameNumber,
-      float alpha) {
+  void interpolate(float alpha) {
+    Frame firstFrame = *iter;
+    iter++;
+    Frame secondFrame = *iter;
+    iter--;
+    cout << "Trying to interpolate between " << firstFrame.DEBUG_STRING() << " and " << secondFrame.DEBUG_STRING() << "; alpha = " << alpha << endl;
+    DEBUG();
 
+    Frame::interpolate(firstFrame, secondFrame, alpha).showFrameInScene();
   }
 
   /**

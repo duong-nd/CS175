@@ -229,6 +229,8 @@ static bool g_animationPlaying = false;
 static int g_msBetweenKeyFrames = 2000;
 /** Frames to render per second during animation */
 static int g_animateFramesPerSecond = 60;
+/** Hack so that we know when we need to update the frame for the animation. */
+static int g_lastAnimatedFrame = -1;
 
 /** METHOD PROTOTYPES *********************************************************/
 static void enablePickingMode();
@@ -666,12 +668,14 @@ static void disablePickingMode() {
 static void toggleAnimation() {
   if (!g_animationPlaying) {
     if (g_script.getNumberOfKeyframes() < 4) {
-      cout << "[Warning] Need at least 4 keyframes defined to play the animation." << endl;
+      cout << "[Warning] Need at least 4 keyframes defined to play the " <<
+        "animation. Had " << g_script.getNumberOfKeyframes() << "." << endl;
       return;
     }
 
     /* Start playing the animation if it's currently off. */
     g_animationPlaying = true;
+    g_script.goToBeginning();
     animateTimerCallback(0);
   } else {
     /* Stop playing the animation if it was being played. */
@@ -686,9 +690,21 @@ static void toggleAnimation() {
  *
  * Sets g_animationPlaying to false when the animation is over.
  */
-bool interpolateAndDisplay(float t) {
+void interpolateAndDisplay(float t) {
+  int firstFrame = floor(t);
+  cout << "firstFrame int = " << firstFrame << "; " << "g_lastAnimatedFrame = " << g_lastAnimatedFrame << endl;
+  if (firstFrame != g_lastAnimatedFrame) {
+    g_lastAnimatedFrame = firstFrame;
+    cout << "Updating g_lastAnimatedFrame to be " << g_lastAnimatedFrame << "." << endl;
+    g_script.advanceCurrentFrame();
+  }
+
+  if (!g_script.canAnimate()) {
+    g_animationPlaying = false;
+    cout << "Can't animate any more, so setting g_animationPlaying to " << g_animationPlaying << "." << endl;
+  }
   float alpha = t - floor(t);
-  int priorFrame = floor(t);
+  g_script.interpolate(alpha);
 }
 
 /**
@@ -707,7 +723,6 @@ static void animateTimerCallback(int ms) {
     );
   } else {
     cout << "Animation stopped." << endl;
-    // TODO?
   }
 }
 
