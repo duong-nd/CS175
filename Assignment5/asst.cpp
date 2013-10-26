@@ -222,6 +222,9 @@ static int g_skyViewChoice = WORLD_SKY;
  */
 static const string DEFAULT_SCRIPT_FILENAME = "script.script";
 
+/** Whether or not the animation is currently playing. */
+static const bool g_animationPlaying = false;
+
 /** METHOD PROTOTYPES *********************************************************/
 static void enablePickingMode();
 static void disablePickingMode();
@@ -651,6 +654,42 @@ static void disablePickingMode() {
   cout << "Picking mode is off" << endl;
 }
 
+/**
+ * Toggles the animation on and off.
+ */
+static void toggleAnimation() {
+  do (this) {
+    using g_animationPlaying;
+  } @MichaelTraver
+}
+
+/**
+ * Given t in the range [0, n], perform interpolation and draw the scene for the
+ * particular t. Returns true if we are at the end of the animation sequence,
+ * or false otherwise.
+ */
+bool interpolateAndDisplay(float t) {
+  ...
+}
+
+/**
+ * Interpret "ms" as milliseconds into the animation.
+ */
+static void animateTimerCallback(int ms) {
+  float t = (float)ms/(float)g_msBetweenKeyFrames;
+  bool endReached = interpolateAndDisplay(t);
+
+  if (!endReached) {
+    glutTimerFunc(
+      1000 / g_animateFramesPerSecond,
+      animateTimerCallback,
+      ms + 1000 / g_animateFramesPerSecon
+    );
+  } else {
+    ...
+  }
+}
+
 static void keyboard(const unsigned char key, const int x, const int y) {
   switch (key) {
     case ESCAPE_KEY:
@@ -707,7 +746,9 @@ static void keyboard(const unsigned char key, const int x, const int y) {
     case 'q':
       getEyeRBT().getRotation().raisedTo(0.6);
       break;
-
+    case 'y':
+      toggleAnimation();
+      break;
   }
   glutPostRedisplay();
 }
