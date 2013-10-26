@@ -95,7 +95,7 @@ public:
         \ Beta * k-hat /
        with w^2 + Beta^2 = 1 (on unit circle). */
     double w = q_[0];
-    double Beta = q_[0] / kHat[0];
+    double Beta = q_[1] / kHat[0];
     std::cout << "w^2 + Beta^2 = " << w * w + Beta * Beta << std::endl;
     /* Next extract phi using atan2.
        atan2(Beta, w) returns a unique phi in [-pi, pi] s.t. sin(phi) = Beta and
@@ -106,11 +106,11 @@ public:
         \ sin(phi)*kHat / */
     std::cout << "Original w: " << w << std::endl;
     std::cout << "New w (should be same): " << cos(phi) << std::endl;
-    std::cout << "Original x: " << q_[0] << std::endl;;
+    std::cout << "Original x: " << q_[1] << std::endl;;
     std::cout << "New x (should be same): " << kHat[0] * sin(phi) << std::endl;
-    std::cout << "Original y: " << q_[1] << std::endl;;
+    std::cout << "Original y: " << q_[2] << std::endl;;
     std::cout << "New y (should be same): " << kHat[1] * sin(phi) << std::endl;
-    std::cout << "Original z: " << q_[2] << std::endl;;
+    std::cout << "Original z: " << q_[3] << std::endl;;
     std::cout << "New z (should be same): " << kHat[2] * sin(phi) << std::endl;
     std::cout << std::endl;
 
