@@ -36,6 +36,14 @@ public:
   }
 
   /**
+   * Interpolates between the first frame and second frame, with the second
+   * frame having a relative "weight" of alpha. Returns the interpolated frame.
+   */
+  static Frame interpolate(Frame firstFrame, Frame secondFrame, float alpha) {
+
+  }
+
+  /**
    * File-writable serialization string representing this frame.
    */
   string serialize() {
