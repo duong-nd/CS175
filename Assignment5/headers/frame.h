@@ -124,6 +124,7 @@ public:
   }
 
   string DEBUG_STRING() {
+
     return frameRBTs[0].DEBUG_STRING();
   }
 };
