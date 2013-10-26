@@ -8,6 +8,8 @@
 #if __GNUG__
 #   include <tr1/memory>
 #endif
+#include <iostream>
+#include <fstream>
 
 #include "scenegraph.h"
 #include "sgutils.h"
@@ -36,7 +38,9 @@ private:
      * Updates the scene to show the new current frame.
      */
     void showCurrentFrameInScene() {
-      iter->showFrameInScene();
+      if (defined()) {
+        iter->showFrameInScene();
+      }
     }
 
     /**
@@ -141,6 +145,28 @@ private:
       }
     }
 
+    /**
+     * Serializes frames and returns the string to be written to a file.
+     */
+    string serializeFrames() {
+      string serialized = "";
+      for (list<Frame>::iterator it = frames.begin(); it != frames.end(); ++it) {
+        serialized += it->serialize() + "\n";
+      }
+      return serialized;
+    }
+
+    /**
+     * Deserializes the frames represented by a string, loads them, and sets the
+     * current frame to be the first one.
+     */
+    void deserializeFrames(vector<string> serialized) {
+      list<Frame> newFrames = list<Frame>();
+      for (int i = 0; i < serialized.size(); i++) {
+        Frame::deserialize(serialized[i]);
+      }
+    }
+
     void DEBUG() {
       for (list<Frame>::iterator it = frames.begin(); it != frames.end(); ++it) {
         cout << "  ";
@@ -206,15 +232,25 @@ public:
   /**
    * Loads a script from the default file.
    */
-  void loadScriptFromFile(string filename) {
-
+  void loadScriptFromFile(string filename, shared_ptr<SgRootNode> rootNode) {
+    ifstream file;
+    file.open(filename.c_str());
+    vector<string> serializedFrames = vector<string>();
+    string currentString;
+    while (file >> currentString) {
+      serializedFrames.push_back(currentString);
+    }
+    currentFrame.deserializeFrames(serializedFrames);
   }
 
   /**
    * Writes a script to the default file.
    */
   void writeScriptToFile(string filename) {
-
+    ofstream file;
+    file.open(filename.c_str());
+    file << currentFrame.serializeFrames() << "\n";
+    file.close();
   }
 };
 

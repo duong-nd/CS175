@@ -4,6 +4,9 @@
 #include <iostream>
 #include <cassert>
 
+#include <iostream>
+#include <fstream>
+
 #include "matrix4.h"
 #include "quat.h"
 
@@ -49,6 +52,29 @@ public:
       t_ + Cvec3(r_ * Cvec4(a.getTranslation(), 0)),
       r_ * a.getRotation()
     );
+  }
+
+  std::string serialize() {
+    // TODO
+  }
+
+  static RigTForm deserialize(std::string serialized) {
+    // TODO
+  }
+
+  static Cvec3 lerp(Cvec3 c_0, Cvec3 c_1, double alpha) {
+    return c_0 * (1 - alpha) + c_1 * alpha;
+  }
+
+  static Quat slerp(Quat q_0, Quat q_1, double alpha) {
+    return ((cn(q_1 * (q_0 ^ (-1)))) ^ alpha) * q_0;
+  }
+
+  static Quat cn(Quat q) {
+    if (q[0] < 0) {
+      return Quat(q[0] * -1, q[1] * -1, q[2] * -1, q[3] * -1);
+    }
+    return q;
   }
 };
 

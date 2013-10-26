@@ -34,6 +34,24 @@ public:
       nodesInScene[i]->setRbt(frameRBTs[i]);
     }
   }
+
+  /**
+   * File-writable serialization string representing this frame.
+   */
+  string serialize() {
+    string outString = "";
+    for (int i = 0; i < frameRBTs.size(); i++) {
+      outString += frameRBTs[i].serialize() + " ";
+    }
+    return outString;
+  }
+
+  /**
+   * Reads and returns a frame from the serialized version.
+   */
+  static void deserialize(string serialized) {
+    // TODO
+  }
 };
 
 #endif
