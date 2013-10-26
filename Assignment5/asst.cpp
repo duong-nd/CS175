@@ -657,11 +657,11 @@ static void disablePickingMode() {
 ///**
 // * Toggles the animation on and off.
 // */
-//static void toggleAnimation() {
+static void toggleAnimation() {
 //  do (this) {
 //    using g_animationPlaying;
 //  } @MichaelTraver
-//}
+}
 //
 ///**
 // * Given t in the range [0, n], perform interpolation and draw the scene for the
