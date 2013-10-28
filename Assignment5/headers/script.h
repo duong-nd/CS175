@@ -212,8 +212,8 @@ public:
   void interpolate(float alpha, shared_ptr<SgRootNode> root) {
     Frame firstFrame = *iter;
     iter++;
-    Frame secondFrame = *iter;
     iter--;
+    Frame secondFrame = *iter;
     cout << "Trying to interpolate between " << firstFrame.DEBUG_STRING() << " and " << secondFrame.DEBUG_STRING() << "; alpha = " << alpha << endl;
     DEBUG();
 
