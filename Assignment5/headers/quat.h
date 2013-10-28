@@ -128,6 +128,11 @@ public:
     return q_.serialize();
   }
 
+  static Quat deserialize(std::string serialized) {
+    const Cvec4 components = deserializeCvec4(serialized);
+    return Quat(components[0], components[1], components[2], components[3]);
+  }
+
   static Quat makeXRotation(const double ang) {
     Quat r;
     const double h = 0.5 * ang * CS175_PI/180;

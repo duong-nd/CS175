@@ -17,6 +17,7 @@ using namespace tr1;
 
 class Frame {
 private:
+  static const char SERIALIZATION_DELIMITER = ' ';
   vector< shared_ptr<SgRbtNode> > nodesInScene;
   vector<RigTForm> frameRBTs = vector<RigTForm>();
 
@@ -113,7 +114,7 @@ public:
   string serialize() {
     stringstream s;
     for (int i = 0; i < frameRBTs.size(); i++) {
-      s << frameRBTs[i].serialize() << " ";
+      s << frameRBTs[i].serialize() << SERIALIZATION_DELIMITER;
     }
     return s.str();
   }
@@ -121,8 +122,16 @@ public:
   /**
    * Reads and returns a frame from the serialized version.
    */
-  static void deserialize(string serialized) {
-    // TODO
+  static Frame deserialize(shared_ptr<SgNode> root, string serialized) {
+    vector<string> serialized_rbts = split(serialized, SERIALIZATION_DELIMITER);
+    assert(serialized_rbts.size() > 0);
+
+    vector<RigTForm> rbts = vector<RigTForm>();
+    for (int i = 0; i < serialized_rbts.size(); i++) {
+      rbts.push_back(RigTForm::deserialize(serialized_rbts[i]));
+    }
+
+    return Frame(root, rbts);
   }
 
   string DEBUG_STRING() {
