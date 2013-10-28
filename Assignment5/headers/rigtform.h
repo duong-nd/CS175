@@ -69,7 +69,7 @@ public:
   }
 
   static Quat slerp(Quat q_0, Quat q_1, double alpha) {
-    Quat result = (cn(q_1 * (q_0.raisedTo(-1)))).raisedTo(alpha) * q_0;
+    Quat result = cn(q_1 * inv(q_0)).raisedTo(alpha) * q_0;
     std::cout << "SUCCESSFULLY COMPUTED RESULT" << std::endl;
     return result;
   }
