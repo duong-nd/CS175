@@ -81,12 +81,21 @@ public:
    * Interpolates between the first frame and second frame, with the second
    * frame having a relative "weight" of alpha. Returns the interpolated frame.
    */
-  static Frame interpolate(Frame firstFrame, Frame secondFrame, float alpha) {
+  static Frame interpolate(Frame firstFrame, Frame secondFrame, float alpha, shared_ptr<SgNode> root) {
+    cout << "HERE'S YOUR MOTHERFUCKING FIRST FRAME:" << endl
+         << firstFrame.serialize() << endl
+         << "AND YOUR MOTHERFUCKING  SECOND FRAME :" << endl
+         << secondFrame.serialize() << endl;
+
     vector<RigTForm> firstFrameRBTs   = firstFrame .getRBTs();
     vector<RigTForm> secondFrameRBTs  = secondFrame.getRBTs();
     vector<RigTForm> interpolatedRBTs = vector<RigTForm>();
 
     for (int i = 0; i < firstFrameRBTs.size(); i++) {
+      cout << "INTERPOLATING ---------" << endl;
+      cout << "FIRST FRAME:\n" << firstFrameRBTs[i].serialize() << endl;
+      cout << "SECOND FRAME:\n" << secondFrameRBTs[i].serialize() << endl;
+      cout << endl;
       interpolatedRBTs.push_back(
         RigTForm(
           RigTForm::lerp(
@@ -104,7 +113,7 @@ public:
       cout << "done one -- " << endl;
     }
 
-    return Frame(firstFrame.getNodesInScene(), interpolatedRBTs);
+    return Frame(root, interpolatedRBTs);
   }
 
   /**

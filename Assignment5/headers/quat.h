@@ -86,6 +86,10 @@ public:
     return Cvec4(r[1], r[2], r[3], a[3]);
   }
 
+  bool operator == (const Quat& a) const {
+    return (q_[0] == a[0] && q_[1] == a[1] && q_[2] == a[2] && q_[3] == a[3]);
+  }
+
   Quat raisedTo(const double alpha) {
     std::cout << "RAISED TO: " << alpha << std::endl;
     /* First extract the unit axis k-hat by normalizing the last three entries
