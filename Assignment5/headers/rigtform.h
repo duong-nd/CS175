@@ -7,8 +7,6 @@
 #include <fstream>
 #include <sstream>
 
-#include "utils.h"
-
 #include "matrix4.h"
 #include "quat.h"
 
@@ -73,7 +71,9 @@ public:
   }
 
   static Quat slerp(Quat q_0, Quat q_1, double alpha) {
-    return (cn(q_1 * (q_0.raisedTo(-1)))).raisedTo(alpha) * q_0;
+    Quat result = cn(q_1 * inv(q_0)).raisedTo(alpha) * q_0;
+    std::cout << "SUCCESSFULLY COMPUTED RESULT" << std::endl;
+    return result;
   }
 
   static Quat cn(Quat q) {
@@ -81,6 +81,20 @@ public:
       return Quat(q[0] * -1, q[1] * -1, q[2] * -1, q[3] * -1);
     }
     return q;
+  }
+
+  std::string DEBUG_STRING() {
+    double Number = t_[0];       // number to be converted to a string
+
+std::string Result;          // string which will contain the result
+
+std::ostringstream convert;   // stream used for the conversion
+
+convert << Number;      // insert the textual representation of 'Number' in the characters in the stream
+
+Result = convert.str(); // set 'Result' to the contents of the stream
+
+    return Result;
   }
 };
 

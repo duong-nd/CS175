@@ -91,7 +91,7 @@ static const char * const g_shaderFilesGl2[g_numShaders][2] = {
 /** Our global shader states */
 static vector<shared_ptr<ShaderState> > g_shaderStates;
 
-static Script keyframes = Script();
+static Script g_script = Script();
 
 /** GEOMETRY */
 
@@ -223,11 +223,19 @@ static int g_skyViewChoice = WORLD_SKY;
 static const string DEFAULT_SCRIPT_FILENAME = "script.script";
 
 /** Whether or not the animation is currently playing. */
-static const bool g_animationPlaying = false;
+static bool g_animationPlaying = false;
+
+/** 2 seconds between g_script */
+static int g_msBetweenKeyFrames = 2000;
+/** Frames to render per second during animation */
+static int g_animateFramesPerSecond = 60;
+/** Hack so that we know when we need to update the frame for the animation. */
+static int g_lastAnimatedFrame = -1;
 
 /** METHOD PROTOTYPES *********************************************************/
 static void enablePickingMode();
 static void disablePickingMode();
+static void animateTimerCallback(int ms);
 
 /** METHODS *******************************************************************/
 
@@ -654,41 +662,71 @@ static void disablePickingMode() {
   cout << "Picking mode is off" << endl;
 }
 
-///**
-// * Toggles the animation on and off.
-// */
+/**
+ * Toggles the animation on and off.
+ */
 static void toggleAnimation() {
-//  do (this) {
-//    using g_animationPlaying;
-//  } @MichaelTraver
+  if (!g_animationPlaying) {
+    if (g_script.getNumberOfKeyframes() < 4) {
+      cout << "[Warning] Need at least 4 keyframes defined to play the " <<
+        "animation. Had " << g_script.getNumberOfKeyframes() << "." << endl;
+      return;
+    }
+
+    /* Start playing the animation if it's currently off. */
+    cout << "Starting the script. Reseting frame to be the beginning." << endl;
+    g_animationPlaying = true;
+    g_script.goToBeginning();
+    animateTimerCallback(0);
+  } else {
+    /* Stop playing the animation if it was being played. */
+    g_animationPlaying = false;
+    // ...
+  }
 }
-//
-///**
-// * Given t in the range [0, n], perform interpolation and draw the scene for the
-// * particular t. Returns true if we are at the end of the animation sequence,
-// * or false otherwise.
-// */
-//bool interpolateAndDisplay(float t) {
-//  ...
-//}
-//
-///**
-// * Interpret "ms" as milliseconds into the animation.
-// */
-//static void animateTimerCallback(int ms) {
-//  float t = (float)ms/(float)g_msBetweenKeyFrames;
-//  bool endReached = interpolateAndDisplay(t);
-//
-//  if (!endReached) {
-//    glutTimerFunc(
-//      1000 / g_animateFramesPerSecond,
-//      animateTimerCallback,
-//      ms + 1000 / g_animateFramesPerSecon
-//    );
-//  } else {
-//    ...
-//  }
-//}
+
+/**
+ * Given t in the range [0, n], perform interpolation and draw the scene for the
+ * particular t.
+ *
+ * Sets g_animationPlaying to false when the animation is over.
+ */
+void interpolateAndDisplay(float t) {
+  int firstFrame = floor(t);
+  cout << "firstFrame int = " << firstFrame << "; " << "g_lastAnimatedFrame = " << g_lastAnimatedFrame << endl;
+  if (firstFrame != g_lastAnimatedFrame) {
+    g_lastAnimatedFrame = firstFrame;
+    cout << "Updating g_lastAnimatedFrame to be " << g_lastAnimatedFrame << "." << endl;
+    g_script.advanceCurrentFrame();
+  }
+
+  if (!g_script.canAnimate()) {
+    g_animationPlaying = false;
+    cout << "Can't animate any more, so setting g_animationPlaying to " << g_animationPlaying << "." << endl;
+  } else {
+    float alpha = t - floor(t);
+    g_script.interpolate(alpha);
+  }
+}
+
+/**
+ * Interpret "ms" as milliseconds into the animation.
+ */
+static void animateTimerCallback(int ms) {
+  float t = (float)ms/(float)g_msBetweenKeyFrames;
+  /* This function will set g_animationPlaying to false when we're done. */
+  interpolateAndDisplay(t);
+
+  if (g_animationPlaying) {
+    glutTimerFunc(
+      1000 / g_animateFramesPerSecond,
+      animateTimerCallback,
+      ms + 1000 / g_animateFramesPerSecond
+    );
+  } else {
+    cout << "Animation stopped." << endl;
+  }
+}
 
 static void keyboard(const unsigned char key, const int x, const int y) {
   switch (key) {
@@ -720,28 +758,28 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       enablePickingMode();
       break;
     case SPACE_KEY:
-      keyframes.showCurrentFrameInScene();
+      g_script.showCurrentFrameInScene();
       break;
     case 'u':
-      keyframes.replaceCurrentFrameFromScene(g_world);
+      g_script.replaceCurrentFrameFromScene(g_world);
       break;
     case '>':
-      keyframes.advanceCurrentFrame();
+      g_script.advanceCurrentFrame();
       break;
     case '<':
-      keyframes.regressCurrentFrame();
+      g_script.regressCurrentFrame();
       break;
     case 'd':
-      keyframes.deleteCurrentFrame();
+      g_script.deleteCurrentFrame();
       break;
     case 'n':
-      keyframes.createNewFrameFromSceneAfterCurrentFrame(g_world);
+      g_script.createNewFrameFromSceneAfterCurrentFrame(g_world);
       break;
     case 'i':
-      keyframes.loadScriptFromFile(DEFAULT_SCRIPT_FILENAME, g_world);
+      g_script.loadScriptFromFile(DEFAULT_SCRIPT_FILENAME, g_world);
       break;
     case 'w':
-      keyframes.writeScriptToFile(DEFAULT_SCRIPT_FILENAME);
+      g_script.writeScriptToFile(DEFAULT_SCRIPT_FILENAME);
       break;
     case 'q':
       getEyeRBT().getRotation().raisedTo(0.6);

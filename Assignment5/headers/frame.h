@@ -21,6 +21,9 @@ private:
   vector<RigTForm> frameRBTs = vector<RigTForm>();
 
 public:
+  /**
+   * Creates a new Frame representing the RBTs from the current scene.
+   */
   Frame(shared_ptr<SgNode> root) {
     /* Dumps the current scene into nodes. */
     dumpSgRbtNodes(root, nodesInScene);
@@ -30,10 +33,78 @@ public:
     }
   }
 
+  /**
+   * Creates a new Frame representing the arbitrary RBTs passed in.
+   */
+  Frame(shared_ptr<SgNode> root, vector<RigTForm> frameRBTs_) {
+    /* Dumps the current scene into nodes. */
+    dumpSgRbtNodes(root, nodesInScene);
+    /* Directly sets the frame RBTs to what we want. */
+    frameRBTs = frameRBTs_;
+  }
+
+  /**
+   * Creates a new Frame representing the arbitrary RBTs passed in from the
+   * nodes in scene that we want to use.
+   */
+  Frame(vector< shared_ptr<SgRbtNode> > nodesInScene_, vector<RigTForm> frameRBTs_) {
+    /* Get the scene nodes. */
+    nodesInScene = nodesInScene_;
+    /* Directly sets the frame RBTs to what we want. */
+    frameRBTs = frameRBTs_;
+  }
+
+  /**
+   * Sets the RBTs of the nodes into the scene to the RBTs stored in this Frame.
+   */
   void showFrameInScene() {
     for (int i = 0; i < nodesInScene.size(); i++) {
       nodesInScene[i]->setRbt(frameRBTs[i]);
     }
+  }
+
+  /**
+   * Returns the RBT-vector of this Frame.
+   */
+  vector<RigTForm> getRBTs() {
+    return frameRBTs;
+  }
+
+  /**
+   * Gets a vector to the nodes in the scene.
+   */
+  vector< shared_ptr<SgRbtNode> > getNodesInScene() {
+    return nodesInScene;
+  }
+
+  /**
+   * Interpolates between the first frame and second frame, with the second
+   * frame having a relative "weight" of alpha. Returns the interpolated frame.
+   */
+  static Frame interpolate(Frame firstFrame, Frame secondFrame, float alpha) {
+    vector<RigTForm> firstFrameRBTs   = firstFrame .getRBTs();
+    vector<RigTForm> secondFrameRBTs  = secondFrame.getRBTs();
+    vector<RigTForm> interpolatedRBTs = vector<RigTForm>();
+
+    for (int i = 0; i < firstFrameRBTs.size(); i++) {
+      interpolatedRBTs.push_back(
+        RigTForm(
+          RigTForm::lerp(
+            firstFrameRBTs[i].getTranslation(),
+            secondFrameRBTs[i].getTranslation(),
+            alpha
+          ),
+          RigTForm::slerp(
+            firstFrameRBTs[i].getRotation(),
+            secondFrameRBTs[i].getRotation(),
+            alpha
+          )
+        )
+      );
+      cout << "done one -- " << endl;
+    }
+
+    return Frame(firstFrame.getNodesInScene(), interpolatedRBTs);
   }
 
   /**
@@ -52,6 +123,11 @@ public:
    */
   static void deserialize(string serialized) {
     // TODO
+  }
+
+  string DEBUG_STRING() {
+
+    return frameRBTs[0].DEBUG_STRING();
   }
 };
 
