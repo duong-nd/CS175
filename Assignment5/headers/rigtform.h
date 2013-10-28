@@ -76,6 +76,7 @@ public:
       return q_0;
     }
 
+    std::cout << "ABOUT TO DO THE REAL QUAT COMPUTE" << std::endl;
     Quat result = cn(q_1 * inv(q_0)).raisedTo(alpha) * q_0;
     std::cout << "SUCCESSFULLY COMPUTED RESULT" << std::endl;
     return result;

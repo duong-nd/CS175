@@ -58,9 +58,11 @@ public:
    * Sets the RBTs of the nodes into the scene to the RBTs stored in this Frame.
    */
   void showFrameInScene() {
+    cout << "Showing frame in scene" << endl;
     for (int i = 0; i < nodesInScene.size(); i++) {
       nodesInScene[i]->setRbt(frameRBTs[i]);
     }
+    cout << "Done showing frame in scene" << endl;
   }
 
   /**
@@ -113,6 +115,7 @@ public:
       cout << "done one -- " << endl;
     }
 
+    cout << "Done with interpolate" << endl;
     return Frame(root, interpolatedRBTs);
   }
 

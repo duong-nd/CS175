@@ -90,18 +90,25 @@ public:
     return (q_[0] == a[0] && q_[1] == a[1] && q_[2] == a[2] && q_[3] == a[3]);
   }
 
+  double getBeta(Cvec3 kHat) {
+    if (kHat[0] != 0)   return q_[1] / kHat[0];
+    if (kHat[1] != 0)   return q_[2] / kHat[1];
+    return q_[3] / kHat[2];
+  }
+
   Quat raisedTo(const double alpha) {
     std::cout << "RAISED TO: " << alpha << std::endl;
     /* First extract the unit axis k-hat by normalizing the last three entries
        of the quaternion. */
-    std::cout << "trying to normlze: " << q_[1] << "," << q_[2] << "," << q_[3] << std::endl;
+    std::cout << "trying to normalize: " << q_[1] << "," << q_[2] << "," << q_[3] << std::endl;
     Cvec3 kHat = Cvec3(q_[1], q_[2], q_[3]).normalize();
     /* This gives us
         /       w      \
         \ Beta * k-hat /
        with w^2 + Beta^2 = 1 (on unit circle). */
     double w = q_[0];
-    double Beta = q_[1] / kHat[0];
+    double Beta = getBeta(kHat);
+    // double Beta = q_[1] / kHat[0];
     std::cout << "w^2 + Beta^2 = " << w * w + Beta * Beta << std::endl;
     /* Next extract phi using atan2.
        atan2(Beta, w) returns a unique phi in [-pi, pi] s.t. sin(phi) = Beta and

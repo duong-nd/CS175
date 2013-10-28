@@ -352,6 +352,7 @@ static bool worldSkyManipulation() {
 }
 
 static void drawStuff(const ShaderState& curSS, bool picking) {
+  cout << "chkpt 1" << endl;
   /* need to call this here so that the arcball moves when we change the object we're manipulating */
   setWrtFrame();
 
@@ -359,17 +360,23 @@ static void drawStuff(const ShaderState& curSS, bool picking) {
   const Matrix4 projmat = makeProjectionMatrix();
   sendProjectionMatrix(curSS, projmat);
 
+  cout << "chkpt 2" << endl;
   /* Set the camera view */
-  const RigTForm eyeRbt = getEyeRBT();
+  RigTForm eyeRbt = getEyeRBT();
+  cout << "chkpt 2.1" << endl;
+  cout << eyeRbt.serialize() << endl;
   const RigTForm invEyeRbt = inv(eyeRbt);
+  cout << "chkpt 2.2" << endl;
 
   /* g_light1 position in eye coordinates */
   const Cvec3 eyeLight1 = Cvec3(invEyeRbt * Cvec4(g_light1, 1));
   /* g_light2 position in eye coordinates */
   const Cvec3 eyeLight2 = Cvec3(invEyeRbt * Cvec4(g_light2, 1));
+  cout << "chkpt 2.3" << endl;
   safe_glUniform3f(curSS.h_uLight, eyeLight1[0], eyeLight1[1], eyeLight1[2]);
   safe_glUniform3f(curSS.h_uLight2, eyeLight2[0], eyeLight2[1], eyeLight2[2]);
 
+  cout << "chkpt 3" << endl;
   if (!picking) {
     Drawer drawer(invEyeRbt, curSS);
     g_world->accept(drawer);
@@ -407,8 +414,10 @@ static void drawStuff(const ShaderState& curSS, bool picking) {
     /* draw filled */
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // draw filled again
   } else {
+    cout << "K what?" << endl;
     Picker picker(invEyeRbt, curSS);
     g_world->accept(picker);
+    cout << "KK.." << endl;
     glFlush();
     g_currentPickedRbtNode = picker.getRbtNodeAtXY(g_mouseClickX, g_mouseClickY);
     if (g_currentPickedRbtNode == g_groundNode || g_currentPickedRbtNode == NULL)
@@ -707,6 +716,7 @@ void interpolateAndDisplay(float t) {
     float alpha = t - floor(t);
     g_script.interpolate(alpha, g_world);
     display();
+    cout << "Done with display..?" << endl;
   }
 }
 
