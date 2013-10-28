@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <stdexcept>
+#include <sstream>
 #if __GNUG__
 #   include <tr1/memory>
 #endif
@@ -39,11 +40,11 @@ public:
    * File-writable serialization string representing this frame.
    */
   string serialize() {
-    string outString = "";
+    stringstream s;
     for (int i = 0; i < frameRBTs.size(); i++) {
-      outString += frameRBTs[i].serialize() + " ";
+      s << frameRBTs[i].serialize() << " ";
     }
-    return outString;
+    return s.str();
   }
 
   /**

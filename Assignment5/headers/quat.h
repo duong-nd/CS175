@@ -121,6 +121,10 @@ public:
     return powered;
   }
 
+  std::string serialize() {
+    return q_.serialize();
+  }
+
   static Quat makeXRotation(const double ang) {
     Quat r;
     const double h = 0.5 * ang * CS175_PI/180;

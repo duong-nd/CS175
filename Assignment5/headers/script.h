@@ -10,6 +10,7 @@
 #endif
 #include <iostream>
 #include <fstream>
+#include <sstream>
 
 #include "scenegraph.h"
 #include "sgutils.h"
@@ -149,11 +150,11 @@ private:
      * Serializes frames and returns the string to be written to a file.
      */
     string serializeFrames() {
-      string serialized = "";
+      stringstream s;
       for (list<Frame>::iterator it = frames.begin(); it != frames.end(); ++it) {
-        serialized += it->serialize() + "\n";
+        s << it->serialize() << "\n";
       }
-      return serialized;
+      return s.str();
     }
 
     /**

@@ -3,7 +3,7 @@
 
 #include <cmath>
 #include <cassert>
-
+#include <sstream>
 
 static const double CS175_PI = 3.14159265358979323846264338327950288;
 static const double CS175_EPS = 1e-8;
@@ -123,6 +123,15 @@ public:
   Cvec& normalize() {
     assert(dot(*this, *this) > CS175_EPS2);
     return *this /= std::sqrt(dot(*this, *this));
+  }
+
+  std::string serialize() {
+    std::stringstream s;
+    for (int i = 0; i < n; i++) {
+      s << d_[i];
+      if (i != n - 1) s << ",";
+    }
+    return s.str();
   }
 };
 

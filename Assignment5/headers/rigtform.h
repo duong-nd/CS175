@@ -4,11 +4,15 @@
 #include <iostream>
 #include <cassert>
 
-#include <iostream>
 #include <fstream>
+#include <sstream>
+
+#include "utils.h"
 
 #include "matrix4.h"
 #include "quat.h"
+
+using namespace std;
 
 class RigTForm {
   Cvec3 t_; // translation component
@@ -55,7 +59,9 @@ public:
   }
 
   std::string serialize() {
-    // TODO
+    stringstream s;
+    s << t_.serialize() << ";" << r_.serialize();
+    return s.str();
   }
 
   static RigTForm deserialize(std::string serialized) {
