@@ -674,9 +674,9 @@ static void toggleAnimation() {
     }
 
     /* Start playing the animation if it's currently off. */
+    cout << "Starting the script. Reseting frame to be the beginning." << endl;
     g_animationPlaying = true;
     g_script.goToBeginning();
-    cout << "Starting the script. Reset frame to be the beginning." << endl;
     animateTimerCallback(0);
   } else {
     /* Stop playing the animation if it was being played. */
@@ -703,9 +703,10 @@ void interpolateAndDisplay(float t) {
   if (!g_script.canAnimate()) {
     g_animationPlaying = false;
     cout << "Can't animate any more, so setting g_animationPlaying to " << g_animationPlaying << "." << endl;
+  } else {
+    float alpha = t - floor(t);
+    g_script.interpolate(alpha);
   }
-  float alpha = t - floor(t);
-  g_script.interpolate(alpha);
 }
 
 /**
