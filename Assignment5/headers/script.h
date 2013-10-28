@@ -21,8 +21,13 @@ using namespace tr1;
 
 class Script {
 private:
-    list<Frame> frames = list<Frame>();
-    list<Frame>::iterator iter = frames.begin();
+    list<Frame> frames;
+    list<Frame>::iterator iter;
+
+    Script(list<Frame> initial_frames) {
+      frames = initial_frames;
+      iter = frames.begin();
+    }
 
     /**
      * Returns whether the current frame is defined (i.e., if there are frames)
@@ -44,6 +49,11 @@ private:
     }
 
 public:
+  Script() {
+    frames = list<Frame>();
+    iter = frames.begin();
+  }
+
   /**
    * Returns the number of stored keyframes.
    */
@@ -223,7 +233,7 @@ public:
   /**
    * Loads a script from the default file.
    */
-  void loadScriptFromFile(string filename, shared_ptr<SgRootNode> rootNode) {
+  static Script loadScriptFromFile(string filename, shared_ptr<SgRootNode> rootNode) {
     ifstream file;
     file.open(filename.c_str());
     vector<string> serialized = vector<string>();
@@ -234,8 +244,10 @@ public:
 
     list<Frame> newFrames = list<Frame>();
     for (int i = 0; i < serialized.size(); i++) {
-      Frame::deserialize(serialized[i]);
+      newFrames.push_back(Frame::deserialize(rootNode, serialized[i]));
     }
+
+    return Script(newFrames);
   }
 
   /**

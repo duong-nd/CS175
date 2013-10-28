@@ -1,15 +1,20 @@
 #ifndef VEC_H
 #define VEC_H
 
+#include <stdlib.h>
+#include <iostream>
 #include <cmath>
 #include <cassert>
 #include <sstream>
+
+#include "utils.h"
 
 static const double CS175_PI = 3.14159265358979323846264338327950288;
 static const double CS175_EPS = 1e-8;
 static const double CS175_EPS2 = CS175_EPS * CS175_EPS;
 static const double CS175_EPS3 = CS175_EPS * CS175_EPS * CS175_EPS;
 
+using namespace std;
 
 template <typename T, int n>
 class Cvec {
@@ -125,8 +130,8 @@ public:
     return *this /= std::sqrt(dot(*this, *this));
   }
 
-  std::string serialize() {
-    std::stringstream s;
+  string serialize() {
+    stringstream s;
     for (int i = 0; i < n; i++) {
       s << d_[i];
       if (i != n - 1) s << ",";
@@ -181,5 +186,23 @@ typedef Cvec <float, 4> Cvec4f;
 typedef Cvec <unsigned char, 2> Cvec2ub;
 typedef Cvec <unsigned char, 3> Cvec3ub;
 typedef Cvec <unsigned char, 4> Cvec4ub;
+
+static Cvec2 deserializeCvec2(string serialized) {
+  vector<string> foo = split(serialized, ',');
+  assert(foo.size() == 2);
+  return Cvec2(atof(foo[0].c_str()), atof(foo[1].c_str()));
+}
+
+static Cvec3 deserializeCvec3(string serialized) {
+  vector<string> foo = split(serialized, ',');
+  assert(foo.size() == 3);
+  return Cvec3(atof(foo[0].c_str()), atof(foo[1].c_str()), atof(foo[2].c_str()));
+}
+
+static Cvec4 deserializeCvec4(std::string serialized) {
+  vector<string> foo = split(serialized, ',');
+  assert(foo.size() == 4);
+  return Cvec4(atof(foo[0].c_str()), atof(foo[1].c_str()), atof(foo[2].c_str()), atof(foo[3].c_str()));
+}
 
 #endif

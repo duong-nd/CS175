@@ -9,10 +9,13 @@
 
 #include "matrix4.h"
 #include "quat.h"
+#include "utils.h"
 
 using namespace std;
 
 class RigTForm {
+private:
+  static const char SERIALIZATION_DELIMITER = ';';
   Cvec3 t_; // translation component
   Quat r_;  // rotation component represented as a quaternion
 
@@ -58,12 +61,14 @@ public:
 
   std::string serialize() {
     stringstream s;
-    s << t_.serialize() << ";" << r_.serialize();
+    s << t_.serialize() << SERIALIZATION_DELIMITER << r_.serialize();
     return s.str();
   }
 
   static RigTForm deserialize(std::string serialized) {
-    // TODO
+    vector<string> parts = split(serialized, SERIALIZATION_DELIMITER);
+    assert(parts.size() == 2);
+    return RigTForm(deserializeCvec3(parts[0]), Quat::deserialize(parts[1]));
   }
 
   static Cvec3 lerp(Cvec3 c_0, Cvec3 c_1, double alpha) {

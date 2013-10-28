@@ -787,7 +787,7 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       g_script.createNewFrameFromSceneAfterCurrentFrame(g_world);
       break;
     case 'i':
-      g_script.loadScriptFromFile(DEFAULT_SCRIPT_FILENAME, g_world);
+      g_script = Script::loadScriptFromFile(DEFAULT_SCRIPT_FILENAME, g_world);
       break;
     case 'w':
       g_script.writeScriptToFile(DEFAULT_SCRIPT_FILENAME);
