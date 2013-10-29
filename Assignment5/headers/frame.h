@@ -19,13 +19,15 @@ class Frame {
 private:
   static const char SERIALIZATION_DELIMITER = ' ';
   vector< shared_ptr<SgRbtNode> > nodesInScene;
-  vector<RigTForm> frameRBTs = vector<RigTForm>();
+  vector<RigTForm> frameRBTs;
 
 public:
   /**
    * Creates a new Frame representing the RBTs from the current scene.
    */
   Frame(shared_ptr<SgNode> root) {
+    frameRBTs = vector<RigTForm>();
+
     /* Dumps the current scene into nodes. */
     dumpSgRbtNodes(root, nodesInScene);
     /* Iterates through the nodes and stores their corresponding RBTs into rbts. */
@@ -126,7 +128,8 @@ public:
   string serialize() {
     stringstream s;
     for (int i = 0; i < frameRBTs.size(); i++) {
-      s << frameRBTs[i].serialize() << SERIALIZATION_DELIMITER;
+      s << frameRBTs[i].serialize();
+      if (i != frameRBTs.size() - 1) s << SERIALIZATION_DELIMITER;
     }
     return s.str();
   }
