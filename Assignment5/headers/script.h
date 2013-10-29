@@ -233,14 +233,14 @@ public:
   /**
    * Loads a script from the default file.
    */
-  static Script loadScriptFromFile(string filename, shared_ptr<SgRootNode> rootNode) {
+  static Script loadScriptFromFile(const string filename, shared_ptr<SgRootNode> rootNode) {
     ifstream file;
     file.open(filename.c_str());
     vector<string> serialized = vector<string>();
-    string currentString;
-    while (file >> currentString) {
-      serialized.push_back(currentString);
-    }
+
+    string line;
+    while (getline(file, line)) serialized.push_back(line);
+    file.close();
 
     list<Frame> newFrames = list<Frame>();
     for (int i = 0; i < serialized.size(); i++) {
@@ -262,7 +262,7 @@ public:
       serialized += it->serialize() + "\n";
     }
 
-    file << serialized << "\n";
+    file << serialized;
     file.close();
   }
 };

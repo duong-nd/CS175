@@ -126,7 +126,8 @@ public:
   string serialize() {
     stringstream s;
     for (int i = 0; i < frameRBTs.size(); i++) {
-      s << frameRBTs[i].serialize() << SERIALIZATION_DELIMITER;
+      s << frameRBTs[i].serialize();
+      if (i != frameRBTs.size() - 1) s << SERIALIZATION_DELIMITER;
     }
     return s.str();
   }
