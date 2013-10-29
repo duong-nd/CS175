@@ -714,7 +714,7 @@ void interpolateAndDisplay(float t) {
     cout << "Can't animate any more, so setting g_animationPlaying to " << g_animationPlaying << "." << endl;
   } else {
     float alpha = t - floor(t);
-    g_script.interpolate(alpha, g_world);
+    g_script.interpolate(alpha);
     display();
     cout << "Done with display..?" << endl;
   }
