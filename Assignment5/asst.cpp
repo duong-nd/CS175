@@ -674,7 +674,6 @@ static void toggleAnimation() {
     }
 
     /* Start playing the animation if it's currently off. */
-    cout << "Starting the script. Reseting frame to be the beginning." << endl;
     g_animationPlaying = true;
     g_script.goToBeginning();
     animateTimerCallback(0);
