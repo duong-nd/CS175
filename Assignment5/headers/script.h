@@ -34,6 +34,10 @@ private:
      * to be displayed.
      */
     bool defined() {
+      if (frames.size() == 0) {
+        iter = frames.begin();
+        return false;
+      }
       return (iter != frames.end());
     }
 
@@ -97,6 +101,7 @@ public:
    * Replace CurrentFrame with the current frame from the scene.
    */
   void replaceCurrentFrameFromScene(shared_ptr<SgRootNode> rootNode) {
+    cout << "SHITTTTTTTTTTT: " << frames.size() << endl;
     if (defined()) {
       Frame frame = Frame(rootNode);
       *iter = frame;
@@ -255,6 +260,7 @@ public:
       newFrames.push_back(Frame::deserialize(rootNode, serialized[i]));
     }
 
+    cout << "MOTHHHHHHHER: " << newFrames.size() << endl;
     return Script(newFrames);
   }
 

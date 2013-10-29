@@ -799,10 +799,10 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       toggleAnimation();
       break;
     case '+':
-      ...
+      g_msBetweenKeyFrames = max(200, g_msBetweenKeyFrames - 50);
       break;
     case '-':
-      ...
+      g_msBetweenKeyFrames += 50;
       break;
   }
   glutPostRedisplay();
