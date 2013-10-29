@@ -680,7 +680,6 @@ static void toggleAnimation() {
   } else {
     /* Stop playing the animation if it was being played. */
     g_animationPlaying = false;
-    // ...
   }
 }
 
@@ -699,11 +698,10 @@ void interpolateAndDisplay(float t) {
 
   if (!g_script.canAnimate()) {
     g_animationPlaying = false;
-    cout << "Can't animate any more, so setting g_animationPlaying to " << g_animationPlaying << "." << endl;
   } else {
-    float alpha = t - floor(t);
+    const float alpha = t - floor(t);
     g_script.interpolate(alpha);
-    display();
+    glutPostRedisplay();
   }
 }
 
@@ -721,8 +719,6 @@ static void animateTimerCallback(int ms) {
       animateTimerCallback,
       ms + 1000 / g_animateFramesPerSecond
     );
-  } else {
-    cout << "Animation stopped." << endl;
   }
 }
 

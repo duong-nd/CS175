@@ -23,10 +23,12 @@ class Script {
 private:
     list<Frame> frames;
     list<Frame>::iterator iter;
+    int currFrameNum;
 
     Script(list<Frame> initial_frames) {
       frames = initial_frames;
       iter = frames.begin();
+      currFrameNum = 0;
     }
 
     /**
@@ -36,6 +38,7 @@ private:
     bool defined() {
       if (frames.size() == 0) {
         iter = frames.begin();
+        currFrameNum = 0;
         return false;
       }
       return (iter != frames.end());
@@ -45,6 +48,7 @@ public:
   Script() {
     frames = list<Frame>();
     iter = frames.begin();
+    currFrameNum = 0;
   }
 
   /**
@@ -54,21 +58,23 @@ public:
     return frames.size();
   }
 
+  void advanceIter() {
+    iter++;
+    currFrameNum++;
+    cout << "Advancing to frame " << currFrameNum << endl;
+  }
+
+  void regressIter() {
+    iter--;
+    currFrameNum--;
+    cout << "Regressing to frame " << currFrameNum << endl;
+  }
+
   /**
    * Returns true if we're not undefined or the last frame.
    */
   bool canAnimate() {
-    if (!defined()) {
-      return false;
-    }
-    iter++;
-    if (iter == frames.end()) {
-      iter--;
-      return false;
-    } else {
-      iter--;
-      return true;
-    }
+    return (defined() && currFrameNum < frames.size() - 2);
   }
 
   /**
@@ -97,13 +103,9 @@ public:
    * Steps the current frame forward.
    */
   void advanceCurrentFrame() {
-    if (defined()) {
-      iter++;
-      if (iter == frames.end()) {
-        iter--;
-      } else {
-        iter->showFrameInScene();
-      }
+    if (defined() && currFrameNum < frames.size() - 1) {
+      advanceIter();
+      iter->showFrameInScene();
     }
   }
 
@@ -113,7 +115,7 @@ public:
   void regressCurrentFrame() {
     if (defined()) {
       if (iter != frames.begin()) {
-        iter--;
+        regressIter();
         iter->showFrameInScene();
       }
     }
@@ -124,6 +126,7 @@ public:
    */
   void goToBeginning() {
     iter = frames.begin();
+    currFrameNum = 0;
     if (defined()) {
       iter->showFrameInScene();
     }
@@ -172,13 +175,18 @@ public:
 
     if (defined()) {
       iter++;
+
       /* Insert inserts before current iterator position. */
       frames.insert(iter, frame);
       iter--;
+      currFrameNum++;
     } else {
       frames.push_back(frame);
       iter = frames.begin();
+      currFrameNum = 0;
     }
+
+    cout << "Adding new frame (" << currFrameNum << ")" << endl;
 
     iter->showFrameInScene();
   }
