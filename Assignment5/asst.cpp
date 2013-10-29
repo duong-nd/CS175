@@ -800,9 +800,11 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       break;
     case '+':
       g_msBetweenKeyFrames = max(200, g_msBetweenKeyFrames - 50);
+      cout << "g_msBetweenKeyFrames inc is " << g_msBetweenKeyFrames << end;
       break;
     case '-':
       g_msBetweenKeyFrames += 50;
+      cout << "g_msBetweenKeyFrames dec is " << g_msBetweenKeyFrames << end;
       break;
   }
   glutPostRedisplay();
