@@ -361,7 +361,6 @@ static void drawStuff(const ShaderState& curSS, bool picking) {
 
   /* Set the camera view */
   RigTForm eyeRbt = getEyeRBT();
-  cout << eyeRbt.serialize() << endl;
   const RigTForm invEyeRbt = inv(eyeRbt);
 
   /* g_light1 position in eye coordinates */
@@ -696,7 +695,6 @@ void interpolateAndDisplay(float t) {
   int firstFrame = floor(t);
   if (firstFrame != g_lastAnimatedFrame) {
     g_lastAnimatedFrame = firstFrame;
-    cout << "Updating g_lastAnimatedFrame to be " << g_lastAnimatedFrame << "." << endl;
     g_script.advanceCurrentFrame();
   }
 
