@@ -76,14 +76,9 @@ public:
   }
 
   static Quat slerp(Quat q_0, Quat q_1, double alpha) {
-    if (q_0 == q_1) {
-      std::cout << "SUCCESSFULLY COMPUTED RESULT B/C ==." << std::endl;
-      return q_0;
-    }
+    if (q_0 == q_1) return q_0;
 
-    std::cout << "ABOUT TO DO THE REAL QUAT COMPUTE" << std::endl;
     Quat result = cn(q_1 * inv(q_0)).raisedTo(alpha) * q_0;
-    std::cout << "SUCCESSFULLY COMPUTED RESULT" << std::endl;
     return result;
   }
 
@@ -92,20 +87,6 @@ public:
       return Quat(q[0] * -1, q[1] * -1, q[2] * -1, q[3] * -1);
     }
     return q;
-  }
-
-  std::string DEBUG_STRING() {
-    double Number = t_[0];       // number to be converted to a string
-
-std::string Result;          // string which will contain the result
-
-std::ostringstream convert;   // stream used for the conversion
-
-convert << Number;      // insert the textual representation of 'Number' in the characters in the stream
-
-Result = convert.str(); // set 'Result' to the contents of the stream
-
-    return Result;
   }
 };
 
