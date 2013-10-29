@@ -703,7 +703,7 @@ void interpolateAndDisplay(float t) {
     cout << "Can't animate any more, so setting g_animationPlaying to " << g_animationPlaying << "." << endl;
   } else {
     float alpha = t - floor(t);
-    g_script.interpolate(alpha, g_world);
+    g_script.interpolate(alpha);
     display();
   }
 }
@@ -787,11 +787,11 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       toggleAnimation();
       break;
     case '+':
-      g_msBetweenKeyFrames = max(200, g_msBetweenKeyFrames - 50);
+      g_msBetweenKeyFrames = max(100, g_msBetweenKeyFrames - 100);
       cout << g_msBetweenKeyFrames << "ms between keyframes" << endl;
       break;
     case '-':
-      g_msBetweenKeyFrames += 50;
+      g_msBetweenKeyFrames = min(10000, g_msBetweenKeyFrames + 100);
       cout << g_msBetweenKeyFrames << "ms between keyframes" << endl;
       break;
   }

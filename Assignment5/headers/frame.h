@@ -21,21 +21,6 @@ private:
   vector< shared_ptr<SgRbtNode> > nodesInScene;
   vector<RigTForm> frameRBTs;
 
-public:
-  /**
-   * Creates a new Frame representing the RBTs from the current scene.
-   */
-  Frame(shared_ptr<SgNode> root) {
-    frameRBTs = vector<RigTForm>();
-
-    /* Dumps the current scene into nodes. */
-    dumpSgRbtNodes(root, nodesInScene);
-    /* Iterates through the nodes and stores their corresponding RBTs into rbts. */
-    for (int i = 0; i < nodesInScene.size(); i++) {
-      frameRBTs.push_back(nodesInScene[i]->getRbt());
-    }
-  }
-
   /**
    * Creates a new Frame representing the arbitrary RBTs passed in.
    */
@@ -58,14 +43,34 @@ public:
   }
 
   /**
+   * Gets a vector to the nodes in the scene.
+   */
+  vector< shared_ptr<SgRbtNode> > getNodesInScene() {
+    return nodesInScene;
+  }
+
+public:
+  /**
+   * Creates a new Frame representing the RBTs from the current scene.
+   */
+  Frame(shared_ptr<SgNode> root) {
+    frameRBTs = vector<RigTForm>();
+
+    /* Dumps the current scene into nodes. */
+    dumpSgRbtNodes(root, nodesInScene);
+    /* Iterates through the nodes and stores their corresponding RBTs into rbts. */
+    for (int i = 0; i < nodesInScene.size(); i++) {
+      frameRBTs.push_back(nodesInScene[i]->getRbt());
+    }
+  }
+
+  /**
    * Sets the RBTs of the nodes into the scene to the RBTs stored in this Frame.
    */
   void showFrameInScene() {
-    cout << "Showing frame in scene" << endl;
     for (int i = 0; i < nodesInScene.size(); i++) {
       nodesInScene[i]->setRbt(frameRBTs[i]);
     }
-    cout << "Done showing frame in scene" << endl;
   }
 
   /**
@@ -76,31 +81,15 @@ public:
   }
 
   /**
-   * Gets a vector to the nodes in the scene.
-   */
-  vector< shared_ptr<SgRbtNode> > getNodesInScene() {
-    return nodesInScene;
-  }
-
-  /**
    * Interpolates between the first frame and second frame, with the second
    * frame having a relative "weight" of alpha. Returns the interpolated frame.
    */
-  static Frame interpolate(Frame firstFrame, Frame secondFrame, float alpha, shared_ptr<SgNode> root) {
-    cout << "HERE'S YOUR MOTHERFUCKING FIRST FRAME:" << endl
-         << firstFrame.serialize() << endl
-         << "AND YOUR MOTHERFUCKING  SECOND FRAME :" << endl
-         << secondFrame.serialize() << endl;
-
+  static Frame interpolate(Frame firstFrame, Frame secondFrame, float alpha) {
     vector<RigTForm> firstFrameRBTs   = firstFrame .getRBTs();
     vector<RigTForm> secondFrameRBTs  = secondFrame.getRBTs();
     vector<RigTForm> interpolatedRBTs = vector<RigTForm>();
 
     for (int i = 0; i < firstFrameRBTs.size(); i++) {
-      cout << "INTERPOLATING ---------" << endl;
-      cout << "FIRST FRAME:\n" << firstFrameRBTs[i].serialize() << endl;
-      cout << "SECOND FRAME:\n" << secondFrameRBTs[i].serialize() << endl;
-      cout << endl;
       interpolatedRBTs.push_back(
         RigTForm(
           RigTForm::lerp(
@@ -115,11 +104,9 @@ public:
           )
         )
       );
-      cout << "done one -- " << endl;
     }
 
-    cout << "Done with interpolate" << endl;
-    return Frame(root, interpolatedRBTs);
+    return Frame(firstFrame.getNodesInScene(), interpolatedRBTs);
   }
 
   /**
@@ -147,11 +134,6 @@ public:
     }
 
     return Frame(root, rbts);
-  }
-
-  string DEBUG_STRING() {
-
-    return frameRBTs[0].DEBUG_STRING();
   }
 };
 

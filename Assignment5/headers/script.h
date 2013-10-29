@@ -190,13 +190,13 @@ public:
    *                    0 means the first frame is shown, 0 means the second
    *                    frame is shown. This should be between 0 and 1.
    */
-  void interpolate(float alpha, shared_ptr<SgRootNode> root) {
+  void interpolate(float alpha) {
     Frame firstFrame = *iter;
     iter++;
     Frame secondFrame = *iter;
     iter--;
 
-    Frame::interpolate(firstFrame, secondFrame, alpha, root).showFrameInScene();
+    Frame::interpolate(firstFrame, secondFrame, alpha).showFrameInScene();
   }
 
   /**
