@@ -41,17 +41,6 @@ private:
       return (iter != frames.end());
     }
 
-    void DEBUG() {
-      for (list<Frame>::iterator it = frames.begin(); it != frames.end(); ++it) {
-        cout << "  ";
-        if (it == iter) cout << "[[";
-        cout << it->DEBUG_STRING();
-        if (it == iter) cout << "]]";
-        cout << "  ";
-      }
-      cout << endl;
-    }
-
 public:
   Script() {
     frames = list<Frame>();
@@ -69,19 +58,15 @@ public:
    * Returns true if we're not undefined or the last frame.
    */
   bool canAnimate() {
-    cout << "Called canAnimate... ";
     if (!defined()) {
-      cout << "Can't because we're not defined." << endl;
       return false;
     }
     iter++;
     if (iter == frames.end()) {
       iter--;
-      cout << "Can't because we're at the last real frame." << endl;
       return false;
     } else {
       iter--;
-      cout << "Can." << endl;
       return true;
     }
   }
@@ -90,18 +75,15 @@ public:
    * Renders the current frame in the scene.
    */
   void showCurrentFrameInScene() {
-    cout << "Called showCurrentFrameInScene." << endl;
     if (defined()) {
       iter->showFrameInScene();
     }
-    DEBUG();
   }
 
   /**
    * Replace CurrentFrame with the current frame from the scene.
    */
   void replaceCurrentFrameFromScene(shared_ptr<SgRootNode> rootNode) {
-    cout << "SHITTTTTTTTTTT: " << frames.size() << endl;
     if (defined()) {
       Frame frame = Frame(rootNode);
       *iter = frame;
@@ -109,15 +91,12 @@ public:
     } else {
       createNewFrameFromSceneAfterCurrentFrame(rootNode);
     }
-
-    DEBUG();
   }
 
   /**
    * Steps the current frame forward.
    */
   void advanceCurrentFrame() {
-    cout << "Called advanceCurrentFrame." << endl;
     if (defined()) {
       iter++;
       if (iter == frames.end()) {
@@ -126,36 +105,28 @@ public:
         iter->showFrameInScene();
       }
     }
-
-    DEBUG();
   }
 
   /**
    * Steps the current frame backwards.
    */
   void regressCurrentFrame() {
-    cout << "Called regressCurrentFrame." << endl;
     if (defined()) {
       if (iter != frames.begin()) {
         iter--;
         iter->showFrameInScene();
       }
     }
-
-    DEBUG();
   }
 
   /**
    * Sets the current frame to the beginning of the frames sequence.
    */
   void goToBeginning() {
-    cout << "Called go to beginning." << endl;
     iter = frames.begin();
     if (defined()) {
       iter->showFrameInScene();
     }
-
-    DEBUG();
   }
 
   /**
@@ -186,8 +157,6 @@ public:
       iter = temp;
       iter->showFrameInScene();
     }
-
-    DEBUG();
   }
 
   /**
@@ -199,7 +168,6 @@ public:
    * the newly created key frame.
    */
   void createNewFrameFromSceneAfterCurrentFrame(shared_ptr<SgRootNode> rootNode) {
-    cout << "Called createNewFrameFromSceneAfterCurrentFrame." << endl;
     Frame frame = Frame(rootNode);
 
     if (defined()) {
@@ -213,8 +181,6 @@ public:
     }
 
     iter->showFrameInScene();
-
-    DEBUG();
   }
 
   /**
@@ -229,8 +195,6 @@ public:
     iter++;
     Frame secondFrame = *iter;
     iter--;
-    cout << "Trying to interpolate between " << firstFrame.DEBUG_STRING() << " and " << secondFrame.DEBUG_STRING() << "; alpha = " << alpha << endl;
-    DEBUG();
 
     Frame::interpolate(firstFrame, secondFrame, alpha, root).showFrameInScene();
   }
@@ -260,7 +224,6 @@ public:
       newFrames.push_back(Frame::deserialize(rootNode, serialized[i]));
     }
 
-    cout << "MOTHHHHHHHER: " << newFrames.size() << endl;
     return Script(newFrames);
   }
 
