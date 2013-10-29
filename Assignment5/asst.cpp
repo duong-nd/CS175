@@ -799,11 +799,11 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       toggleAnimation();
       break;
     case '+':
-      g_msBetweenKeyFrames = max(200, g_msBetweenKeyFrames - 50);
+      g_msBetweenKeyFrames = max(200, g_msBetweenKeyFrames - 350);
       cout << "g_msBetweenKeyFrames inc is " << g_msBetweenKeyFrames << endl;
       break;
     case '-':
-      g_msBetweenKeyFrames += 50;
+      g_msBetweenKeyFrames += 350;
       cout << "g_msBetweenKeyFrames dec is " << g_msBetweenKeyFrames << endl;
       break;
   }
