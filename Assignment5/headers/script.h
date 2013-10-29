@@ -238,10 +238,18 @@ public:
     file.open(filename.c_str());
     vector<string> serialized = vector<string>();
 
+    /* return an empty Script if there's no script file */
+    if (file == NULL) {
+      cout << "No script file found. Ensure that there is a file named " << filename << " in the same directory as the executable." << endl;
+      return Script();
+    }
+
+    /* get the lines (of which each is a frame) from the file */
     string line;
     while (getline(file, line)) serialized.push_back(line);
     file.close();
 
+    /* deserialize the frames */
     list<Frame> newFrames = list<Frame>();
     for (int i = 0; i < serialized.size(); i++) {
       newFrames.push_back(Frame::deserialize(rootNode, serialized[i]));
