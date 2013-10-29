@@ -19,6 +19,13 @@ Matrix4 quatToMatrix(const Quat& q);
 class Quat {
   Cvec4 q_;  // layout is: q_[0]==w, q_[1]==x, q_[2]==y, q_[3]==z
 
+private:
+  double getBeta(Cvec3 kHat) {
+    if (kHat[0] != 0)   return q_[1] / kHat[0];
+    if (kHat[1] != 0)   return q_[2] / kHat[1];
+    return q_[3] / kHat[2];
+  }
+
 public:
   double operator [] (const int i) const {
     return q_[i];
@@ -90,49 +97,30 @@ public:
     return (q_[0] == a[0] && q_[1] == a[1] && q_[2] == a[2] && q_[3] == a[3]);
   }
 
-  double getBeta(Cvec3 kHat) {
-    if (kHat[0] != 0)   return q_[1] / kHat[0];
-    if (kHat[1] != 0)   return q_[2] / kHat[1];
-    return q_[3] / kHat[2];
-  }
-
   Quat raisedTo(const double alpha) {
-    std::cout << "RAISED TO: " << alpha << std::endl;
     /* First extract the unit axis k-hat by normalizing the last three entries
        of the quaternion. */
-    std::cout << "trying to normalize: " << q_[1] << "," << q_[2] << "," << q_[3] << std::endl;
     Cvec3 kHat = Cvec3(q_[1], q_[2], q_[3]).normalize();
+
     /* This gives us
         /       w      \
         \ Beta * k-hat /
        with w^2 + Beta^2 = 1 (on unit circle). */
     double w = q_[0];
     double Beta = getBeta(kHat);
-    // double Beta = q_[1] / kHat[0];
-    std::cout << "w^2 + Beta^2 = " << w * w + Beta * Beta << std::endl;
+
     /* Next extract phi using atan2.
        atan2(Beta, w) returns a unique phi in [-pi, pi] s.t. sin(phi) = Beta and
        cos(phi) = w. */
     double phi = atan2(Beta, w);
 
-    /* To be clear, the original quaternion is equivalently expressed with:
+    /* To be clear, the original quaternion can now be expressed with:
         /    cos(phi)   \
         \ sin(phi)*kHat / */
-    std::cout << "Original w: " << w << std::endl;
-    std::cout << "New w (should be same): " << cos(phi) << std::endl;
-    std::cout << "Original x: " << q_[1] << std::endl;;
-    std::cout << "New x (should be same): " << kHat[0] * sin(phi) << std::endl;
-    std::cout << "Original y: " << q_[2] << std::endl;;
-    std::cout << "New y (should be same): " << kHat[1] * sin(phi) << std::endl;
-    std::cout << "Original z: " << q_[3] << std::endl;;
-    std::cout << "New z (should be same): " << kHat[2] * sin(phi) << std::endl;
-    std::cout << std::endl;
-
     /* Power operation is defined as:
        /    cos(phi)   \^alpha    /    cos(alpha * phi)   \
        \ sin(phi)*kHat /        = \ sin(alpha * phi)*kHat / */
-    Quat powered = Quat(cos(alpha * phi), kHat * sin(alpha * phi));
-    return powered;
+    return Quat(cos(alpha * phi), kHat * sin(alpha * phi));
   }
 
   std::string serialize() {
