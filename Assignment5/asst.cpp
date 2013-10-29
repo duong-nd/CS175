@@ -798,6 +798,12 @@ static void keyboard(const unsigned char key, const int x, const int y) {
     case 'y':
       toggleAnimation();
       break;
+    case '+':
+      ...
+      break;
+    case '-':
+      ...
+      break;
   }
   glutPostRedisplay();
 }
