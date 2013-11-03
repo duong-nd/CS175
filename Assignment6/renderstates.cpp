@@ -1,7 +1,7 @@
 #include <stdexcept>
 
-#include "glsupport.h"
-#include "renderstates.h"
+#include "headers/glsupport.h"
+#include "headers/renderstates.h"
 
 using namespace std;
 

@@ -1,8 +1,10 @@
+// X
 //==================================================================
 // STEP 0: Include the newly provided "geometry.h"
 //==================================================================
 #include "geometry.h"
 
+// X
 //==================================================================
 // STEP 1: Replace the "------- Shaders" section with the following.
 //         In particular you need to delete g_numShaders, g_shaderFiles,
@@ -20,6 +22,7 @@ static shared_ptr<Material> g_redDiffuseMat,
 
 shared_ptr<Material> g_overridingMaterial;
 
+// X
 //==================================================================
 // STEP 2: Replace the "------- Geometry" section with the following:
 //
@@ -37,7 +40,7 @@ shared_ptr<Material> g_overridingMaterial;
 // --------- Geometry
 typedef SgGeometryShapeNode MyShapeNode;
 
-
+// X
 //======================================================================
 // STEP 3: Replace initGround(), initCube(), and  initSphere() functions
 //         with the following defintion. This ensures VertexPNTBX and
@@ -48,7 +51,7 @@ static void initGround() {
   int ibLen, vbLen;
   getPlaneVbIbLen(vbLen, ibLen);
 
-  // Temporary storage for cube Geometry
+  /* Temporary storage for cube Geometry */
   vector<VertexPNTBX> vtx(vbLen);
   vector<unsigned short> idx(ibLen);
 
@@ -60,7 +63,7 @@ static void initCubes() {
   int ibLen, vbLen;
   getCubeVbIbLen(vbLen, ibLen);
 
-  // Temporary storage for cube Geometry
+  /* Temporary storage for cube Geometry */
   vector<VertexPNTBX> vtx(vbLen);
   vector<unsigned short> idx(ibLen);
 
@@ -69,16 +72,21 @@ static void initCubes() {
 }
 
 static void initSphere() {
-  int ibLen, vbLen;
-  getSphereVbIbLen(20, 10, vbLen, ibLen);
+  const int slices = 25;
+  const int stacks = 25;
 
-  // Temporary storage for sphere Geometry
+  int ibLen, vbLen;
+  getSphereVbIbLen(slices, stacks, vbLen, ibLen);
+
+  /* Temporary storage for sphere Geometry */
   vector<VertexPNTBX> vtx(vbLen);
   vector<unsigned short> idx(ibLen);
-  makeSphere(1, 20, 10, vtx.begin(), idx.begin());
+
+  makeSphere(1, slices, stacks, vtx.begin(), idx.begin());
   g_sphere.reset(new SimpleIndexedGeometryPNTBX(&vtx[0], &idx[0], vtx.size(), idx.size()));
 }
 
+// X
 //======================================================================
 // STEP 4: Changes the definition of sendProjectionMatrix to use Uniforms
 //         instead of ShaderState
@@ -89,6 +97,7 @@ inline void sendProjectionMatrix(Uniforms& uniforms, const Matrix4& projMatrix) 
   uniforms.put("uProjMatrix", projMatrix);
 }
 
+// X
 //=========================================================================
 // STEP 5: Simplify your arcball drawing and drawStuff() by using materials
 //         In particular, all occurence of
@@ -171,7 +180,7 @@ static void drawStuff(bool picking) {
   }
 }
 
-
+// X
 //=========================================================================
 // STEP 6: display() and pick() should now use the simplified drawStuff()
 //         as follows
@@ -213,6 +222,7 @@ static void pick() {
   checkGlErrors();
 }
 
+// X
 //=========================================================================
 // STEP 7: Remove the initShaders() function and replace it with the
 //         following initMaterials(), and call it in main()
@@ -263,7 +273,7 @@ int main(int argc, char * argv[]) {
   ...
 }
 
-
+// X
 //=========================================================================
 // STEP 8: Fix scene construction to use Materials. In particular, alter
 //         the definition for constructRobot and initScene() as below
@@ -303,7 +313,7 @@ static void initScene() {
   ...
 }
 
-
+// X
 //=========================================================================
 // STEP 9: Minor fix up of keyboard(): In keyboard(), remove the handling
 //         of 'f' key, since we no longer have g_activeShader and so on.

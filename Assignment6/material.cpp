@@ -4,9 +4,9 @@
 #include <vector>
 #include <sstream>
 
-#include "glsupport.h"
-#include "asstcommon.h"
-#include "material.h"
+#include "headers/glsupport.h"
+#include "headers/asstcommon.h"
+#include "headers/material.h"
 
 using namespace std;
 using namespace tr1;

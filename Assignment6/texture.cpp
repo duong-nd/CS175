@@ -1,9 +1,9 @@
 #include <vector>
 
-#include "ppm.h"
-#include "glsupport.h"
-#include "texture.h"
-#include "asstcommon.h"
+#include "headers/ppm.h"
+#include "headers/glsupport.h"
+#include "headers/texture.h"
+#include "headers/asstcommon.h"
 
 using namespace std;
 

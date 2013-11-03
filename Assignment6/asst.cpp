@@ -25,6 +25,7 @@
 #include "headers/cvec.h"
 #include "headers/matrix4.h"
 #include "headers/geometrymaker.h"
+#include "headers/geometry.h"
 #include "headers/ppm.h"
 #include "headers/glsupport.h"
 #include "headers/arcball.h"
@@ -76,93 +77,20 @@ static int g_mouseClickX, g_mouseClickY;
 static int g_activeShader = 0;
 
 static bool g_picking = false;
-static const int PICKING_SHADER = 2;
-static const int g_numShaders = 3;
-static const char * const g_shaderFiles[g_numShaders][2] = {
-  {"./shaders/basic-gl3.vshader", "./shaders/diffuse-gl3.fshader"},
-  {"./shaders/basic-gl3.vshader", "./shaders/solid-gl3.fshader"},
-  {"./shaders/basic-gl3.vshader", "./shaders/pick-gl3.fshader"}
-};
-static const char * const g_shaderFilesGl2[g_numShaders][2] = {
-  {"./shaders/basic-gl2.vshader", "./shaders/diffuse-gl2.fshader"},
-  {"./shaders/basic-gl2.vshader", "./shaders/solid-gl2.fshader"},
-  {"./shaders/basic-gl2.vshader", "./shaders/pick-gl2.fshader"}
-};
-/** Our global shader states */
-static vector<shared_ptr<ShaderState> > g_shaderStates;
+
+static shared_ptr<Material> g_redDiffuseMat,
+                            g_blueDiffuseMat,
+                            g_bumpFloorMat,
+                            g_arcballMat,
+                            g_pickingMat,
+                            g_lightMat;
+
+shared_ptr<Material> g_overridingMaterial;
 
 static Script g_script = Script();
 
 /** GEOMETRY */
-
-/** Macro used to obtain relative offset of a field within a struct */
-#define FIELD_OFFSET(StructType, field) &(((StructType *)0)->field)
-
-/** A vertex with floating point position and normal */
-struct VertexPN {
-  Cvec3f p, n;
-
-  VertexPN() {}
-  VertexPN(float x, float y, float z,
-           float nx, float ny, float nz)
-    : p(x,y,z), n(nx, ny, nz)
-  {}
-
-  /**
-   * Define copy constructor and assignment operator from GenericVertex so we
-   * can use make* functions from geometrymaker.h.
-   */
-  VertexPN(const GenericVertex& v) {
-    *this = v;
-  }
-
-  VertexPN& operator = (const GenericVertex& v) {
-    p = v.pos;
-    n = v.normal;
-    return *this;
-  }
-};
-
-struct Geometry {
-  GlBufferObject vbo, ibo;
-  int vboLen, iboLen;
-
-  Geometry(VertexPN *vtx, unsigned short *idx, int vboLen, int iboLen) {
-    this->vboLen = vboLen;
-    this->iboLen = iboLen;
-
-    /* Now create the VBO and IBO */
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(VertexPN) * vboLen, vtx, GL_STATIC_DRAW);
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(unsigned short) * iboLen, idx, GL_STATIC_DRAW);
-  }
-
-  void draw(const ShaderState& curSS) {
-    /* Enable the attributes used by our shader */
-    safe_glEnableVertexAttribArray(curSS.h_aPosition);
-    safe_glEnableVertexAttribArray(curSS.h_aNormal);
-
-    /* Bind vbo */
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    safe_glVertexAttribPointer(curSS.h_aPosition, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPN), FIELD_OFFSET(VertexPN, p));
-    safe_glVertexAttribPointer(curSS.h_aNormal, 3, GL_FLOAT, GL_FALSE, sizeof(VertexPN), FIELD_OFFSET(VertexPN, n));
-
-    /* Bind ibo */
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo);
-
-    /* Draw! */
-    glDrawElements(GL_TRIANGLES, iboLen, GL_UNSIGNED_SHORT, 0);
-
-    /* Disable the attributes used by our shader */
-    safe_glDisableVertexAttribArray(curSS.h_aPosition);
-    safe_glDisableVertexAttribArray(curSS.h_aNormal);
-  }
-};
-
-typedef SgGeometryShapeNode<Geometry> MyShapeNode;
-
+typedef SgGeometryShapeNode MyShapeNode;
 
 /**
  * Vertex buffer and index buffer associated with the ground and cube geometry
@@ -184,7 +112,6 @@ static Cvec3f g_objectColors[g_numObjects] = {
   Cvec3f(0, 1, 0)
 };
 
-static const Cvec3f g_arcballColor = Cvec3f(0, 0.47, 1);
 static double g_arcballScreenRadius = 1.0;
 static double g_arcballScale = 1.0;
 
@@ -240,52 +167,47 @@ static void animateTimerCallback(int ms);
 /** METHODS *******************************************************************/
 
 static void initGround() {
-  /**
-   * An x-z plane at y = g_groundY of dimension [-g_groundSize, g_groundSize]^2
-   */
-  VertexPN vtx[4] = {
-    VertexPN(-g_groundSize, g_groundY, -g_groundSize, 0, 1, 0),
-    VertexPN(-g_groundSize, g_groundY,  g_groundSize, 0, 1, 0),
-    VertexPN( g_groundSize, g_groundY,  g_groundSize, 0, 1, 0),
-    VertexPN( g_groundSize, g_groundY, -g_groundSize, 0, 1, 0),
-  };
-  unsigned short idx[] = {0, 1, 2, 0, 2, 3};
-  g_ground.reset(new Geometry(&vtx[0], &idx[0], 4, 6));
+  int ibLen, vbLen;
+  getPlaneVbIbLen(vbLen, ibLen);
+
+  /* Temporary storage for cube Geometry */
+  vector<VertexPNTBX> vtx(vbLen);
+  vector<unsigned short> idx(ibLen);
+
+  makePlane(g_groundSize*2, vtx.begin(), idx.begin());
+  g_ground.reset(new SimpleIndexedGeometryPNTBX(&vtx[0], &idx[0], vbLen, ibLen));
 }
 
 static void initCubes() {
   int ibLen, vbLen;
   getCubeVbIbLen(vbLen, ibLen);
 
-  /* Temporary storage for cube geometry */
-  vector<VertexPN> vtx(vbLen);
+  /* Temporary storage for cube Geometry */
+  vector<VertexPNTBX> vtx(vbLen);
   vector<unsigned short> idx(ibLen);
 
   makeCube(1, vtx.begin(), idx.begin());
-  g_cube.reset(new Geometry(&vtx[0], &idx[0], vbLen, ibLen));
+  g_cube.reset(new SimpleIndexedGeometryPNTBX(&vtx[0], &idx[0], vbLen, ibLen));
 }
 
-static void initSpheres() {
+static void initSphere() {
   const int slices = 25;
   const int stacks = 25;
 
   int ibLen, vbLen;
   getSphereVbIbLen(slices, stacks, vbLen, ibLen);
 
-  /* Temporary storage for sphere geometry */
-  vector<VertexPN> vtx(vbLen);
+  /* Temporary storage for sphere Geometry */
+  vector<VertexPNTBX> vtx(vbLen);
   vector<unsigned short> idx(ibLen);
-
+  
   makeSphere(1, slices, stacks, vtx.begin(), idx.begin());
-  g_sphere.reset(new Geometry(&vtx[0], &idx[0], vbLen, ibLen));
+  g_sphere.reset(new SimpleIndexedGeometryPNTBX(&vtx[0], &idx[0], vtx.size(), idx.size()));
 }
 
-/** Takes a projection matrix and send to the the shaders */
-static void sendProjectionMatrix(const ShaderState& curSS, const Matrix4& projMatrix) {
-  GLfloat glmatrix[16];
-  /* Send projection matrix */
-  projMatrix.writeToColumnMajorMatrix(glmatrix);
-  safe_glUniformMatrix4fv(curSS.h_uProjMatrix, glmatrix);
+/** Takes a projection matrix and sends it to the the shaders */
+inline void sendProjectionMatrix(Uniforms& uniforms, const Matrix4& projMatrix) {
+  uniforms.put("uProjMatrix", projMatrix);
 }
 
 /** Update g_frustFovY from g_frustMinFov, g_windowWidth, and g_windowHeight */
@@ -351,13 +273,15 @@ static bool worldSkyManipulation() {
   return g_currentPickedRbtNode == g_skyNode && g_currentView == g_skyNode && g_skyViewChoice == WORLD_SKY;
 }
 
-static void drawStuff(const ShaderState& curSS, bool picking) {
+static void drawStuff(bool picking) {
+  Uniforms uniforms;
+
   /* need to call this here so that the arcball moves when we change the object we're manipulating */
   setWrtFrame();
 
   /* Build & send proj. matrix to vshader */
   const Matrix4 projmat = makeProjectionMatrix();
-  sendProjectionMatrix(curSS, projmat);
+  sendProjectionMatrix(uniforms, projmat);
 
   /* Set the camera view */
   RigTForm eyeRbt = getEyeRBT();
@@ -367,11 +291,11 @@ static void drawStuff(const ShaderState& curSS, bool picking) {
   const Cvec3 eyeLight1 = Cvec3(invEyeRbt * Cvec4(g_light1, 1));
   /* g_light2 position in eye coordinates */
   const Cvec3 eyeLight2 = Cvec3(invEyeRbt * Cvec4(g_light2, 1));
-  safe_glUniform3f(curSS.h_uLight, eyeLight1[0], eyeLight1[1], eyeLight1[2]);
-  safe_glUniform3f(curSS.h_uLight2, eyeLight2[0], eyeLight2[1], eyeLight2[2]);
+  uniforms.put("uLight", eyeLight1);
+  uniforms.put("uLight2", eyeLight2);
 
   if (!picking) {
-    Drawer drawer(invEyeRbt, curSS);
+    Drawer drawer(invEyeRbt, uniforms);
     g_world->accept(drawer);
 
     RigTForm sphereTarget;
@@ -394,21 +318,18 @@ static void drawStuff(const ShaderState& curSS, bool picking) {
       );
     }
 
-    /* draw wireframes */
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
     const Matrix4 scale = Matrix4::makeScale(g_arcballScale * g_arcballScreenRadius);
     Matrix4 MVM = rigTFormToMatrix(invEyeRbt * sphereTarget) * scale;
     Matrix4 NMVM = normalMatrix(MVM);
-    sendModelViewNormalMatrix(curSS, MVM, NMVM);
-    safe_glUniform3f(curSS.h_uColor, g_arcballColor[0], g_arcballColor[1], g_arcballColor[2]);
-    g_sphere->draw(curSS);
-
-    /* draw filled */
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL); // draw filled again
+    sendModelViewNormalMatrix(uniforms, MVM, normalMatrix(MVM));
+    g_arcballMat->draw(*g_sphere, uniforms);
   } else {
-    Picker picker(invEyeRbt, curSS);
+    Picker picker(invEyeRbt, uniforms);
+    
+    g_overridingMaterial = g_pickingMat;
     g_world->accept(picker);
+    g_overridingMaterial.reset();
+
     glFlush();
     g_currentPickedRbtNode = picker.getRbtNodeAtXY(g_mouseClickX, g_mouseClickY);
     if (g_currentPickedRbtNode == g_groundNode || g_currentPickedRbtNode == NULL)
@@ -417,16 +338,39 @@ static void drawStuff(const ShaderState& curSS, bool picking) {
 }
 
 static void display() {
-  glUseProgram(g_shaderStates[g_activeShader]->program);
   /* Clear framebuffer color & depth */
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  drawStuff(*g_shaderStates[g_activeShader], g_picking);
+  drawStuff(g_picking);
 
+  // TODO need g_picking anymore? Does that work differently now?
+  // The code in the snippets file just passes in true to the
+  // drawStuff call above
   /* Show the back buffer (where we rendered stuff) */
   if (!g_picking) {
     glutSwapBuffers();
   }
+
+  checkGlErrors();
+}
+
+static void pick() {
+  /* We need to set the clear color to black, for pick
+   * rendering, so let's save the clear color */
+  GLdouble clearColor[4];
+  glGetDoublev(GL_COLOR_CLEAR_VALUE, clearColor);
+
+  glClearColor(0, 0, 0, 0);
+
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  drawStuff(true);
+
+  /* Uncomment below and comment out the glutPostRedisplay in mouse(...)
+   * call back to see result of the pick rendering pass */
+  // glutSwapBuffers();
+
+  /* Now set back the clear color */
+  glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
 
   checkGlErrors();
 }
@@ -565,30 +509,6 @@ static void motion(const int x, const int y) {
 
   /* Always redraw if we changed the scene */
   glutPostRedisplay();
-}
-
-static void pick() {
-  /* We need to set the clear color to black, for pick
-   * rendering, so let's save the clear color */
-  GLdouble clearColor[4];
-  glGetDoublev(GL_COLOR_CLEAR_VALUE, clearColor);
-
-  glClearColor(0, 0, 0, 0);
-
-  /* using PICKING_SHADER as the shader */
-  glUseProgram(g_shaderStates[PICKING_SHADER]->program);
-
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  drawStuff(*g_shaderStates[PICKING_SHADER], true);
-
-  /* Uncomment below and comment out the glutPostRedisplay in mouse(...)
-   * call back to see result of the pick rendering pass */
-  // glutSwapBuffers();
-
-  /* Now set back the clear color */
-  glClearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
-
-  checkGlErrors();
 }
 
 static void mouse(const int button, const int state, const int x, const int y) {
@@ -739,9 +659,6 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       glFlush();
       writePpmScreenshot(g_windowWidth, g_windowHeight, "out.ppm");
       break;
-    case 'f':
-      g_activeShader ^= 1;
-      break;
     case 'v':
       toggleEyeMode();
       break;
@@ -828,23 +745,44 @@ static void initGLState() {
     glEnable(GL_FRAMEBUFFER_SRGB);
 }
 
-static void initShaders() {
-  g_shaderStates.resize(g_numShaders);
-  for (int i = 0; i < g_numShaders; ++i) {
-    if (g_Gl2Compatible)
-      g_shaderStates[i].reset(new ShaderState(g_shaderFilesGl2[i][0], g_shaderFilesGl2[i][1]));
-    else
-      g_shaderStates[i].reset(new ShaderState(g_shaderFiles[i][0], g_shaderFiles[i][1]));
-  }
-}
+static void initMaterials() {
+  // Create some prototype materials
+  Material diffuse("./shaders/basic-gl3.vshader", "./shaders/diffuse-gl3.fshader");
+  Material solid("./shaders/basic-gl3.vshader", "./shaders/solid-gl3.fshader");
+
+  // copy diffuse prototype and set red color
+  g_redDiffuseMat.reset(new Material(diffuse));
+  g_redDiffuseMat->getUniforms().put("uColor", Cvec3f(1, 0, 0));
+
+  // copy diffuse prototype and set blue color
+  g_blueDiffuseMat.reset(new Material(diffuse));
+  g_blueDiffuseMat->getUniforms().put("uColor", Cvec3f(0, 0, 1));
+
+  // normal mapping material
+  g_bumpFloorMat.reset(new Material("./shaders/normal-gl3.vshader", "./shaders/normal-gl3.fshader"));
+  g_bumpFloorMat->getUniforms().put("uTexColor", shared_ptr<ImageTexture>(new ImageTexture("Fieldstone.ppm", true)));
+  g_bumpFloorMat->getUniforms().put("uTexNormal", shared_ptr<ImageTexture>(new ImageTexture("FieldstoneNormal.ppm", false)));
+
+  // copy solid prototype, and set to wireframed rendering
+  g_arcballMat.reset(new Material(solid));
+  g_arcballMat->getUniforms().put("uColor", Cvec3f(0.27f, 0.82f, 0.35f));
+  g_arcballMat->getRenderStates().polygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+  // copy solid prototype, and set to color white
+  g_lightMat.reset(new Material(solid));
+  g_lightMat->getUniforms().put("uColor", Cvec3f(1, 1, 1));
+
+  // pick shader
+  g_pickingMat.reset(new Material("./shaders/basic-gl3.vshader", "./shaders/pick-gl3.fshader"));
+};
 
 static void initGeometry() {
   initGround();
   initCubes();
-  initSpheres();
+  initSphere();
 }
 
-static void constructRobot(shared_ptr<SgTransformNode> base, const Cvec3& color) {
+static void constructRobot(shared_ptr<SgTransformNode> base, shared_ptr<Material> material) {
 
   const double ARM_LEN = 0.7,
                ARM_THICK = 0.25,
@@ -909,7 +847,7 @@ static void constructRobot(shared_ptr<SgTransformNode> base, const Cvec3& color)
     shared_ptr<MyShapeNode> shape(
       new MyShapeNode(
         shapeDesc[i].geometry,
-        color,
+        material,
         Cvec3(shapeDesc[i].x, shapeDesc[i].y, shapeDesc[i].z),
         Cvec3(0, 0, 0),
         Cvec3(shapeDesc[i].sx, shapeDesc[i].sy, shapeDesc[i].sz))
@@ -928,13 +866,13 @@ static void initScene() {
 
   g_groundNode.reset(new SgRbtNode());
   g_groundNode->addChild(shared_ptr<MyShapeNode>(
-                           new MyShapeNode(g_ground, Cvec3(0.1, 0.95, 0.1))));
+                           new MyShapeNode(g_ground, g_bumpFloorMat, Cvec3(0, g_groundY, 0))));
 
   g_robot1Node.reset(new SgRbtNode(RigTForm(Cvec3(-2, 1, 0))));
   g_robot2Node.reset(new SgRbtNode(RigTForm(Cvec3(2, 1, 0))));
 
-  constructRobot(g_robot1Node, Cvec3(1, 0, 0)); // a Red robot
-  constructRobot(g_robot2Node, Cvec3(0, 0, 1)); // a Blue robot
+  constructRobot(g_robot1Node, g_redDiffuseMat); // a Red robot
+  constructRobot(g_robot2Node, g_blueDiffuseMat); // a Blue robot
 
   g_world->addChild(g_skyNode);
   g_world->addChild(g_groundNode);
@@ -956,7 +894,7 @@ int main(int argc, char * argv[]) {
       throw runtime_error("Error: card/driver does not support OpenGL Shading Language v1.0");
 
     initGLState();
-    initShaders();
+    initMaterials();
     initGeometry();
     initScene();
 
