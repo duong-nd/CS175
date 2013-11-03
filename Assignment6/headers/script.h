@@ -199,12 +199,20 @@ public:
    *                    frame is shown. This should be between 0 and 1.
    */
   void interpolate(float alpha) {
+    iter--;
+    Frame prevFrame = *iter;
+    iter++;
+
     Frame firstFrame = *iter;
+
     iter++;
     Frame secondFrame = *iter;
+    iter++;
+    Frame afterFrame = *iter;
+    iter--;
     iter--;
 
-    Frame::interpolate(firstFrame, secondFrame, alpha).showFrameInScene();
+    Frame::interpolate(prevFrame, firstFrame, secondFrame, afterFrame, alpha).showFrameInScene();
   }
 
   /**

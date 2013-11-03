@@ -80,30 +80,60 @@ public:
     return frameRBTs;
   }
 
+  static Quat catmullRomInterpolate(Quat prev, Quat first, Quat second, Quat after, float alpha) {
+    const Quat d = RigTForm::controlPoint(prev, first, second, 1.0);
+    const Quat e = RigTForm::controlPoint(first, second, after, -1.0);
+
+    const Quat f = RigTForm::slerp(first, d, alpha);
+    const Quat g = RigTForm::slerp(d, e, alpha);
+    const Quat h = RigTForm::slerp(e, second, alpha);
+    const Quat m = RigTForm::slerp(f, g, alpha);
+    const Quat n = RigTForm::slerp(g, h, alpha);
+
+    return RigTForm::slerp(m, n, alpha);
+  }
+
+  static Cvec3 catmullRomInterpolate(Cvec3 prev, Cvec3 first, Cvec3 second, Cvec3 after, float alpha) {
+    const Cvec3 d = RigTForm::controlPoint(prev, first, second, 1.0);
+    const Cvec3 e = RigTForm::controlPoint(first, second, after, -1.0);
+
+    const Cvec3 f = RigTForm::lerp(first, d, alpha);
+    const Cvec3 g = RigTForm::lerp(d, e, alpha);
+    const Cvec3 h = RigTForm::lerp(e, second, alpha);
+    const Cvec3 m = RigTForm::lerp(f, g, alpha);
+    const Cvec3 n = RigTForm::lerp(g, h, alpha);
+
+    return RigTForm::lerp(m, n, alpha);
+  }
+
   /**
    * Interpolates between the first frame and second frame, with the second
    * frame having a relative "weight" of alpha. Returns the interpolated frame.
    */
-  static Frame interpolate(Frame firstFrame, Frame secondFrame, float alpha) {
-    vector<RigTForm> firstFrameRBTs   = firstFrame .getRBTs();
+  static Frame interpolate(Frame prevFrame, Frame firstFrame, Frame secondFrame, Frame afterFrame, float alpha) {
+    vector<RigTForm> prevFrameRBTs    = prevFrame.getRBTs();
+    vector<RigTForm> firstFrameRBTs   = firstFrame.getRBTs();
     vector<RigTForm> secondFrameRBTs  = secondFrame.getRBTs();
+    vector<RigTForm> afterFrameRBTs   = afterFrame.getRBTs();
+
     vector<RigTForm> interpolatedRBTs = vector<RigTForm>();
 
     for (int i = 0; i < firstFrameRBTs.size(); i++) {
-      interpolatedRBTs.push_back(
-        RigTForm(
-          RigTForm::lerp(
-            firstFrameRBTs[i].getTranslation(),
-            secondFrameRBTs[i].getTranslation(),
-            alpha
-          ),
-          RigTForm::slerp(
-            firstFrameRBTs[i].getRotation(),
-            secondFrameRBTs[i].getRotation(),
-            alpha
-          )
-        )
-      );
+      const Cvec3 interpolatedTranslation = catmullRomInterpolate(
+        prevFrameRBTs[i].getTranslation(),
+        firstFrameRBTs[i].getTranslation(),
+        secondFrameRBTs[i].getTranslation(),
+        afterFrameRBTs[i].getTranslation(),
+        alpha);
+
+      const Quat interpolatedRotation = catmullRomInterpolate(
+        prevFrameRBTs[i].getRotation(),
+        firstFrameRBTs[i].getRotation(),
+        secondFrameRBTs[i].getRotation(),
+        afterFrameRBTs[i].getRotation(),
+        alpha);
+
+      interpolatedRBTs.push_back(RigTForm(interpolatedTranslation, interpolatedRotation));
     }
 
     return Frame(firstFrame.getNodesInScene(), interpolatedRBTs);

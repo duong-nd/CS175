@@ -78,8 +78,17 @@ public:
   static Quat slerp(Quat q_0, Quat q_1, double alpha) {
     if (q_0 == q_1) return q_0;
 
-    Quat result = cn(q_1 * inv(q_0)).raisedTo(alpha) * q_0;
-    return result;
+    return cn(q_1 * inv(q_0)).raisedTo(alpha) * q_0;
+  }
+
+  static Cvec3 controlPoint(Cvec3 c_minus, Cvec3 c, Cvec3 c_plus, const double sign) {
+    return (c_plus - c_minus) * (0.16666667 * sign) + c;
+  }
+
+  static Quat controlPoint(Quat q_minus, Quat q, Quat q_plus, const double sign) {
+    if (q_plus == q_minus) return q;
+
+    return cn(q_plus * inv(q_minus)).raisedTo(0.16666667 * sign) * q;
   }
 
   static Quat cn(Quat q) {
