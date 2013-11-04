@@ -38,17 +38,18 @@ This README was written using Markdown syntax -- consider using a Markdown viewe
   * normal-gl2.vshader: (as provided)
   * pick-gl2.fshader (as provided)
   * solid-gl2.fshader: (as provided)
+* asst.cpp: The main C++ file, now with Catmull-Rom interpolation and pickable lights.
 * AUTHORS: (as provided)
 * Fieldstone.ppm
 * FieldstoneNormal.ppm
-* LICENSE: (as provided)
-* Makefile: Slightly modified the Makefile so that it produces an output file called `asst` rather than `asst<assignment number>`.
-* README.md: This file, in Markdown format.
-* asst.cpp: The main C++ file, now with Catmull-Rom interpolation and pickable lights.
 * geometry.cpp: (as provided)
 * glsupport.cpp: (as provided)
+* LICENSE: (as provided)
+* Makefile: Slightly modified the Makefile so that it produces an output file called `asst` rather than `asst<assignment number>`.
+* material.cpp: (as provided)
 * picker.cpp: (as provided)
 * ppm.cpp: (as provided)
+* README.md: This file, in Markdown format.
 * renderstates.cpp: (as provided)
 * scenegraph.cpp: (as provided)
 * texture.cpp: (as provided)
