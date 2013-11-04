@@ -742,33 +742,33 @@ static void initGLState() {
 }
 
 static void initMaterials() {
-  // Create some prototype materials
+  /* Create some prototype materials */
   Material diffuse("./shaders/basic-gl3.vshader", "./shaders/diffuse-gl3.fshader");
   Material solid("./shaders/basic-gl3.vshader", "./shaders/solid-gl3.fshader");
 
-  // copy diffuse prototype and set red color
+  /* copy diffuse prototype and set red color */
   g_redDiffuseMat.reset(new Material(diffuse));
   g_redDiffuseMat->getUniforms().put("uColor", Cvec3f(1, 0, 0));
 
-  // copy diffuse prototype and set blue color
+  /* copy diffuse prototype and set blue color */
   g_blueDiffuseMat.reset(new Material(diffuse));
   g_blueDiffuseMat->getUniforms().put("uColor", Cvec3f(0, 0, 1));
 
-  // normal mapping material
+  /* normal mapping material */
   g_bumpFloorMat.reset(new Material("./shaders/normal-gl3.vshader", "./shaders/normal-gl3.fshader"));
   g_bumpFloorMat->getUniforms().put("uTexColor", shared_ptr<ImageTexture>(new ImageTexture("Fieldstone.ppm", true)));
   g_bumpFloorMat->getUniforms().put("uTexNormal", shared_ptr<ImageTexture>(new ImageTexture("FieldstoneNormal.ppm", false)));
 
-  // copy solid prototype, and set to wireframed rendering
+  /* copy solid prototype, and set to wireframed rendering */
   g_arcballMat.reset(new Material(solid));
   g_arcballMat->getUniforms().put("uColor", Cvec3f(0.27f, 0.82f, 0.35f));
   g_arcballMat->getRenderStates().polygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-  // copy solid prototype, and set to color white
+  /* copy solid prototype, and set to color white */
   g_lightMat.reset(new Material(solid));
   g_lightMat->getUniforms().put("uColor", Cvec3f(1, 1, 1));
 
-  // pick shader
+  /* pick shader */
   g_pickingMat.reset(new Material("./shaders/basic-gl3.vshader", "./shaders/pick-gl3.fshader"));
 };
 
