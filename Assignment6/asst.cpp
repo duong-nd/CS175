@@ -338,10 +338,7 @@ static void display() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   drawStuff(g_picking);
-
-  // TODO need g_picking anymore? Does that work differently now?
-  // The code in the snippets file just passes in true to the
-  // drawStuff call above
+  
   /* Show the back buffer (where we rendered stuff) */
   if (!g_picking) {
     glutSwapBuffers();
