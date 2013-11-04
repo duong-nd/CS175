@@ -98,19 +98,13 @@ typedef SgGeometryShapeNode MyShapeNode;
 static shared_ptr<Geometry> g_ground, g_cube, g_sphere;
 static shared_ptr<SgRootNode> g_world;
 static shared_ptr<SgRbtNode> g_skyNode, g_groundNode, g_robot1Node, g_robot2Node;
+static shared_ptr<SgRbtNode> g_light1Node, g_light2Node;
 static shared_ptr<SgRbtNode> g_currentPickedRbtNode;
 
 /** SCENE */
-
-/** Define two lights positions in world space */
-static const Cvec3 g_light1(2.0, 3.0, 14.0), g_light2(-2, -3.0, -5.0);
 static const int g_numObjects = 2;
 static int g_currentViewIndex = 0;
 static shared_ptr<SgRbtNode> g_currentView; /* set to g_skyNode in initScene() */
-static Cvec3f g_objectColors[g_numObjects] = {
-  Cvec3f(1, 0, 0),
-  Cvec3f(0, 1, 0)
-};
 
 static double g_arcballScreenRadius = 1.0;
 static double g_arcballScale = 1.0;
@@ -174,7 +168,7 @@ static void initGround() {
   vector<VertexPNTBX> vtx(vbLen);
   vector<unsigned short> idx(ibLen);
 
-  makePlane(g_groundSize*2, vtx.begin(), idx.begin());
+  makePlane(g_groundSize * 2, vtx.begin(), idx.begin());
   g_ground.reset(new SimpleIndexedGeometryPNTBX(&vtx[0], &idx[0], vbLen, ibLen));
 }
 
@@ -287,12 +281,14 @@ static void drawStuff(bool picking) {
   RigTForm eyeRbt = getEyeRBT();
   const RigTForm invEyeRbt = inv(eyeRbt);
 
-  /* g_light1 position in eye coordinates */
-  const Cvec3 eyeLight1 = Cvec3(invEyeRbt * Cvec4(g_light1, 1));
-  /* g_light2 position in eye coordinates */
-  const Cvec3 eyeLight2 = Cvec3(invEyeRbt * Cvec4(g_light2, 1));
-  uniforms.put("uLight", eyeLight1);
-  uniforms.put("uLight2", eyeLight2);
+
+  /* get light positions in world coordinates */
+  const Cvec3 light1 = getPathAccumRbt(g_world, g_light1Node).getTranslation();
+  const Cvec3 light2 = getPathAccumRbt(g_world, g_light2Node).getTranslation();
+
+  /* get light positions in eye coordinates, and hand them to uniforms */
+  uniforms.put("uLight", Cvec3(invEyeRbt * Cvec4(light1, 1)));
+  uniforms.put("uLight2", Cvec3(invEyeRbt * Cvec4(light2, 1)));
 
   if (!picking) {
     Drawer drawer(invEyeRbt, uniforms);
@@ -342,10 +338,7 @@ static void display() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   drawStuff(g_picking);
-
-  // TODO need g_picking anymore? Does that work differently now?
-  // The code in the snippets file just passes in true to the
-  // drawStuff call above
+  
   /* Show the back buffer (where we rendered stuff) */
   if (!g_picking) {
     glutSwapBuffers();
@@ -746,33 +739,33 @@ static void initGLState() {
 }
 
 static void initMaterials() {
-  // Create some prototype materials
+  /* Create some prototype materials */
   Material diffuse("./shaders/basic-gl3.vshader", "./shaders/diffuse-gl3.fshader");
   Material solid("./shaders/basic-gl3.vshader", "./shaders/solid-gl3.fshader");
 
-  // copy diffuse prototype and set red color
+  /* copy diffuse prototype and set red color */
   g_redDiffuseMat.reset(new Material(diffuse));
   g_redDiffuseMat->getUniforms().put("uColor", Cvec3f(1, 0, 0));
 
-  // copy diffuse prototype and set blue color
+  /* copy diffuse prototype and set blue color */
   g_blueDiffuseMat.reset(new Material(diffuse));
   g_blueDiffuseMat->getUniforms().put("uColor", Cvec3f(0, 0, 1));
 
-  // normal mapping material
+  /* normal mapping material */
   g_bumpFloorMat.reset(new Material("./shaders/normal-gl3.vshader", "./shaders/normal-gl3.fshader"));
   g_bumpFloorMat->getUniforms().put("uTexColor", shared_ptr<ImageTexture>(new ImageTexture("Fieldstone.ppm", true)));
   g_bumpFloorMat->getUniforms().put("uTexNormal", shared_ptr<ImageTexture>(new ImageTexture("FieldstoneNormal.ppm", false)));
 
-  // copy solid prototype, and set to wireframed rendering
+  /* copy solid prototype, and set to wireframed rendering */
   g_arcballMat.reset(new Material(solid));
   g_arcballMat->getUniforms().put("uColor", Cvec3f(0.27f, 0.82f, 0.35f));
   g_arcballMat->getRenderStates().polygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-  // copy solid prototype, and set to color white
+  /* copy solid prototype, and set to color white */
   g_lightMat.reset(new Material(solid));
   g_lightMat->getUniforms().put("uColor", Cvec3f(1, 1, 1));
 
-  // pick shader
+  /* pick shader */
   g_pickingMat.reset(new Material("./shaders/basic-gl3.vshader", "./shaders/pick-gl3.fshader"));
 };
 
@@ -866,7 +859,18 @@ static void initScene() {
 
   g_groundNode.reset(new SgRbtNode());
   g_groundNode->addChild(shared_ptr<MyShapeNode>(
-                           new MyShapeNode(g_ground, g_bumpFloorMat, Cvec3(0, g_groundY, 0))));
+                          new MyShapeNode(g_ground, g_bumpFloorMat, Cvec3(0, g_groundY, 0))));
+
+  /* define two light positions in world space */
+  const Cvec3 light1(2.0, 3.0, 14.0), light2(-2, -3.0, -5.0);
+
+  g_light1Node.reset(new SgRbtNode(RigTForm(light1)));
+  g_light1Node->addChild(shared_ptr<MyShapeNode>(
+                           new MyShapeNode(g_sphere, g_lightMat, Cvec3(0, 0, 0))));
+
+  g_light2Node.reset(new SgRbtNode(RigTForm(light2)));
+  g_light2Node->addChild(shared_ptr<MyShapeNode>(
+                           new MyShapeNode(g_sphere, g_lightMat, Cvec3(0, 0, 0))));
 
   g_robot1Node.reset(new SgRbtNode(RigTForm(Cvec3(-2, 1, 0))));
   g_robot2Node.reset(new SgRbtNode(RigTForm(Cvec3(2, 1, 0))));
@@ -876,6 +880,8 @@ static void initScene() {
 
   g_world->addChild(g_skyNode);
   g_world->addChild(g_groundNode);
+  g_world->addChild(g_light1Node);
+  g_world->addChild(g_light2Node);
   g_world->addChild(g_robot1Node);
   g_world->addChild(g_robot2Node);
 }
