@@ -338,7 +338,7 @@ static void display() {
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   drawStuff(g_picking);
-  
+
   /* Show the back buffer (where we rendered stuff) */
   if (!g_picking) {
     glutSwapBuffers();
@@ -711,7 +711,7 @@ static void initGlutState(int argc, char * argv[]) {
   /* Create a window */
   glutInitWindowSize(g_windowWidth, g_windowHeight);
   /* Title the window */
-  glutCreateWindow("Assignment 2");
+  glutCreateWindow("Assignment 6.5");
 
   /* Display rendering callback */
   glutDisplayFunc(display);
