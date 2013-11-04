@@ -862,7 +862,7 @@ static void initScene() {
                           new MyShapeNode(g_ground, g_bumpFloorMat, Cvec3(0, g_groundY, 0))));
 
   /* define two light positions in world space */
-  const Cvec3 light1(2.0, 3.0, 14.0), light2(-2, -3.0, -5.0);
+  const Cvec3 light1(4.5, 3.0, 6.5), light2(-4.5, 1.5, -6.5);
 
   g_light1Node.reset(new SgRbtNode(RigTForm(light1)));
   g_light1Node->addChild(shared_ptr<MyShapeNode>(
