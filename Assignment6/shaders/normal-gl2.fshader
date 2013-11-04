@@ -10,8 +10,6 @@ varying mat3 vNTMat;
 varying vec3 vEyePos;
 
 void main() {
-  // TODO: replace the following line with loading of normal from uTexNormal
-  //       transforming to eye space, and normalizing
   vec4 normal4 = texture2D(uTexNormal, vTexCoord);
   vec3 normal = normalize(
     vNTMat *
