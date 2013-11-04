@@ -98,19 +98,13 @@ typedef SgGeometryShapeNode MyShapeNode;
 static shared_ptr<Geometry> g_ground, g_cube, g_sphere;
 static shared_ptr<SgRootNode> g_world;
 static shared_ptr<SgRbtNode> g_skyNode, g_groundNode, g_robot1Node, g_robot2Node;
+static shared_ptr<SgRbtNode> g_light1Node, g_light2Node;
 static shared_ptr<SgRbtNode> g_currentPickedRbtNode;
 
 /** SCENE */
-
-/** Define two lights positions in world space */
-static const Cvec3 g_light1(2.0, 3.0, 14.0), g_light2(-2, -3.0, -5.0);
 static const int g_numObjects = 2;
 static int g_currentViewIndex = 0;
 static shared_ptr<SgRbtNode> g_currentView; /* set to g_skyNode in initScene() */
-static Cvec3f g_objectColors[g_numObjects] = {
-  Cvec3f(1, 0, 0),
-  Cvec3f(0, 1, 0)
-};
 
 static double g_arcballScreenRadius = 1.0;
 static double g_arcballScale = 1.0;
@@ -174,7 +168,7 @@ static void initGround() {
   vector<VertexPNTBX> vtx(vbLen);
   vector<unsigned short> idx(ibLen);
 
-  makePlane(g_groundSize*2, vtx.begin(), idx.begin());
+  makePlane(g_groundSize * 2, vtx.begin(), idx.begin());
   g_ground.reset(new SimpleIndexedGeometryPNTBX(&vtx[0], &idx[0], vbLen, ibLen));
 }
 
@@ -287,12 +281,14 @@ static void drawStuff(bool picking) {
   RigTForm eyeRbt = getEyeRBT();
   const RigTForm invEyeRbt = inv(eyeRbt);
 
-  /* g_light1 position in eye coordinates */
-  const Cvec3 eyeLight1 = Cvec3(invEyeRbt * Cvec4(g_light1, 1));
-  /* g_light2 position in eye coordinates */
-  const Cvec3 eyeLight2 = Cvec3(invEyeRbt * Cvec4(g_light2, 1));
-  uniforms.put("uLight", eyeLight1);
-  uniforms.put("uLight2", eyeLight2);
+
+  /* get light positions in world coordinates */
+  const Cvec3 light1 = getPathAccumRbt(g_world, g_light1Node).getTranslation();
+  const Cvec3 light2 = getPathAccumRbt(g_world, g_light2Node).getTranslation();
+
+  /* get light positions in eye coordinates, and hand them to uniforms */
+  uniforms.put("uLight", Cvec3(invEyeRbt * Cvec4(light1, 1)));
+  uniforms.put("uLight2", Cvec3(invEyeRbt * Cvec4(light2, 1)));
 
   if (!picking) {
     Drawer drawer(invEyeRbt, uniforms);
@@ -866,7 +862,18 @@ static void initScene() {
 
   g_groundNode.reset(new SgRbtNode());
   g_groundNode->addChild(shared_ptr<MyShapeNode>(
-                           new MyShapeNode(g_ground, g_bumpFloorMat, Cvec3(0, g_groundY, 0))));
+                          new MyShapeNode(g_ground, g_bumpFloorMat, Cvec3(0, g_groundY, 0))));
+
+  /* define two light positions in world space */
+  const Cvec3 light1(2.0, 3.0, 14.0), light2(-2, -3.0, -5.0);
+
+  g_light1Node.reset(new SgRbtNode(RigTForm(light1)));
+  g_light1Node->addChild(shared_ptr<MyShapeNode>(
+                           new MyShapeNode(g_sphere, g_lightMat, Cvec3(0, 0, 0))));
+
+  g_light2Node.reset(new SgRbtNode(RigTForm(light2)));
+  g_light2Node->addChild(shared_ptr<MyShapeNode>(
+                           new MyShapeNode(g_sphere, g_lightMat, Cvec3(0, 0, 0))));
 
   g_robot1Node.reset(new SgRbtNode(RigTForm(Cvec3(-2, 1, 0))));
   g_robot2Node.reset(new SgRbtNode(RigTForm(Cvec3(2, 1, 0))));
@@ -876,6 +883,8 @@ static void initScene() {
 
   g_world->addChild(g_skyNode);
   g_world->addChild(g_groundNode);
+  g_world->addChild(g_light1Node);
+  g_world->addChild(g_light2Node);
   g_world->addChild(g_robot1Node);
   g_world->addChild(g_robot2Node);
 }
