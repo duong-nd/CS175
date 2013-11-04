@@ -18,14 +18,15 @@ This README was written using Markdown syntax -- consider using a Markdown viewe
   * geometry.h: (as provided)
   * geometrymaker.h: (as provided)
   * glsupport.h: (as provided)
+  * material.h: (as provided)
   * matrix4.h: (as provided)
   * picker.h: (as provided)
   * ppm.h: (as provided)
   * quat.h: (as provided)
   * renderstates.h: (as provided)
-  * rigtform.h: Modified to make Catmull-Rom interpolation work.
+  * rigtform.h: Utility functions for Catmull-Rom interpolation added.
   * scenegraph.h: (as provided)
-  * script.h: Tweaks to make BezCatmull-Rom interpolation work.
+  * script.h: Tweaks to make Catmull-Rom interpolation work.
   * sgutils.h: (as provided)
   * texture.h: (as provided)
   * uniforms.h: (as provided)
@@ -43,10 +44,9 @@ This README was written using Markdown syntax -- consider using a Markdown viewe
 * LICENSE: (as provided)
 * Makefile: Slightly modified the Makefile so that it produces an output file called `asst` rather than `asst<assignment number>`.
 * README.md: This file, in Markdown format.
-* asst.cpp: The C++ file, now responding to frame update requests and with animation support.
+* asst.cpp: The main C++ file, now with Catmull-Rom interpolation and pickable lights.
 * geometry.cpp: (as provided)
 * glsupport.cpp: (as provided)
-* material.h: (as provided)
 * picker.cpp: (as provided)
 * ppm.cpp: (as provided)
 * renderstates.cpp: (as provided)
@@ -63,22 +63,22 @@ Simply run the command `make all; ./asst` to compile and run the code.
 We met all problem set requirements. We compared our result against the solution binary and it behaves in the the same way.
 
 ### Code Design ###
-** Assignment 6. ** This required a few tweaks to how we were doing interpolation in `script.h` and `frame.h`. We now pass in four consecutive frames. In `frame.h`, we use the calculations (as explained in the textbook) necessary to achieve smooth Catmull-Rom interpolation. We also created a new function `controlPoint` in `RigTForm.h` to calculate the control points used at each stage in Catmull-Rom interpolation.
+** Assignment 6. ** This required a few tweaks to the interpolation code in our `Script` (in `script.h`) and `Frame` (in `frame.h`) classes. We now pass in four consecutive frames to `Frame`'s `interpolate` method, as is required for Catmull-Rom interpolation. We use these frames to perform the calculations (as explained in the textbook) needed to implement Catmull-Rom interpolation, and return a new `Frame` constructed from the interpolated RBTs. In addition, we added two static methods to `rigtform.h` called `controlPoint` (same conceptual functionality for each, overloaded to work on both `Quat`s and `Cvec3`s) that calculate the control values denoted as `d` and `e` in the textbook.
 
 ** Assignment 6.5. ** Code migration was straightforward and will not be discussed.
 
-< TODO: TRAVER'S PART >
+Making the lights pickable and movable was quite straightforward as well. Instead of storing the light positions as `static const Cvec3`s and passing those values to the shader in `drawStuff`, we added two new nodes to the scene graph and we compute the light positions in eye coordinates from these nodes in `drawStuff`. The lights are drawn as spheres using the `g_lightMat` material. We also changed the lights' default positions so that they're easier to grab without moving the camera around too much. These new positions also more or less match the positions in the solution binary.
 
-Writing the GLSL was easy once we figured out what we needed to do. We made a few small tweaks to the `normal-gl2.fshader` to use the appropriate normal, as explained in the problem set. It involves basic manipulation of the normal texture values, and the code can be seen for specifics.
+Writing the GLSL was easy once we figured out what we needed to do. We made a few small tweaks to the `normal-gl2.fshader` to use the appropriate normal, as explained in the problem set spec. It involves basic manipulation of the normal texture values, and the code can be seen for specifics.
 
 ### Testing ###
 Testing for this assignment was very straightforward.
 
-** Assignment 6. **  To test this, we simply confirmed that the animation was smooth. We compared with the solution binary to ensure that the smoothness was holisitically 'similar'.
+** Assignment 6. **  To test this, we simply confirmed that the animation was smooth. We compared with the solution binary to ensure that the smoothness was holistically "similar."
 
-** Assignment 6.5. **  To test that the lights were moveable, we simply checked visually that they had spheres around them, and that we could move them as we could with all the other objects.
+** Assignment 6.5. **  To test that the lights were movable, we simply checked visually that we could move them as we could with all the other objects, and that the lighting in the scene changed appropriately as they moved.
 
-To test that the GLSL was correct, we moved the camera and lights around. We checked that the shinyness changed as expected whenlights moved closer and farther away, and when we changed our orientation with respect to the lights. We also moved the robots around to make sure that we didn't mess anything else up.
+To test that the GLSL was correct, we moved the camera and lights around. We checked that the shininess changed as expected when lights moved closer and farther away, and when we changed our orientation with respect to the lights. We also moved the robots around to make sure that we didn't mess anything else up.
 
 ### Above and Beyond ###
 We did not implement anything above and beyond the assignment.
