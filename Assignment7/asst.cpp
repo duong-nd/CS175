@@ -100,7 +100,8 @@ typedef SgGeometryShapeNode MyShapeNode;
  */
 static shared_ptr<Geometry> g_ground, g_cube, g_sphere;
 static shared_ptr<SimpleGeometryPN> g_subdivisionSurface;
-static shared_ptr<Mesh> g_subdivisionSurfaceMesh;
+static shared_ptr<Mesh> g_subdivisionSurfaceMeshOriginal;
+static shared_ptr<Mesh> g_subdivisionSurfaceMeshActual;
 static shared_ptr<SgRootNode> g_world;
 static shared_ptr<SgRbtNode> g_skyNode, g_groundNode, g_robot1Node, g_robot2Node;
 static shared_ptr<SgRbtNode> g_meshNode;
@@ -196,22 +197,20 @@ static void initCubes() {
   g_cube.reset(new SimpleIndexedGeometryPNTBX(&vtx[0], &idx[0], vbLen, ibLen));
 }
 
-static void updateMeshVertices(shared_ptr<Mesh> mesh, float t) {
-  for (int i = 0; i < g_subdivisionSurfaceMesh->getNumVertices(); i++) {
-    Cvec3 v = g_subdivisionSurfaceMesh->getVertex(i).getPosition();
-    g_subdivisionSurfaceMesh->getVertex(i).setPosition(
-       v + Cvec3(sign(v[0]), sign(v[1]), sign(v[2])) * 0.025 * sin(i + t / 100)
-    );
+static void updateMeshVertices(shared_ptr<Mesh> meshActual, shared_ptr<Mesh> meshOriginal, float t) {
+  for (int i = 0; i < meshOriginal->getNumVertices(); i++) {
+    Cvec3 v = meshOriginal->getVertex(i).getPosition();
+    meshActual->getVertex(i).setPosition(v + v * 0.75 * (sin(i + t / 100)));
   }
 }
 
 static void updateMeshNormals(shared_ptr<Mesh> mesh) {
-  for (int i = 0; i < g_subdivisionSurfaceMesh->getNumVertices(); i++) {
-    g_subdivisionSurfaceMesh->getVertex(i).setNormal(Cvec3());
+  for (int i = 0; i < mesh->getNumVertices(); i++) {
+    mesh->getVertex(i).setNormal(Cvec3());
   }
-  for (int i = 0; i < g_subdivisionSurfaceMesh->getNumVertices(); i++) {
+  for (int i = 0; i < mesh->getNumVertices(); i++) {
     Cvec3 vecSum = Cvec3();
-    Mesh::Vertex currentVertex = g_subdivisionSurfaceMesh->getVertex(i);
+    Mesh::Vertex currentVertex = mesh->getVertex(i);
 
     Mesh::VertexIterator it(currentVertex.getIterator()), it0(it);
     do {
@@ -240,12 +239,21 @@ static vector<VertexPN> getGeometryVertices(shared_ptr<Mesh> mesh) {
   return vs;
 }
 
-static void initSubdivisionSurface() {
-  g_subdivisionSurfaceMesh.reset(new Mesh());
-  g_subdivisionSurfaceMesh->load(g_subdivisionSurfaceFilename.c_str());
+/**
+ * Applies Catmull-Clark subdivision to the provided
+ */
+static shared_ptr<Mesh> applySubdivision(shared_ptr<Mesh> actualMesh, shared_ptr<Mesh> originalMesh, int levelsOfSubdivision) {
 
-  updateMeshNormals(g_subdivisionSurfaceMesh);
-  vector<VertexPN> verticies = getGeometryVertices(g_subdivisionSurfaceMesh);
+}
+
+static void initSubdivisionSurface() {
+  g_subdivisionSurfaceMeshOriginal.reset(new Mesh());
+  g_subdivisionSurfaceMeshOriginal->load(g_subdivisionSurfaceFilename.c_str());
+  g_subdivisionSurfaceMeshActual.reset(new Mesh());
+  g_subdivisionSurfaceMeshActual->load(g_subdivisionSurfaceFilename.c_str());
+
+  updateMeshNormals(g_subdivisionSurfaceMeshActual);
+  vector<VertexPN> verticies = getGeometryVertices(g_subdivisionSurfaceMeshActual);
 
   g_subdivisionSurface.reset(new SimpleGeometryPN());
   g_subdivisionSurface->upload(&verticies[0], verticies.size());
@@ -708,9 +716,9 @@ static void animateTimerCallback(int ms) {
  * Animates the subdivision surface by flexing the vertices.
  */
 void animateSubdivisionSurface(float t) {
-  updateMeshVertices(g_subdivisionSurfaceMesh, t);
-  updateMeshNormals(g_subdivisionSurfaceMesh);
-  vector<VertexPN> verticies = getGeometryVertices(g_subdivisionSurfaceMesh);
+  updateMeshVertices(g_subdivisionSurfaceMeshActual, g_subdivisionSurfaceMeshOriginal, t);
+  updateMeshNormals(g_subdivisionSurfaceMeshActual);
+  vector<VertexPN> verticies = getGeometryVertices(g_subdivisionSurfaceMeshActual);
   g_subdivisionSurface->upload(&verticies[0], verticies.size());
   glutPostRedisplay();
 }
