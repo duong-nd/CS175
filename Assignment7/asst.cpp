@@ -171,6 +171,8 @@ static SimpleGeometryPN readGeometryFromQuadFile(const string filename);
 static void smoothShade(Mesh mesh);
 void animateSubdivisionSurfaceCallback(int ms);
 
+static Cvec3 getVertexSubdivisionVertex(shared_ptr<Mesh> mesh, const int i);
+
 /** METHODS *******************************************************************/
 
 static void initGround() {
@@ -306,8 +308,11 @@ static Cvec3 getEdgeSubdivisionVertex(???) {
 /**
  * Computes and applies the new vertex subdivisions to the provided mesh.
  */
-static shared_ptr<Mesh> applyVertexSubdivisions(shared_ptr<Mesh> actualMesh) {
-
+static void applyVertexSubdivisions(shared_ptr<Mesh> actualMesh) {
+  for (int i = 0; i < actualMesh->getNumVertices(); i++) {
+    const Cvec3 vertexVertex = getVertexSubdivisionVertex(actualMesh, i);
+    actualMesh->setNewVertexVertex(actualMesh->getVertex(i), vertexVertex);
+  }
 }
 
 /**
@@ -316,8 +321,21 @@ static shared_ptr<Mesh> applyVertexSubdivisions(shared_ptr<Mesh> actualMesh) {
  *   1/((# near vertex vertices)^2) * (sum of near vertex vertices) +
  *   1/((# near vertex vertices)^2) * (sum of near face vertices)
  */
-static Cvec3 getVertexSubdivisionVertex(???) {
+static Cvec3 getVertexSubdivisionVertex(shared_ptr<Mesh> mesh, const int i) {
+  const Mesh::Vertex v = mesh->getVertex(i);
 
+  Mesh::VertexIterator it(v.getIterator()), it0(it);
+  int numVertices = 0;
+  Cvec3 accumulatedVertices = Cvec3();
+  Cvec3 accumulatedFaceVertices = Cvec3();
+  do {
+    numVertices++;
+    accumulatedVertices += it.getVertex().getPosition();
+    accumulatedFaceVertices += mesh->getNewFaceVertex(it.getFace());
+  } while (++it != it0);
+
+  const double c = 1.0 / (numVertices * numVertices);
+  return v.getPosition() * ((numVertices - 2.0) / numVertices) + accumulatedVertices * c + accumulatedFaceVertices * c;
 }
 
 static void initSubdivisionSurface() {
