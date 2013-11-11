@@ -97,9 +97,11 @@ typedef SgGeometryShapeNode MyShapeNode;
 /**
  * Vertex buffer and index buffer associated with the ground and cube geometry
  */
-static shared_ptr<Geometry> g_ground, g_cube, g_sphere, g_subdivisionSurface;
+static shared_ptr<Geometry> g_ground, g_cube, g_sphere;
+static shared_ptr<SimpleGeometryPN> g_subdivisionSurface;
 static shared_ptr<SgRootNode> g_world;
 static shared_ptr<SgRbtNode> g_skyNode, g_groundNode, g_robot1Node, g_robot2Node;
+static shared_ptr<SgRbtNode> g_meshNode;
 static shared_ptr<SgRbtNode> g_light1Node, g_light2Node;
 static shared_ptr<SgRbtNode> g_currentPickedRbtNode;
 
@@ -191,46 +193,28 @@ static void initCubes() {
 }
 
 static void initSubdivisionSurface() {
-  SimpleGeometryPN subdivisionGeometry = readGeometryFromQuadFile(g_subdivisionSurfaceFilename);
-  // g_subdivisionSurface.reset(subdivisionGeometry);
-}
+  
+  Mesh mesh = Mesh();
+  mesh.load(g_subdivisionSurfaceFilename.c_str());
 
-static SimpleGeometryPN readGeometryFromQuadFile(const string filename) {
-  ifstream file;
-  file.open(filename.c_str());
-  int numVertices;
-  file >> numVertices;
-  int something;
-  file >> something;
-  int numQuads;
-  file >> numQuads;
+  vector<VertexPN> verticies;
+  for (int i = 0; i < mesh.getNumFaces(); i ++) {
+    Mesh::Face face = mesh.getFace(i);
+    const Cvec3 faceNormal = face.getNormal();
 
-  VertexPN vertices[numVertices];
-  for (int i = 0; i < numVertices; i++) {
-    int x, y, z;
-    file >> x;
-    file >> y;
-    file >> z;
-    vertices[i] = VertexPN(x, y, z);
+    assert(face.getNumVertices() == 4);
+
+    verticies.push_back(VertexPN(face.getVertex(0).getPosition(), faceNormal));
+    verticies.push_back(VertexPN(face.getVertex(1).getPosition(), faceNormal));
+    verticies.push_back(VertexPN(face.getVertex(2).getPosition(), faceNormal));
+
+    verticies.push_back(VertexPN(face.getVertex(0).getPosition(), faceNormal));
+    verticies.push_back(VertexPN(face.getVertex(2).getPosition(), faceNormal));
+    verticies.push_back(VertexPN(face.getVertex(3).getPosition(), faceNormal));
   }
 
-  VertexPN quadVerticies[2 * 3 * numQuads];
-  for (int i = 0; i < numQuads; i++) {
-    int firstVertex, secondVertex, thirdVertex, fourthVertex;
-    file >> firstVertex;
-    file >> secondVertex;
-    file >> thirdVertex;
-    file >> fourthVertex;
-
-    quadVerticies[2 * 3 * i    ] = vertices[firstVertex ];
-    quadVerticies[2 * 3 * i + 1] = vertices[secondVertex];
-    quadVerticies[2 * 3 * i + 2] = vertices[thirdVertex ];
-    quadVerticies[2 * 3 * i + 3] = vertices[firstVertex ];
-    quadVerticies[2 * 3 * i + 4] = vertices[thirdVertex ];
-    quadVerticies[2 * 3 * i + 5] = vertices[fourthVertex];
-  }
-
-  return SimpleGeometryPN(quadVerticies, 6 * numQuads);
+  g_subdivisionSurface.reset(new SimpleGeometryPN());
+  g_subdivisionSurface->upload(&verticies[0], verticies.size());
 }
 
 static void initSphere() {
@@ -927,6 +911,10 @@ static void initScene() {
 
   constructRobot(g_robot1Node, g_redDiffuseMat); // a Red robot
   constructRobot(g_robot2Node, g_blueDiffuseMat); // a Blue robot
+  
+  g_meshNode.reset(new SgRbtNode(RigTForm()));
+  g_meshNode->addChild(shared_ptr<MyShapeNode>(
+                           new MyShapeNode(g_subdivisionSurface, g_redDiffuseMat, Cvec3(0, 0, 0))));
 
   g_world->addChild(g_skyNode);
   g_world->addChild(g_groundNode);
@@ -934,6 +922,7 @@ static void initScene() {
   g_world->addChild(g_light2Node);
   g_world->addChild(g_robot1Node);
   g_world->addChild(g_robot2Node);
+  g_world->addChild(g_meshNode);
 }
 
 int main(int argc, char * argv[]) {
