@@ -1,0 +1,75 @@
+class Mesh {
+public:
+  // Default contructor. Assignment operator/constructor
+  Mesh();
+  Mesh(const Mesh& m);
+  Mesh& operator = (const Mesh& m);
+
+  // Mesh::Vertex class
+  struct Vertex {
+    Cvec3 getPosition() const;
+    Cvec3 getNormal() const;
+    void setPosition(const Cvec3& p) const;
+    void setNormal(const Cvec3& n) const;
+    VertexIterator getIterator() const;
+    int getIndex() const;
+  };
+
+  // Mesh::Face class
+  struct Face {
+    int getNumVertices() const;
+    Cvec3 getNormal() const;
+    Vertex getVertex(const int i) const;
+  };
+
+  // Mesh::Edge class
+  struct Edge {
+    Vertex getVertex(const int i) const;
+    Face getFace(const int i) const;
+  };
+
+  // Mesh::VertexIterator
+  struct VertexIterator {
+    Vertex getVertex() const;
+    Face getFace() const;
+    VertexIterator& operator ++ ();
+    bool operator == (const VertexIterator& vi) const;
+    bool operator != (const VertexIterator& vi) const;
+  };
+
+  int getNumFaces() const;
+  int getNumEdges() const;
+  int getNumVertices() const;
+
+  Vertex getVertex(const int i);
+  Edge getEdge(const int i);
+  Face getFace(const int i);
+
+  Cvec3 getNewFaceVertex(const Face& f) const;
+  Cvec3 getNewEdgeVertex(const Edge& e) const;
+  Cvec3 getNewVertexVertex(const Vertex& v) const;
+
+  void setNewFaceVertex(const Face& f, const Cvec3& p);
+  void setNewEdgeVertex(const Edge& e, const Cvec3& p);
+  void setNewVertexVertex(const Vertex& v, const Cvec3& p);
+
+  void subdivide();
+  void load(const char filename[]);
+};
+
+
+// Sample usage for VertexIterator:
+
+for (int i = 0; i < mesh.getNumVertices(); ++i) {
+  const Mesh::Vertex v = mesh.getVertex(i);
+
+  Mesh::VertexIterator it(v.getIterator()), it0(it);
+  do
+  {
+    [...]                                               // can use here it.getVertex(), it.getFace()
+  }
+  while (++it != it0);                                  // go around once the 1ring
+}
+
+
+
