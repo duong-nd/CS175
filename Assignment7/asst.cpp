@@ -166,6 +166,7 @@ static void enablePickingMode();
 static void disablePickingMode();
 static void animateTimerCallback(int ms);
 static SimpleGeometryPN readGeometryFromQuadFile(const string filename);
+static void smoothShade(Mesh mesh);
 
 /** METHODS *******************************************************************/
 
@@ -193,10 +194,37 @@ static void initCubes() {
   g_cube.reset(new SimpleIndexedGeometryPNTBX(&vtx[0], &idx[0], vbLen, ibLen));
 }
 
+static void smoothShadeDebug(Mesh mesh) {
+  for (int i = 0; i < mesh.getNumVertices(); i++) {
+    Cvec3 n = mesh.getVertex(i).getNormal();
+    cout << i << ": " << n[0] << ", " << n[1] << ", " << n[2] << endl;
+  }
+}
+
 static void initSubdivisionSurface() {
-  
+
   Mesh mesh = Mesh();
   mesh.load(g_subdivisionSurfaceFilename.c_str());
+
+  for (int i = 0; i < mesh.getNumVertices(); i++) {
+    mesh.getVertex(i).setNormal(Cvec3());
+  }
+  for (int i = 0; i < mesh.getNumVertices(); i++) {
+    Cvec3 vecSum = Cvec3();
+    Mesh::Vertex currentVertex = mesh.getVertex(i);
+
+    Mesh::VertexIterator it(currentVertex.getIterator()), it0(it);
+    do {
+      vecSum += it.getFace().getNormal();
+    } while (++it != it0);
+
+    if (dot(vecSum, vecSum) > CS175_EPS2) {
+      vecSum.normalize();
+    }
+
+    currentVertex.setNormal(vecSum);
+  }
+  smoothShadeDebug(mesh);
 
   vector<VertexPN> verticies;
   for (int i = 0; i < mesh.getNumFaces(); i ++) {
@@ -205,17 +233,49 @@ static void initSubdivisionSurface() {
 
     assert(face.getNumVertices() == 4);
 
-    verticies.push_back(VertexPN(face.getVertex(0).getPosition(), faceNormal));
-    verticies.push_back(VertexPN(face.getVertex(1).getPosition(), faceNormal));
-    verticies.push_back(VertexPN(face.getVertex(2).getPosition(), faceNormal));
+    verticies.push_back(VertexPN(face.getVertex(0).getPosition(), face.getVertex(0).getNormal()));
+    verticies.push_back(VertexPN(face.getVertex(1).getPosition(), face.getVertex(1).getNormal()));
+    verticies.push_back(VertexPN(face.getVertex(2).getPosition(), face.getVertex(2).getNormal()));
 
-    verticies.push_back(VertexPN(face.getVertex(0).getPosition(), faceNormal));
-    verticies.push_back(VertexPN(face.getVertex(2).getPosition(), faceNormal));
-    verticies.push_back(VertexPN(face.getVertex(3).getPosition(), faceNormal));
+    verticies.push_back(VertexPN(face.getVertex(0).getPosition(), face.getVertex(0).getNormal()));
+    verticies.push_back(VertexPN(face.getVertex(2).getPosition(), face.getVertex(2).getNormal()));
+    verticies.push_back(VertexPN(face.getVertex(3).getPosition(), face.getVertex(3).getNormal()));
   }
 
   g_subdivisionSurface.reset(new SimpleGeometryPN());
   g_subdivisionSurface->upload(&verticies[0], verticies.size());
+}
+
+static void smoothShade(Mesh& mesh) {
+  for (int i = 0; i < mesh.getNumVertices(); i++) {
+    mesh.getVertex(i).setNormal(Cvec3());
+  }
+  for (int i = 0; i < mesh.getNumVertices(); i++) {
+    Cvec3 vecSum = Cvec3();
+    Mesh::Vertex currentVertex = mesh.getVertex(i);
+
+    Mesh::VertexIterator it(currentVertex.getIterator()), it0(it);
+    do {
+      vecSum += it.getFace().getNormal();
+    } while (++it != it0);
+
+    Cvec3 n = vecSum;
+    cout << "BEEF: " << n[0] << ", " << n[1] << ", " << n[2] << endl;
+
+    if (dot(vecSum, vecSum) > CS175_EPS2) {
+      vecSum.normalize();
+    } else {
+      cout << "MISSED" << endl;
+    }
+
+    n = vecSum;
+    cout << n[0] << ", " << n[1] << ", " << n[2] << endl;
+
+    currentVertex.setNormal(vecSum);
+
+    n = mesh.getVertex(i).getNormal();
+    cout << "GONATUS: " << n[0] << ", " << n[1] << ", " << n[2] << endl;
+  }
 }
 
 static void initSphere() {
