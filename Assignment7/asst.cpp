@@ -41,6 +41,8 @@
 #include "headers/frame.h"
 #include "headers/script.h"
 
+#include "headers/mesh.h"
+
 #define ESCAPE_KEY 27
 #define SPACE_KEY  32
 
@@ -194,7 +196,7 @@ static void initSphere() {
   /* Temporary storage for sphere Geometry */
   vector<VertexPNTBX> vtx(vbLen);
   vector<unsigned short> idx(ibLen);
-  
+
   makeSphere(1, slices, stacks, vtx.begin(), idx.begin());
   g_sphere.reset(new SimpleIndexedGeometryPNTBX(&vtx[0], &idx[0], vtx.size(), idx.size()));
 }
@@ -321,7 +323,7 @@ static void drawStuff(bool picking) {
     g_arcballMat->draw(*g_sphere, uniforms);
   } else {
     Picker picker(invEyeRbt, uniforms);
-    
+
     g_overridingMaterial = g_pickingMat;
     g_world->accept(picker);
     g_overridingMaterial.reset();
