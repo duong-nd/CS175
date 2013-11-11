@@ -100,6 +100,7 @@ typedef SgGeometryShapeNode MyShapeNode;
  */
 static shared_ptr<Geometry> g_ground, g_cube, g_sphere;
 static shared_ptr<SimpleGeometryPN> g_subdivisionSurface;
+static shared_ptr<Mesh> g_subdivisionSurfaceMesh;
 static shared_ptr<SgRootNode> g_world;
 static shared_ptr<SgRbtNode> g_skyNode, g_groundNode, g_robot1Node, g_robot2Node;
 static shared_ptr<SgRbtNode> g_meshNode;
@@ -196,15 +197,15 @@ static void initCubes() {
 
 static void initSubdivisionSurface() {
 
-  Mesh mesh = Mesh();
-  mesh.load(g_subdivisionSurfaceFilename.c_str());
+  g_subdivisionSurfaceMesh.reset(Mesh());
+  g_subdivisionSurfaceMesh->load(g_subdivisionSurfaceFilename.c_str());
 
-  for (int i = 0; i < mesh.getNumVertices(); i++) {
-    mesh.getVertex(i).setNormal(Cvec3());
+  for (int i = 0; i < g_subdivisionSurfaceMesh->getNumVertices(); i++) {
+    g_subdivisionSurfaceMesh->getVertex(i).setNormal(Cvec3());
   }
-  for (int i = 0; i < mesh.getNumVertices(); i++) {
+  for (int i = 0; i < g_subdivisionSurfaceMesh->getNumVertices(); i++) {
     Cvec3 vecSum = Cvec3();
-    Mesh::Vertex currentVertex = mesh.getVertex(i);
+    Mesh::Vertex currentVertex = g_subdivisionSurfaceMesh->getVertex(i);
 
     Mesh::VertexIterator it(currentVertex.getIterator()), it0(it);
     do {
@@ -218,8 +219,8 @@ static void initSubdivisionSurface() {
   }
 
   vector<VertexPN> verticies;
-  for (int i = 0; i < mesh.getNumFaces(); i++) {
-    Mesh::Face face = mesh.getFace(i);
+  for (int i = 0; i < g_subdivisionSurfaceMesh->getNumFaces(); i++) {
+    Mesh::Face face = g_subdivisionSurfaceMesh->getFace(i);
 
     for (int j = 1; j < face.getNumVertices() - 1; j++) {
       verticies.push_back(VertexPN(face.getVertex(0).getPosition(), face.getVertex(0).getNormal()));
@@ -682,6 +683,27 @@ static void animateTimerCallback(int ms) {
     );
   }
 }
+
+/**
+ * Animates the subdivision surface by flexing the vertices.
+ */
+void animateSubdivisionSurface(float t) {
+
+}
+
+/**
+ * The GLUT timer callback used to control the subdivision surface animation.
+ */
+void animateSubdivisionSurfaceCallback(int ms) {
+  animateSubdivisionSurface((float)ms);
+
+  glutTimerFunc(
+    500,
+    animateSubdivisionSurfaceCallback,
+    ms + 500
+  );
+}
+
 
 static void keyboard(const unsigned char key, const int x, const int y) {
   switch (key) {
