@@ -198,8 +198,9 @@ static void initCubes() {
 
 static void updateMeshVertices(shared_ptr<Mesh> mesh, float t) {
   for (int i = 0; i < g_subdivisionSurfaceMesh->getNumVertices(); i++) {
+    Cvec3 v = g_subdivisionSurfaceMesh->getVertex(i).getPosition();
     g_subdivisionSurfaceMesh->getVertex(i).setPosition(
-      g_subdivisionSurfaceMesh->getVertex(i).getPosition() + 0.025 * sin(i + t / 100)
+       v + Cvec3(sign(v[0]), sign(v[1]), sign(v[2])) * 0.025 * sin(i + t / 100)
     );
   }
 }
