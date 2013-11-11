@@ -97,7 +97,7 @@ typedef SgGeometryShapeNode MyShapeNode;
 /**
  * Vertex buffer and index buffer associated with the ground and cube geometry
  */
-static shared_ptr<Geometry> g_ground, g_cube, g_sphere;
+static shared_ptr<Geometry> g_ground, g_cube, g_sphere, g_subdivisionSurface;
 static shared_ptr<SgRootNode> g_world;
 static shared_ptr<SgRbtNode> g_skyNode, g_groundNode, g_robot1Node, g_robot2Node;
 static shared_ptr<SgRbtNode> g_light1Node, g_light2Node;
@@ -155,10 +155,14 @@ static int g_animateFramesPerSecond = 60;
 /** Hack so that we know when we need to update the frame for the animation. */
 static int g_lastAnimatedFrame = -1;
 
+/** The filename for the file containing the subdivision surface. */
+static const string g_subdivisionSurfaceFilename = "cube.mesh";
+
 /** METHOD PROTOTYPES *********************************************************/
 static void enablePickingMode();
 static void disablePickingMode();
 static void animateTimerCallback(int ms);
+static SimpleGeometryPN readGeometryFromQuadFile(const string filename);
 
 /** METHODS *******************************************************************/
 
@@ -184,6 +188,49 @@ static void initCubes() {
 
   makeCube(1, vtx.begin(), idx.begin());
   g_cube.reset(new SimpleIndexedGeometryPNTBX(&vtx[0], &idx[0], vbLen, ibLen));
+}
+
+static void initSubdivisionSurface() {
+  SimpleGeometryPN subdivisionGeometry = readGeometryFromQuadFile(g_subdivisionSurfaceFilename);
+  // g_subdivisionSurface.reset(subdivisionGeometry);
+}
+
+static SimpleGeometryPN readGeometryFromQuadFile(const string filename) {
+  ifstream file;
+  file.open(filename.c_str());
+  int numVertices;
+  file >> numVertices;
+  int something;
+  file >> something;
+  int numQuads;
+  file >> numQuads;
+
+  VertexPN vertices[numVertices];
+  for (int i = 0; i < numVertices; i++) {
+    int x, y, z;
+    file >> x;
+    file >> y;
+    file >> z;
+    vertices[i] = VertexPN(x, y, z);
+  }
+
+  VertexPN quadVerticies[2 * 3 * numQuads];
+  for (int i = 0; i < numQuads; i++) {
+    int firstVertex, secondVertex, thirdVertex, fourthVertex;
+    file >> firstVertex;
+    file >> secondVertex;
+    file >> thirdVertex;
+    file >> fourthVertex;
+
+    quadVerticies[2 * 3 * i    ] = vertices[firstVertex ];
+    quadVerticies[2 * 3 * i + 1] = vertices[secondVertex];
+    quadVerticies[2 * 3 * i + 2] = vertices[thirdVertex ];
+    quadVerticies[2 * 3 * i + 3] = vertices[firstVertex ];
+    quadVerticies[2 * 3 * i + 4] = vertices[thirdVertex ];
+    quadVerticies[2 * 3 * i + 5] = vertices[fourthVertex];
+  }
+
+  return SimpleGeometryPN(quadVerticies, 6 * numQuads);
 }
 
 static void initSphere() {
@@ -284,11 +331,11 @@ static void drawStuff(bool picking) {
   const RigTForm invEyeRbt = inv(eyeRbt);
 
 
-  /* get light positions in world coordinates */
+  /* Get light positions in world coordinates */
   const Cvec3 light1 = getPathAccumRbt(g_world, g_light1Node).getTranslation();
   const Cvec3 light2 = getPathAccumRbt(g_world, g_light2Node).getTranslation();
 
-  /* get light positions in eye coordinates, and hand them to uniforms */
+  /* Get light positions in eye coordinates, and hand them to uniforms */
   uniforms.put("uLight", Cvec3(invEyeRbt * Cvec4(light1, 1)));
   uniforms.put("uLight2", Cvec3(invEyeRbt * Cvec4(light2, 1)));
 
@@ -774,6 +821,7 @@ static void initMaterials() {
 static void initGeometry() {
   initGround();
   initCubes();
+  initSubdivisionSurface();
   initSphere();
 }
 

@@ -308,6 +308,9 @@ struct VertexPN {
 
   VertexPN() {}
 
+  VertexPN(float x, float y, float z)
+    : p(x,y,z) {}
+
   VertexPN(float x, float y, float z,
            float nx, float ny, float nz)
     : p(x,y,z), n(nx, ny, nz) {}
