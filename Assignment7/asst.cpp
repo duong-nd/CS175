@@ -170,6 +170,11 @@ static void animateTimerCallback(int ms);
 static SimpleGeometryPN readGeometryFromQuadFile(const string filename);
 static void smoothShade(Mesh mesh);
 void animateSubdivisionSurfaceCallback(int ms);
+static void applySubdivision(shared_ptr<Mesh> actualMesh);
+static void applyFaceSubdivisions(shared_ptr<Mesh> actualMesh);
+static Cvec3 getFaceSubdivisionVertex(Mesh::Face f);
+static void applyEdgeSubdivisions(shared_ptr<Mesh> actualMesh);
+static Cvec3 getEdgeSubdivisionVertex(Mesh::Edge e, shared_ptr<Mesh> actualMesh);
 
 static Cvec3 getVertexSubdivisionVertex(shared_ptr<Mesh> mesh, const int i);
 
@@ -245,7 +250,7 @@ static vector<VertexPN> getGeometryVertices(shared_ptr<Mesh> mesh) {
  * Applies Catmull-Clark subdivisions to the provided actual mesh using
  * levelsOfSubdivision subdivisions of the originalMesh.
  */
-static shared_ptr<Mesh> applySubdivisions(
+static void applySubdivisions(
     shared_ptr<Mesh> actualMesh,
     shared_ptr<Mesh> originalMesh,
     int levelsOfSubdivision) {
@@ -263,7 +268,7 @@ static shared_ptr<Mesh> applySubdivisions(
  *   2. All edges
  *   3. All vertices
  */
-static shared_ptr<Mesh> applySubdivision(shared_ptr<Mesh> actualMesh) {
+static void applySubdivision(shared_ptr<Mesh> actualMesh) {
   applyFaceSubdivisions(actualMesh);
   applyEdgeSubdivisions(actualMesh);
   applyVertexSubdivisions(actualMesh);
@@ -272,10 +277,10 @@ static shared_ptr<Mesh> applySubdivision(shared_ptr<Mesh> actualMesh) {
 /**
  * Computes and applies the new face subdivisions to the provided mesh.
  */
-static shared_ptr<Mesh> applyFaceSubdivisions(shared_ptr<Mesh> actualMesh) {
+static void applyFaceSubdivisions(shared_ptr<Mesh> actualMesh) {
   for (int i = 0; i < actualMesh->getNumFaces(); i++) {
     Mesh::Face f = actualMesh->getFace(i);
-    applyFaceSubdivision(f);
+    actualMesh->setNewFaceVertex(f, getFaceSubdivisionVertex(f));
   }
 }
 
@@ -286,23 +291,31 @@ static Cvec3 getFaceSubdivisionVertex(Mesh::Face f) {
   int numNearFaceVertices = f.getNumVertices();
   Cvec3 sumOfNearFaceVertices = Cvec3();
   for (int i = 0; i < numNearFaceVertices; i++) {
-    sumOfNearFaceVertices += f.getVertex(i);
+    sumOfNearFaceVertices += f.getVertex(i).getPosition();
   }
-
+  return sumOfNearFaceVertices * (1.0 / numNearFaceVertices);
 }
 
 /**
  * Computes and applies the new edge subdivisions to the provided mesh.
  */
-static shared_ptr<Mesh> applyEdgeSubdivisions(shared_ptr<Mesh> actualMesh) {
-
+static void applyEdgeSubdivisions(shared_ptr<Mesh> actualMesh) {
+  for (int i = 0; i < actualMesh->getNumEdges(); i++) {
+    Mesh::Edge e = actualMesh->getEdge(i);
+    actualMesh->setNewEdgeVertex(e, getEdgeSubdivisionVertex(e, actualMesh));
+  }
 }
 
 /**
  * edge_vertex = 1/4 * (end vertex 1 + end vertex 2 + edge face vertex 1 + edge face vertex 2)
  */
-static Cvec3 getEdgeSubdivisionVertex(???) {
-
+static Cvec3 getEdgeSubdivisionVertex(Mesh::Edge e, shared_ptr<Mesh> actualMesh) {
+  return (
+    e.getVertex(0).getPosition() +
+    e.getVertex(1).getPosition() +
+    actualMesh->getNewFaceVertex(e.getFace(0)) +
+    actualMesh->getNewFaceVertex(e.getFace(1))
+  ) * 0.25;
 }
 
 /**
