@@ -168,6 +168,7 @@ static void disablePickingMode();
 static void animateTimerCallback(int ms);
 static SimpleGeometryPN readGeometryFromQuadFile(const string filename);
 static void smoothShade(Mesh mesh);
+void animateSubdivisionSurfaceCallback(int ms);
 
 /** METHODS *******************************************************************/
 
@@ -195,11 +196,15 @@ static void initCubes() {
   g_cube.reset(new SimpleIndexedGeometryPNTBX(&vtx[0], &idx[0], vbLen, ibLen));
 }
 
-static void initSubdivisionSurface() {
+static void updateMeshVertices(shared_ptr<Mesh> mesh, float t) {
+  for (int i = 0; i < g_subdivisionSurfaceMesh->getNumVertices(); i++) {
+    g_subdivisionSurfaceMesh->getVertex(i).setPosition(
+      g_subdivisionSurfaceMesh->getVertex(i).getPosition() + 0.025 * sin(i + t / 100)
+    );
+  }
+}
 
-  g_subdivisionSurfaceMesh.reset(Mesh());
-  g_subdivisionSurfaceMesh->load(g_subdivisionSurfaceFilename.c_str());
-
+static void updateMeshNormals(shared_ptr<Mesh> mesh) {
   for (int i = 0; i < g_subdivisionSurfaceMesh->getNumVertices(); i++) {
     g_subdivisionSurfaceMesh->getVertex(i).setNormal(Cvec3());
   }
@@ -217,20 +222,34 @@ static void initSubdivisionSurface() {
     }
     currentVertex.setNormal(vecSum);
   }
+}
 
-  vector<VertexPN> verticies;
-  for (int i = 0; i < g_subdivisionSurfaceMesh->getNumFaces(); i++) {
-    Mesh::Face face = g_subdivisionSurfaceMesh->getFace(i);
+static vector<VertexPN> getGeometryVertices(shared_ptr<Mesh> mesh) {
+  vector<VertexPN> vs;
+  for (int i = 0; i < mesh->getNumFaces(); i++) {
+    Mesh::Face f = mesh->getFace(i);
 
-    for (int j = 1; j < face.getNumVertices() - 1; j++) {
-      verticies.push_back(VertexPN(face.getVertex(0).getPosition(), face.getVertex(0).getNormal()));
-      verticies.push_back(VertexPN(face.getVertex(j).getPosition(), face.getVertex(j).getNormal()));
-      verticies.push_back(VertexPN(face.getVertex(j+1).getPosition(), face.getVertex(j+1).getNormal()));
+    for (int j = 1; j < f.getNumVertices() - 1; j++) {
+      vs.push_back(VertexPN(f.getVertex(0).getPosition(), f.getVertex(0).getNormal()));
+      vs.push_back(VertexPN(f.getVertex(j).getPosition(), f.getVertex(j).getNormal()));
+      vs.push_back(VertexPN(f.getVertex(j+1).getPosition(), f.getVertex(j+1).getNormal()));
     }
   }
 
+  return vs;
+}
+
+static void initSubdivisionSurface() {
+  g_subdivisionSurfaceMesh.reset(new Mesh());
+  g_subdivisionSurfaceMesh->load(g_subdivisionSurfaceFilename.c_str());
+
+  updateMeshNormals(g_subdivisionSurfaceMesh);
+  vector<VertexPN> verticies = getGeometryVertices(g_subdivisionSurfaceMesh);
+
   g_subdivisionSurface.reset(new SimpleGeometryPN());
   g_subdivisionSurface->upload(&verticies[0], verticies.size());
+
+  animateSubdivisionSurfaceCallback(0);
 }
 
 static void initSphere() {
@@ -688,7 +707,11 @@ static void animateTimerCallback(int ms) {
  * Animates the subdivision surface by flexing the vertices.
  */
 void animateSubdivisionSurface(float t) {
-
+  updateMeshVertices(g_subdivisionSurfaceMesh, t);
+  updateMeshNormals(g_subdivisionSurfaceMesh);
+  vector<VertexPN> verticies = getGeometryVertices(g_subdivisionSurfaceMesh);
+  g_subdivisionSurface->upload(&verticies[0], verticies.size());
+  glutPostRedisplay();
 }
 
 /**
@@ -698,9 +721,9 @@ void animateSubdivisionSurfaceCallback(int ms) {
   animateSubdivisionSurface((float)ms);
 
   glutTimerFunc(
-    500,
+    10,
     animateSubdivisionSurfaceCallback,
-    ms + 500
+    ms + 10
   );
 }
 
