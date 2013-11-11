@@ -194,13 +194,6 @@ static void initCubes() {
   g_cube.reset(new SimpleIndexedGeometryPNTBX(&vtx[0], &idx[0], vbLen, ibLen));
 }
 
-static void smoothShadeDebug(Mesh mesh) {
-  for (int i = 0; i < mesh.getNumVertices(); i++) {
-    Cvec3 n = mesh.getVertex(i).getNormal();
-    cout << i << ": " << n[0] << ", " << n[1] << ", " << n[2] << endl;
-  }
-}
-
 static void initSubdivisionSurface() {
 
   Mesh mesh = Mesh();
@@ -224,7 +217,6 @@ static void initSubdivisionSurface() {
 
     currentVertex.setNormal(vecSum);
   }
-  smoothShadeDebug(mesh);
 
   vector<VertexPN> verticies;
   for (int i = 0; i < mesh.getNumFaces(); i ++) {
