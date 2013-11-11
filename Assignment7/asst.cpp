@@ -253,8 +253,12 @@ static shared_ptr<Mesh> applySubdivisions(
 /**
  * Destructively applies a single Catmull-Clark subdivision to the provided mesh.
  *
- * Here's the math for it:
+ * These must be done in the order:
+ *   1. All faces
+ *   2. All edges
+ *   3. All vertices
  *
+ * Here's the math for it:
  * face_vertex = 1/(# near face vertices) * (sum of near face vertices)
  * edge_vertex = 1/4 * (end vertex 1 + end vertex 2 + edge face vertex 1 + edge face vertex 2)
  * vertex_vertex =
@@ -263,6 +267,30 @@ static shared_ptr<Mesh> applySubdivisions(
  *   1/((# near vertex vertices)^2) * (sum of near face vertices)
  */
 static shared_ptr<Mesh> applySubdivisions(shared_ptr<Mesh> actualMesh) {
+
+}
+
+static shared_ptr<Mesh> applyFaceSubdivisions(shared_ptr<Mesh> actualMesh) {
+
+}
+
+static shared_ptr<Mesh> applyFaceSubdivision(???) {
+
+}
+
+static shared_ptr<Mesh> applyEdgeSubdivisions(shared_ptr<Mesh> actualMesh) {
+
+}
+
+static shared_ptr<Mesh> applyEdgeSubdivision(???) {
+
+}
+
+static shared_ptr<Mesh> applyVertexSubdivisions(shared_ptr<Mesh> actualMesh) {
+
+}
+
+static shared_ptr<Mesh> applyVertexSubdivision(???) {
 
 }
 
