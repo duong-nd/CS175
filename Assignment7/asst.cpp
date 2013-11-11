@@ -240,11 +240,29 @@ static vector<VertexPN> getGeometryVertices(shared_ptr<Mesh> mesh) {
 }
 
 /**
- * Applies Catmull-Clark subdivision to the provided
+ * Applies Catmull-Clark subdivisions to the provided actual mesh using
+ * levelsOfSubdivision subdivisions of the originalMesh.
  */
-static shared_ptr<Mesh> applySubdivision(shared_ptr<Mesh> actualMesh, shared_ptr<Mesh> originalMesh, int levelsOfSubdivision) {
+static shared_ptr<Mesh> applySubdivisions(
+    shared_ptr<Mesh> actualMesh,
+    shared_ptr<Mesh> originalMesh,
+    int levelsOfSubdivision) {
 
 }
+
+/**
+ * Destructively applies a single Catmull-Clark subdivision to the provided mesh.
+ *
+ * Here's the math for it:
+ *
+ * face_vertex = 1/(# near face vertices) * (sum of near face vertices)
+ * edge_vertex = 1/4 * ()
+ */
+static shared_ptr<Mesh> applySubdivisions(shared_ptr<Mesh> actualMesh) {
+
+}
+
+
 
 static void initSubdivisionSurface() {
   g_subdivisionSurfaceMeshOriginal.reset(new Mesh());
