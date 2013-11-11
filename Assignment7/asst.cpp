@@ -299,7 +299,7 @@ static shared_ptr<Mesh> applyEdgeSubdivisions(shared_ptr<Mesh> actualMesh) {
 /**
  * edge_vertex = 1/4 * (end vertex 1 + end vertex 2 + edge face vertex 1 + edge face vertex 2)
  */
-static shared_ptr<Mesh> getEdgeSubdivisionVertex(???) {
+static Cvec3 getEdgeSubdivisionVertex(???) {
 
 }
 
@@ -316,7 +316,7 @@ static shared_ptr<Mesh> applyVertexSubdivisions(shared_ptr<Mesh> actualMesh) {
  *   1/((# near vertex vertices)^2) * (sum of near vertex vertices) +
  *   1/((# near vertex vertices)^2) * (sum of near face vertices)
  */
-static shared_ptr<Mesh> getVertexSubdivisionVertex(???) {
+static Cvec3 getVertexSubdivisionVertex(???) {
 
 }
 
