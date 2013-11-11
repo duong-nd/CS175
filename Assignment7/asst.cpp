@@ -85,7 +85,8 @@ static shared_ptr<Material> g_redDiffuseMat,
                             g_bumpFloorMat,
                             g_arcballMat,
                             g_pickingMat,
-                            g_lightMat;
+                            g_lightMat,
+                            g_specularMat;
 
 shared_ptr<Material> g_overridingMaterial;
 
@@ -775,6 +776,7 @@ static void initMaterials() {
   /* Create some prototype materials */
   Material diffuse("./shaders/basic-gl3.vshader", "./shaders/diffuse-gl3.fshader");
   Material solid("./shaders/basic-gl3.vshader", "./shaders/solid-gl3.fshader");
+  Material specular("./shaders/basic-gl3.vshader", "./shaders/specular-gl3.fshader");
 
   /* copy diffuse prototype and set red color */
   g_redDiffuseMat.reset(new Material(diffuse));
@@ -797,6 +799,9 @@ static void initMaterials() {
   /* copy solid prototype, and set to color white */
   g_lightMat.reset(new Material(solid));
   g_lightMat->getUniforms().put("uColor", Cvec3f(1, 1, 1));
+
+  g_specularMat.reset(new Material(specular));
+  g_specularMat->getUniforms().put("uColor", Cvec3f(1, 0, 0.72));
 
   /* pick shader */
   g_pickingMat.reset(new Material("./shaders/basic-gl3.vshader", "./shaders/pick-gl3.fshader"));
@@ -911,10 +916,10 @@ static void initScene() {
 
   constructRobot(g_robot1Node, g_redDiffuseMat); // a Red robot
   constructRobot(g_robot2Node, g_blueDiffuseMat); // a Blue robot
-  
+
   g_meshNode.reset(new SgRbtNode(RigTForm()));
   g_meshNode->addChild(shared_ptr<MyShapeNode>(
-                           new MyShapeNode(g_subdivisionSurface, g_redDiffuseMat, Cvec3(0, 0, 0))));
+                           new MyShapeNode(g_subdivisionSurface, g_specularMat, Cvec3(0, 0, 0))));
 
   g_world->addChild(g_skyNode);
   g_world->addChild(g_groundNode);
