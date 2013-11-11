@@ -247,7 +247,10 @@ static shared_ptr<Mesh> applySubdivisions(
     shared_ptr<Mesh> actualMesh,
     shared_ptr<Mesh> originalMesh,
     int levelsOfSubdivision) {
-
+  g_subdivisionSurfaceMeshActual.reset(new Mesh(*g_subdivisionSurfaceMeshOriginal));
+  for (int i = 0; i < levelsOfSubdivision; i++) {
+    applySubdivision(g_subdivisionSurfaceMeshActual);
+  }
 }
 
 /**
@@ -258,7 +261,7 @@ static shared_ptr<Mesh> applySubdivisions(
  *   2. All edges
  *   3. All vertices
  */
-static shared_ptr<Mesh> applySubdivisions(shared_ptr<Mesh> actualMesh) {
+static shared_ptr<Mesh> applySubdivision(shared_ptr<Mesh> actualMesh) {
   applyFaceSubdivisions(actualMesh);
   applyEdgeSubdivisions(actualMesh);
   applyVertexSubdivisions(actualMesh);
@@ -268,13 +271,21 @@ static shared_ptr<Mesh> applySubdivisions(shared_ptr<Mesh> actualMesh) {
  * Computes and applies the new face subdivisions to the provided mesh.
  */
 static shared_ptr<Mesh> applyFaceSubdivisions(shared_ptr<Mesh> actualMesh) {
-  // for (int i = 0; i < actualMesh.getNum)
+  for (int i = 0; i < actualMesh->getNumFaces(); i++) {
+    Mesh::Face f = actualMesh->getFace(i);
+    applyFaceSubdivision(f);
+  }
 }
 
 /**
  * face_vertex = 1/(# near face vertices) * (sum of near face vertices)
  */
-static shared_ptr<Mesh> applyFaceSubdivision(???) {
+static Cvec3 getFaceSubdivisionVertex(Mesh::Face f) {
+  int numNearFaceVertices = f.getNumVertices();
+  Cvec3 sumOfNearFaceVertices = Cvec3();
+  for (int i = 0; i < numNearFaceVertices; i++) {
+    sumOfNearFaceVertices += f.getVertex(i);
+  }
 
 }
 
@@ -288,7 +299,7 @@ static shared_ptr<Mesh> applyEdgeSubdivisions(shared_ptr<Mesh> actualMesh) {
 /**
  * edge_vertex = 1/4 * (end vertex 1 + end vertex 2 + edge face vertex 1 + edge face vertex 2)
  */
-static shared_ptr<Mesh> applyEdgeSubdivision(???) {
+static shared_ptr<Mesh> getEdgeSubdivisionVertex(???) {
 
 }
 
@@ -305,17 +316,14 @@ static shared_ptr<Mesh> applyVertexSubdivisions(shared_ptr<Mesh> actualMesh) {
  *   1/((# near vertex vertices)^2) * (sum of near vertex vertices) +
  *   1/((# near vertex vertices)^2) * (sum of near face vertices)
  */
-static shared_ptr<Mesh> applyVertexSubdivision(???) {
+static shared_ptr<Mesh> getVertexSubdivisionVertex(???) {
 
 }
-
-
 
 static void initSubdivisionSurface() {
   g_subdivisionSurfaceMeshOriginal.reset(new Mesh());
   g_subdivisionSurfaceMeshOriginal->load(g_subdivisionSurfaceFilename.c_str());
-  g_subdivisionSurfaceMeshActual.reset(new Mesh());
-  g_subdivisionSurfaceMeshActual->load(g_subdivisionSurfaceFilename.c_str());
+  g_subdivisionSurfaceMeshActual.reset(new Mesh(*g_subdivisionSurfaceMeshOriginal));
 
   updateMeshNormals(g_subdivisionSurfaceMeshActual);
   vector<VertexPN> verticies = getGeometryVertices(g_subdivisionSurfaceMeshActual);
