@@ -92,6 +92,8 @@ shared_ptr<Material> g_overridingMaterial;
 
 static Script g_script = Script();
 
+static int g_subdivisionSteps = 0;
+
 /** GEOMETRY */
 typedef SgGeometryShapeNode MyShapeNode;
 
@@ -260,7 +262,7 @@ static void applySubdivisions(
   actualMesh.reset(new Mesh(*originalMesh));
   for (int i = 0; i < levelsOfSubdivision; i++) {
     applySubdivision(actualMesh);
-    actualMesh->subdivide();
+    actualMesh.subdivide();
   }
 }
 
@@ -825,7 +827,9 @@ static void animateTimerCallback(int ms) {
  * Animates the subdivision surface by flexing the vertices.
  */
 void animateSubdivisionSurface(float t) {
-  // updateMeshVertices(g_subdivisionSurfaceMeshActual, g_subdivisionSurfaceMeshOriginal, t);
+  g_subdivisionSurfaceMeshActual = Mesh(g_subdivisionSurfaceMeshOriginal);
+  updateMeshVertices(g_subdivisionSurfaceMeshActual, g_subdivisionSurfaceMeshOriginal, t);
+  applySubdivisions(g_subdivisionSurfaceMeshActual, g_subdivisionSteps);
   updateMeshNormals(g_subdivisionSurfaceMeshActual);
 
   applySubdivisions(g_subdivisionSurfaceMeshActual, g_subdivisionSurfaceMeshOriginal, 3);
@@ -912,6 +916,17 @@ static void keyboard(const unsigned char key, const int x, const int y) {
     case '-':
       g_msBetweenKeyFrames = min(10000, g_msBetweenKeyFrames + 100);
       cout << g_msBetweenKeyFrames << "ms between keyframes" << endl;
+      break;
+    case 'f':
+      // TODO
+      break;
+    case '0':
+      if (g_subdivisionSteps < 7) g_subdivisionSteps++;
+      cout << "Number of subdivision steps set to " << g_subdivisionSteps << endl;
+      break;
+    case '9':
+      if (g_subdivisionSteps > 0) g_subdivisionSteps--;
+      cout << "Number of subdivision steps set to " << g_subdivisionSteps << endl;
       break;
     case '7':
       cout << "subdivision surface speed: " << g_subdivisionSurfaceSpeed << endl;
