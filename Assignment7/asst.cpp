@@ -534,7 +534,7 @@ static void drawStuff(bool picking) {
 static void display() {
   /* Clear framebuffer color & depth */
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-  
+
   drawStuff(false);
 
   /* Show the back buffer (where we rendered stuff) */
@@ -585,7 +585,6 @@ static void reshape(const int w, const int h) {
  */
 static RigTForm getArcballRotation(const int x, const int y) {
   const RigTForm eyeRbt = getEyeRBT();
-  // const RigTForm object = g_currentPickedRbtNode->getRbt();
   const RigTForm object = getPathAccumRbt(g_world, g_currentPickedRbtNode);
 
   const bool world_sky_manipulation = worldSkyManipulation();
@@ -853,7 +852,6 @@ void animateSubdivisionSurfaceCallback(int ms) {
   float real_ms = ms / 100.0;
   animateSubdivisionSurface(real_ms);
 
-  // cout << 5 * (real_ms + g_subdivisionSurfaceSpeed) << endl;
   glutTimerFunc(
     10,
     animateSubdivisionSurfaceCallback,
@@ -938,11 +936,11 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       cout << "Number of subdivision steps set to " << g_subdivisionSteps << endl;
       break;
     case '7':
-      cout << "subdivision surface speed: " << g_subdivisionSurfaceSpeed << endl;
+      cout << "Subdivision surface speed: " << g_subdivisionSurfaceSpeed << endl;
       g_subdivisionSurfaceSpeed /= 2.0;
       break;
     case '8':
-      cout << "subdivision surface speed: " << g_subdivisionSurfaceSpeed << endl;
+      cout << "Subdivision surface speed: " << g_subdivisionSurfaceSpeed << endl;
       g_subdivisionSurfaceSpeed *= 2.0;
       break;  }
   glutPostRedisplay();
@@ -1125,8 +1123,8 @@ static void initScene() {
   g_robot1Node.reset(new SgRbtNode(RigTForm(Cvec3(-2, 1, 0))));
   g_robot2Node.reset(new SgRbtNode(RigTForm(Cvec3(2, 1, 0))));
 
-  constructRobot(g_robot1Node, g_redDiffuseMat); // a Red robot
-  constructRobot(g_robot2Node, g_blueDiffuseMat); // a Blue robot
+  constructRobot(g_robot1Node, g_redDiffuseMat); // a red robot
+  constructRobot(g_robot2Node, g_blueDiffuseMat); // a blue robot
 
   g_meshNode.reset(new SgRbtNode(RigTForm()));
   g_meshNode->addChild(shared_ptr<MyShapeNode>(
