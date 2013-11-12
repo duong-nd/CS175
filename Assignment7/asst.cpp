@@ -93,6 +93,7 @@ shared_ptr<Material> g_overridingMaterial;
 static Script g_script = Script();
 
 static int g_subdivisionSteps = 0;
+static bool g_useSmoothShading = false;
 
 /** GEOMETRY */
 typedef SgGeometryShapeNode MyShapeNode;
@@ -215,9 +216,11 @@ static void updateMeshVertices(Mesh &meshActual, Mesh &meshOriginal, float t) {
 }
 
 static void updateMeshNormals(Mesh &mesh) {
+  /* reset normals */
   for (int i = 0; i < mesh.getNumVertices(); i++) {
     mesh.getVertex(i).setNormal(Cvec3());
   }
+
   for (int i = 0; i < mesh.getNumVertices(); i++) {
     Cvec3 vecSum = Cvec3();
     Mesh::Vertex currentVertex = mesh.getVertex(i);
@@ -238,11 +241,22 @@ static vector<VertexPN> getGeometryVertices(Mesh &mesh) {
   vector<VertexPN> vs;
   for (int i = 0; i < mesh.getNumFaces(); i++) {
     Mesh::Face f = mesh.getFace(i);
-
+    
+    Cvec3 normals[3];
     for (int j = 1; j < f.getNumVertices() - 1; j++) {
-      vs.push_back(VertexPN(f.getVertex(0).getPosition(), f.getVertex(0).getNormal()));
-      vs.push_back(VertexPN(f.getVertex(j).getPosition(), f.getVertex(j).getNormal()));
-      vs.push_back(VertexPN(f.getVertex(j+1).getPosition(), f.getVertex(j+1).getNormal()));
+      if (g_useSmoothShading) {
+        normals[0] = f.getVertex(0).getNormal();
+        normals[1] =  f.getVertex(j).getNormal();
+        normals[2] = f.getVertex(j+1).getNormal();
+      } else {
+        normals[0] = f.getNormal();
+        normals[1] = f.getNormal();
+        normals[2] = f.getNormal();
+      }
+
+      vs.push_back(VertexPN(f.getVertex(0).getPosition(), normals[0]));
+      vs.push_back(VertexPN(f.getVertex(j).getPosition(), normals[1]));
+      vs.push_back(VertexPN(f.getVertex(j+1).getPosition(), normals[2]));
     }
   }
 
@@ -354,13 +368,7 @@ static Cvec3 getVertexSubdivisionVertex(Mesh &mesh, const int i) {
 static void initSubdivisionSurface() {
   g_subdivisionSurfaceMeshOriginal = Mesh();
   g_subdivisionSurfaceMeshOriginal.load(g_subdivisionSurfaceFilename.c_str());
-  cout << "poop" << endl;
   updateMeshNormals(g_subdivisionSurfaceMeshOriginal);
-
-  for (int i = 0; i < g_subdivisionSurfaceMeshOriginal.getNumVertices(); i++) {
-    const Cvec3 v = g_subdivisionSurfaceMeshOriginal.getVertex(i).getNormal();
-    cout << v[0] << ", " << v[1] << ", " << v[2] << endl;
-  }
 
   g_subdivisionSurfaceMeshActual = Mesh(g_subdivisionSurfaceMeshOriginal);
 
@@ -916,7 +924,7 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       cout << g_msBetweenKeyFrames << "ms between keyframes" << endl;
       break;
     case 'f':
-      // TODO
+      g_useSmoothShading = !g_useSmoothShading;
       break;
     case '0':
       if (g_subdivisionSteps < 7) g_subdivisionSteps++;
