@@ -100,8 +100,8 @@ typedef SgGeometryShapeNode MyShapeNode;
  */
 static shared_ptr<Geometry> g_ground, g_cube, g_sphere;
 static shared_ptr<SimpleGeometryPN> g_subdivisionSurface;
-static shared_ptr<Mesh> g_subdivisionSurfaceMeshOriginal;
-static shared_ptr<Mesh> g_subdivisionSurfaceMeshActual;
+static Mesh g_subdivisionSurfaceMeshOriginal;
+static Mesh g_subdivisionSurfaceMeshActual;
 static shared_ptr<SgRootNode> g_world;
 static shared_ptr<SgRbtNode> g_skyNode, g_groundNode, g_robot1Node, g_robot2Node;
 static shared_ptr<SgRbtNode> g_meshNode;
@@ -168,16 +168,16 @@ static void enablePickingMode();
 static void disablePickingMode();
 static void animateTimerCallback(int ms);
 static SimpleGeometryPN readGeometryFromQuadFile(const string filename);
-static void smoothShade(Mesh mesh);
+static void smoothShade(Mesh &mesh);
 void animateSubdivisionSurfaceCallback(int ms);
-static void applySubdivision(shared_ptr<Mesh> actualMesh);
-static void applyFaceSubdivisions(shared_ptr<Mesh> actualMesh);
+static void applySubdivision(Mesh &actualMesh);
+static void applyFaceSubdivisions(Mesh &actualMesh);
 static Cvec3 getFaceSubdivisionVertex(Mesh::Face f);
-static void applyEdgeSubdivisions(shared_ptr<Mesh> actualMesh);
-static Cvec3 getEdgeSubdivisionVertex(Mesh::Edge e, shared_ptr<Mesh> actualMesh);
+static void applyEdgeSubdivisions(Mesh &actualMesh);
+static Cvec3 getEdgeSubdivisionVertex(Mesh::Edge e, Mesh &actualMesh);
 
-static void applyVertexSubdivisions(shared_ptr<Mesh> actualMesh);
-static Cvec3 getVertexSubdivisionVertex(shared_ptr<Mesh> mesh, const int i);
+static void applyVertexSubdivisions(Mesh &actualMesh);
+static Cvec3 getVertexSubdivisionVertex(Mesh &mesh, const int i);
 
 /** METHODS *******************************************************************/
 
@@ -205,20 +205,20 @@ static void initCubes() {
   g_cube.reset(new SimpleIndexedGeometryPNTBX(&vtx[0], &idx[0], vbLen, ibLen));
 }
 
-static void updateMeshVertices(shared_ptr<Mesh> meshActual, shared_ptr<Mesh> meshOriginal, float t) {
-  for (int i = 0; i < meshOriginal->getNumVertices(); i++) {
-    Cvec3 v = meshOriginal->getVertex(i).getPosition();
-    meshActual->getVertex(i).setPosition(v + v * 0.75 * (sin(i + t / 100)));
+static void updateMeshVertices(Mesh &meshActual, Mesh &meshOriginal, float t) {
+  for (int i = 0; i < meshOriginal.getNumVertices(); i++) {
+    Cvec3 v = meshOriginal.getVertex(i).getPosition();
+    meshActual.getVertex(i).setPosition(v + v * 0.75 * (sin(i + t / 100)));
   }
 }
 
-static void updateMeshNormals(shared_ptr<Mesh> mesh) {
-  for (int i = 0; i < mesh->getNumVertices(); i++) {
-    mesh->getVertex(i).setNormal(Cvec3());
+static void updateMeshNormals(Mesh &mesh) {
+  for (int i = 0; i < mesh.getNumVertices(); i++) {
+    mesh.getVertex(i).setNormal(Cvec3());
   }
-  for (int i = 0; i < mesh->getNumVertices(); i++) {
+  for (int i = 0; i < mesh.getNumVertices(); i++) {
     Cvec3 vecSum = Cvec3();
-    Mesh::Vertex currentVertex = mesh->getVertex(i);
+    Mesh::Vertex currentVertex = mesh.getVertex(i);
 
     Mesh::VertexIterator it(currentVertex.getIterator()), it0(it);
     do {
@@ -230,12 +230,14 @@ static void updateMeshNormals(shared_ptr<Mesh> mesh) {
     }
     currentVertex.setNormal(vecSum);
   }
+
+  cout << "end of updateMeshNormals" << endl;
 }
 
-static vector<VertexPN> getGeometryVertices(shared_ptr<Mesh> mesh) {
+static vector<VertexPN> getGeometryVertices(Mesh &mesh) {
   vector<VertexPN> vs;
-  for (int i = 0; i < mesh->getNumFaces(); i++) {
-    Mesh::Face f = mesh->getFace(i);
+  for (int i = 0; i < mesh.getNumFaces(); i++) {
+    Mesh::Face f = mesh.getFace(i);
 
     for (int j = 1; j < f.getNumVertices() - 1; j++) {
       vs.push_back(VertexPN(f.getVertex(0).getPosition(), f.getVertex(0).getNormal()));
@@ -249,17 +251,33 @@ static vector<VertexPN> getGeometryVertices(shared_ptr<Mesh> mesh) {
 
 /**
  * Applies Catmull-Clark subdivisions to the provided actual mesh using
- * levelsOfSubdivision subdivisions of the originalMesh.
+ * levelsOfSubdivision subdivisions of the actualMesh.
  */
-static void applySubdivisions(
-    shared_ptr<Mesh> actualMesh,
-    shared_ptr<Mesh> originalMesh,
-    int levelsOfSubdivision) {
-  actualMesh.reset(new Mesh(*originalMesh));
+static void applySubdivisions(Mesh &actualMesh, int levelsOfSubdivision) {
   for (int i = 0; i < levelsOfSubdivision; i++) {
+    cout << "shit " << i << endl;
+
+    cout << "BEFORE BEFORE BEFORE BEFORE BEFORE BEFORE BEFORE " <<  endl;
+    // for (int i = 0; i < actualMesh.getNumVertices(); i++) {
+    //   const Cvec3 v = actualMesh.getNewVertexVertex(actualMesh.getVertex(i));
+    //   cout << v[0] << ", " << v[1] << ", " << v[2] << endl;
+    // }
+
     applySubdivision(actualMesh);
-    actualMesh->subdivide();
+
+    cout << "AFTER AFTER AFTER AFTER AFTER AFTER AFTER AFTER AFTER AFTER " << endl;
+    // for (int i = 0; i < actualMesh.getNumVertices(); i++) {
+    //   const Cvec3 v = actualMesh.getNewVertexVertex(actualMesh.getVertex(i));
+    //   cout << v[0] << ", " << v[1] << ", " << v[2] << endl;
+    // }
+
+    // cout << actualMesh << endl;
+    // cout << g_subdivisionSurfaceMeshActual << endl;
+
+    actualMesh.subdivide();
   }
+
+  cout << "out of loop" << endl;
 }
 
 /**
@@ -270,7 +288,7 @@ static void applySubdivisions(
  *   2. All edges
  *   3. All vertices
  */
-static void applySubdivision(shared_ptr<Mesh> actualMesh) {
+static void applySubdivision(Mesh &actualMesh) {
   applyFaceSubdivisions(actualMesh);
   applyEdgeSubdivisions(actualMesh);
   applyVertexSubdivisions(actualMesh);
@@ -279,10 +297,10 @@ static void applySubdivision(shared_ptr<Mesh> actualMesh) {
 /**
  * Computes and applies the new face subdivisions to the provided mesh.
  */
-static void applyFaceSubdivisions(shared_ptr<Mesh> actualMesh) {
-  for (int i = 0; i < actualMesh->getNumFaces(); i++) {
-    Mesh::Face f = actualMesh->getFace(i);
-    actualMesh->setNewFaceVertex(f, getFaceSubdivisionVertex(f));
+static void applyFaceSubdivisions(Mesh &actualMesh) {
+  for (int i = 0; i < actualMesh.getNumFaces(); i++) {
+    Mesh::Face f = actualMesh.getFace(i);
+    actualMesh.setNewFaceVertex(f, getFaceSubdivisionVertex(f));
   }
 }
 
@@ -301,32 +319,32 @@ static Cvec3 getFaceSubdivisionVertex(Mesh::Face f) {
 /**
  * Computes and applies the new edge subdivisions to the provided mesh.
  */
-static void applyEdgeSubdivisions(shared_ptr<Mesh> actualMesh) {
-  for (int i = 0; i < actualMesh->getNumEdges(); i++) {
-    Mesh::Edge e = actualMesh->getEdge(i);
-    actualMesh->setNewEdgeVertex(e, getEdgeSubdivisionVertex(e, actualMesh));
+static void applyEdgeSubdivisions(Mesh &actualMesh) {
+  for (int i = 0; i < actualMesh.getNumEdges(); i++) {
+    Mesh::Edge e = actualMesh.getEdge(i);
+    actualMesh.setNewEdgeVertex(e, getEdgeSubdivisionVertex(e, actualMesh));
   }
 }
 
 /**
  * edge_vertex = 1/4 * (end vertex 1 + end vertex 2 + edge face vertex 1 + edge face vertex 2)
  */
-static Cvec3 getEdgeSubdivisionVertex(Mesh::Edge e, shared_ptr<Mesh> actualMesh) {
+static Cvec3 getEdgeSubdivisionVertex(Mesh::Edge e, Mesh &actualMesh) {
   return (
     e.getVertex(0).getPosition() +
     e.getVertex(1).getPosition() +
-    actualMesh->getNewFaceVertex(e.getFace(0)) +
-    actualMesh->getNewFaceVertex(e.getFace(1))
+    actualMesh.getNewFaceVertex(e.getFace(0)) +
+    actualMesh.getNewFaceVertex(e.getFace(1))
   ) * 0.25;
 }
 
 /**
  * Computes and applies the new vertex subdivisions to the provided mesh.
  */
-static void applyVertexSubdivisions(shared_ptr<Mesh> actualMesh) {
-  for (int i = 0; i < actualMesh->getNumVertices(); i++) {
+static void applyVertexSubdivisions(Mesh &actualMesh) {
+  for (int i = 0; i < actualMesh.getNumVertices(); i++) {
     const Cvec3 vertexVertex = getVertexSubdivisionVertex(actualMesh, i);
-    actualMesh->setNewVertexVertex(actualMesh->getVertex(i), vertexVertex);
+    actualMesh.setNewVertexVertex(actualMesh.getVertex(i), vertexVertex);
   }
 }
 
@@ -336,8 +354,8 @@ static void applyVertexSubdivisions(shared_ptr<Mesh> actualMesh) {
  *   1/((# near vertex vertices)^2) * (sum of near vertex vertices) +
  *   1/((# near vertex vertices)^2) * (sum of near face vertices)
  */
-static Cvec3 getVertexSubdivisionVertex(shared_ptr<Mesh> mesh, const int i) {
-  const Mesh::Vertex v = mesh->getVertex(i);
+static Cvec3 getVertexSubdivisionVertex(Mesh &mesh, const int i) {
+  const Mesh::Vertex v = mesh.getVertex(i);
 
   Mesh::VertexIterator it(v.getIterator()), it0(it);
   int numVertices = 0;
@@ -346,7 +364,7 @@ static Cvec3 getVertexSubdivisionVertex(shared_ptr<Mesh> mesh, const int i) {
   do {
     numVertices++;
     accumulatedVertices += it.getVertex().getPosition();
-    accumulatedFaceVertices += mesh->getNewFaceVertex(it.getFace());
+    accumulatedFaceVertices += mesh.getNewFaceVertex(it.getFace());
   } while (++it != it0);
 
   const double c = 1.0 / (numVertices * numVertices);
@@ -354,11 +372,17 @@ static Cvec3 getVertexSubdivisionVertex(shared_ptr<Mesh> mesh, const int i) {
 }
 
 static void initSubdivisionSurface() {
-  g_subdivisionSurfaceMeshOriginal.reset(new Mesh());
-  g_subdivisionSurfaceMeshOriginal->load(g_subdivisionSurfaceFilename.c_str());
+  g_subdivisionSurfaceMeshOriginal = Mesh();
+  g_subdivisionSurfaceMeshOriginal.load(g_subdivisionSurfaceFilename.c_str());
+  cout << "poop" << endl;
   updateMeshNormals(g_subdivisionSurfaceMeshOriginal);
 
-  g_subdivisionSurfaceMeshActual.reset(new Mesh(*g_subdivisionSurfaceMeshOriginal));
+  for (int i = 0; i < g_subdivisionSurfaceMeshOriginal.getNumVertices(); i++) {
+    const Cvec3 v = g_subdivisionSurfaceMeshOriginal.getVertex(i).getNormal();
+    cout << v[0] << ", " << v[1] << ", " << v[2] << endl;
+  }
+
+  g_subdivisionSurfaceMeshActual = Mesh(g_subdivisionSurfaceMeshOriginal);
 
   vector<VertexPN> verticies = getGeometryVertices(g_subdivisionSurfaceMeshActual);
 
@@ -823,10 +847,10 @@ static void animateTimerCallback(int ms) {
  * Animates the subdivision surface by flexing the vertices.
  */
 void animateSubdivisionSurface(float t) {
-  // updateMeshVertices(g_subdivisionSurfaceMeshActual, g_subdivisionSurfaceMeshOriginal, t);
+  g_subdivisionSurfaceMeshActual = Mesh(g_subdivisionSurfaceMeshOriginal);
+  updateMeshVertices(g_subdivisionSurfaceMeshActual, g_subdivisionSurfaceMeshOriginal, t);
+  applySubdivisions(g_subdivisionSurfaceMeshActual, 1);
   updateMeshNormals(g_subdivisionSurfaceMeshActual);
-
-  applySubdivisions(g_subdivisionSurfaceMeshActual, g_subdivisionSurfaceMeshOriginal, 3);
 
   vector<VertexPN> verticies = getGeometryVertices(g_subdivisionSurfaceMeshActual);
   g_subdivisionSurface->upload(&verticies[0], verticies.size());
@@ -911,6 +935,21 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       g_msBetweenKeyFrames = min(10000, g_msBetweenKeyFrames + 100);
       cout << g_msBetweenKeyFrames << "ms between keyframes" << endl;
       break;
+    case 'f':
+      // TODO
+      break;
+    case '0':
+      // TODO
+      break;
+    case '9':
+      // TODO
+      break;
+    case '7':
+      // TODO
+      break;
+    case '8':
+      // TODO
+      break;
   }
   glutPostRedisplay();
 }
@@ -923,7 +962,7 @@ static void initGlutState(int argc, char * argv[]) {
   /* Create a window */
   glutInitWindowSize(g_windowWidth, g_windowHeight);
   /* Title the window */
-  glutCreateWindow("Assignment 6.5");
+  glutCreateWindow("Assignment 7");
 
   /* Display rendering callback */
   glutDisplayFunc(display);
