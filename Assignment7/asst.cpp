@@ -93,6 +93,7 @@ shared_ptr<Material> g_overridingMaterial;
 static Script g_script = Script();
 
 static int g_subdivisionSteps = 0;
+static bool g_useSmoothShading = false;
 
 /** GEOMETRY */
 typedef SgGeometryShapeNode MyShapeNode;
@@ -217,9 +218,11 @@ static void updateMeshVertices(Mesh &meshActual, Mesh &meshOriginal, float t) {
 }
 
 static void updateMeshNormals(Mesh &mesh) {
+  /* reset normals */
   for (int i = 0; i < mesh.getNumVertices(); i++) {
     mesh.getVertex(i).setNormal(Cvec3());
   }
+
   for (int i = 0; i < mesh.getNumVertices(); i++) {
     Cvec3 vecSum = Cvec3();
     Mesh::Vertex currentVertex = mesh.getVertex(i);
@@ -240,11 +243,22 @@ static vector<VertexPN> getGeometryVertices(Mesh &mesh) {
   vector<VertexPN> vs;
   for (int i = 0; i < mesh.getNumFaces(); i++) {
     Mesh::Face f = mesh.getFace(i);
-
+    
+    Cvec3 normals[3];
     for (int j = 1; j < f.getNumVertices() - 1; j++) {
-      vs.push_back(VertexPN(f.getVertex(0).getPosition(), f.getVertex(0).getNormal()));
-      vs.push_back(VertexPN(f.getVertex(j).getPosition(), f.getVertex(j).getNormal()));
-      vs.push_back(VertexPN(f.getVertex(j+1).getPosition(), f.getVertex(j+1).getNormal()));
+      if (g_useSmoothShading) {
+        normals[0] = f.getVertex(0).getNormal();
+        normals[1] =  f.getVertex(j).getNormal();
+        normals[2] = f.getVertex(j+1).getNormal();
+      } else {
+        normals[0] = f.getNormal();
+        normals[1] = f.getNormal();
+        normals[2] = f.getNormal();
+      }
+
+      vs.push_back(VertexPN(f.getVertex(0).getPosition(), normals[0]));
+      vs.push_back(VertexPN(f.getVertex(j).getPosition(), normals[1]));
+      vs.push_back(VertexPN(f.getVertex(j+1).getPosition(), normals[2]));
     }
   }
 
@@ -521,18 +535,16 @@ static void display() {
   /* Clear framebuffer color & depth */
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-  drawStuff(g_picking);
+  drawStuff(false);
 
   /* Show the back buffer (where we rendered stuff) */
-  if (!g_picking) {
-    glutSwapBuffers();
-  }
+  glutSwapBuffers();
 
   checkGlErrors();
 }
 
 static void pick() {
-  /* We need to set the clear color to black, for pick
+  /* We need to set the clear color to black for pick
    * rendering, so let's save the clear color */
   GLdouble clearColor[4];
   glGetDoublev(GL_COLOR_CLEAR_VALUE, clearColor);
@@ -573,7 +585,6 @@ static void reshape(const int w, const int h) {
  */
 static RigTForm getArcballRotation(const int x, const int y) {
   const RigTForm eyeRbt = getEyeRBT();
-  // const RigTForm object = g_currentPickedRbtNode->getRbt();
   const RigTForm object = getPathAccumRbt(g_world, g_currentPickedRbtNode);
 
   const bool world_sky_manipulation = worldSkyManipulation();
@@ -841,7 +852,6 @@ void animateSubdivisionSurfaceCallback(int ms) {
   float real_ms = ms / 100.0;
   animateSubdivisionSurface(real_ms);
 
-  // cout << 5 * (real_ms + g_subdivisionSurfaceSpeed) << endl;
   glutTimerFunc(
     10,
     animateSubdivisionSurfaceCallback,
@@ -915,7 +925,7 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       cout << g_msBetweenKeyFrames << "ms between keyframes" << endl;
       break;
     case 'f':
-      // TODO
+      g_useSmoothShading = !g_useSmoothShading;
       break;
     case '0':
       if (g_subdivisionSteps < 7) g_subdivisionSteps++;
@@ -926,11 +936,11 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       cout << "Number of subdivision steps set to " << g_subdivisionSteps << endl;
       break;
     case '7':
-      cout << "subdivision surface speed: " << g_subdivisionSurfaceSpeed << endl;
+      cout << "Subdivision surface speed: " << g_subdivisionSurfaceSpeed << endl;
       g_subdivisionSurfaceSpeed /= 2.0;
       break;
     case '8':
-      cout << "subdivision surface speed: " << g_subdivisionSurfaceSpeed << endl;
+      cout << "Subdivision surface speed: " << g_subdivisionSurfaceSpeed << endl;
       g_subdivisionSurfaceSpeed *= 2.0;
       break;  }
   glutPostRedisplay();
@@ -1113,8 +1123,8 @@ static void initScene() {
   g_robot1Node.reset(new SgRbtNode(RigTForm(Cvec3(-2, 1, 0))));
   g_robot2Node.reset(new SgRbtNode(RigTForm(Cvec3(2, 1, 0))));
 
-  constructRobot(g_robot1Node, g_redDiffuseMat); // a Red robot
-  constructRobot(g_robot2Node, g_blueDiffuseMat); // a Blue robot
+  constructRobot(g_robot1Node, g_redDiffuseMat); // a red robot
+  constructRobot(g_robot2Node, g_blueDiffuseMat); // a blue robot
 
   g_meshNode.reset(new SgRbtNode(RigTForm()));
   g_meshNode->addChild(shared_ptr<MyShapeNode>(
