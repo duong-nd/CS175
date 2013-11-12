@@ -176,6 +176,7 @@ static Cvec3 getFaceSubdivisionVertex(Mesh::Face f);
 static void applyEdgeSubdivisions(shared_ptr<Mesh> actualMesh);
 static Cvec3 getEdgeSubdivisionVertex(Mesh::Edge e, shared_ptr<Mesh> actualMesh);
 
+static void applyVertexSubdivisions(shared_ptr<Mesh> actualMesh);
 static Cvec3 getVertexSubdivisionVertex(shared_ptr<Mesh> mesh, const int i);
 
 /** METHODS *******************************************************************/
@@ -254,9 +255,10 @@ static void applySubdivisions(
     shared_ptr<Mesh> actualMesh,
     shared_ptr<Mesh> originalMesh,
     int levelsOfSubdivision) {
-  g_subdivisionSurfaceMeshActual.reset(new Mesh(*g_subdivisionSurfaceMeshOriginal));
+  actualMesh.reset(new Mesh(*originalMesh));
   for (int i = 0; i < levelsOfSubdivision; i++) {
-    applySubdivision(g_subdivisionSurfaceMeshActual);
+    applySubdivision(actualMesh);
+    actualMesh->subdivide();
   }
 }
 
@@ -354,9 +356,10 @@ static Cvec3 getVertexSubdivisionVertex(shared_ptr<Mesh> mesh, const int i) {
 static void initSubdivisionSurface() {
   g_subdivisionSurfaceMeshOriginal.reset(new Mesh());
   g_subdivisionSurfaceMeshOriginal->load(g_subdivisionSurfaceFilename.c_str());
+  updateMeshNormals(g_subdivisionSurfaceMeshOriginal);
+
   g_subdivisionSurfaceMeshActual.reset(new Mesh(*g_subdivisionSurfaceMeshOriginal));
 
-  updateMeshNormals(g_subdivisionSurfaceMeshActual);
   vector<VertexPN> verticies = getGeometryVertices(g_subdivisionSurfaceMeshActual);
 
   g_subdivisionSurface.reset(new SimpleGeometryPN());
@@ -820,8 +823,11 @@ static void animateTimerCallback(int ms) {
  * Animates the subdivision surface by flexing the vertices.
  */
 void animateSubdivisionSurface(float t) {
-  updateMeshVertices(g_subdivisionSurfaceMeshActual, g_subdivisionSurfaceMeshOriginal, t);
+  // updateMeshVertices(g_subdivisionSurfaceMeshActual, g_subdivisionSurfaceMeshOriginal, t);
   updateMeshNormals(g_subdivisionSurfaceMeshActual);
+
+  applySubdivisions(g_subdivisionSurfaceMeshActual, g_subdivisionSurfaceMeshOriginal, 3);
+
   vector<VertexPN> verticies = getGeometryVertices(g_subdivisionSurfaceMeshActual);
   g_subdivisionSurface->upload(&verticies[0], verticies.size());
   glutPostRedisplay();
