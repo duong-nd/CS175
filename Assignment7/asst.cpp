@@ -534,19 +534,17 @@ static void drawStuff(bool picking) {
 static void display() {
   /* Clear framebuffer color & depth */
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-  drawStuff(g_picking);
+  
+  drawStuff(false);
 
   /* Show the back buffer (where we rendered stuff) */
-  if (!g_picking) {
-    glutSwapBuffers();
-  }
+  glutSwapBuffers();
 
   checkGlErrors();
 }
 
 static void pick() {
-  /* We need to set the clear color to black, for pick
+  /* We need to set the clear color to black for pick
    * rendering, so let's save the clear color */
   GLdouble clearColor[4];
   glGetDoublev(GL_COLOR_CLEAR_VALUE, clearColor);
