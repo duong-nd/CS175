@@ -92,6 +92,8 @@ shared_ptr<Material> g_overridingMaterial;
 
 static Script g_script = Script();
 
+static int g_subdivisionSteps = 0;
+
 /** GEOMETRY */
 typedef SgGeometryShapeNode MyShapeNode;
 
@@ -230,8 +232,6 @@ static void updateMeshNormals(Mesh &mesh) {
     }
     currentVertex.setNormal(vecSum);
   }
-
-  cout << "end of updateMeshNormals" << endl;
 }
 
 static vector<VertexPN> getGeometryVertices(Mesh &mesh) {
@@ -255,29 +255,9 @@ static vector<VertexPN> getGeometryVertices(Mesh &mesh) {
  */
 static void applySubdivisions(Mesh &actualMesh, int levelsOfSubdivision) {
   for (int i = 0; i < levelsOfSubdivision; i++) {
-    cout << "shit " << i << endl;
-
-    cout << "BEFORE BEFORE BEFORE BEFORE BEFORE BEFORE BEFORE " <<  endl;
-    // for (int i = 0; i < actualMesh.getNumVertices(); i++) {
-    //   const Cvec3 v = actualMesh.getNewVertexVertex(actualMesh.getVertex(i));
-    //   cout << v[0] << ", " << v[1] << ", " << v[2] << endl;
-    // }
-
     applySubdivision(actualMesh);
-
-    cout << "AFTER AFTER AFTER AFTER AFTER AFTER AFTER AFTER AFTER AFTER " << endl;
-    // for (int i = 0; i < actualMesh.getNumVertices(); i++) {
-    //   const Cvec3 v = actualMesh.getNewVertexVertex(actualMesh.getVertex(i));
-    //   cout << v[0] << ", " << v[1] << ", " << v[2] << endl;
-    // }
-
-    // cout << actualMesh << endl;
-    // cout << g_subdivisionSurfaceMeshActual << endl;
-
     actualMesh.subdivide();
   }
-
-  cout << "out of loop" << endl;
 }
 
 /**
@@ -849,7 +829,7 @@ static void animateTimerCallback(int ms) {
 void animateSubdivisionSurface(float t) {
   g_subdivisionSurfaceMeshActual = Mesh(g_subdivisionSurfaceMeshOriginal);
   updateMeshVertices(g_subdivisionSurfaceMeshActual, g_subdivisionSurfaceMeshOriginal, t);
-  applySubdivisions(g_subdivisionSurfaceMeshActual, 1);
+  applySubdivisions(g_subdivisionSurfaceMeshActual, g_subdivisionSteps);
   updateMeshNormals(g_subdivisionSurfaceMeshActual);
 
   vector<VertexPN> verticies = getGeometryVertices(g_subdivisionSurfaceMeshActual);
@@ -939,10 +919,12 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       // TODO
       break;
     case '0':
-      // TODO
+      if (g_subdivisionSteps < 7) g_subdivisionSteps++;
+      cout << "Number of subdivision steps set to " << g_subdivisionSteps << endl;
       break;
     case '9':
-      // TODO
+      if (g_subdivisionSteps > 0) g_subdivisionSteps--;
+      cout << "Number of subdivision steps set to " << g_subdivisionSteps << endl;
       break;
     case '7':
       // TODO
