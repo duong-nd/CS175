@@ -158,6 +158,8 @@ static bool g_animationPlaying = false;
 
 /** 2 seconds between g_script */
 static int g_msBetweenKeyFrames = 2000;
+/** Speed of the subdivision surface */
+static float g_subdivisionSurfaceSpeed = 2.5;
 /** Frames to render per second during animation */
 static int g_animateFramesPerSecond = 60;
 /** Hack so that we know when we need to update the frame for the animation. */
@@ -849,12 +851,15 @@ void animateSubdivisionSurface(float t) {
  * The GLUT timer callback used to control the subdivision surface animation.
  */
 void animateSubdivisionSurfaceCallback(int ms) {
-  animateSubdivisionSurface((float)ms);
+  /* This is an ugly hack to get around ms only having int precision. */
+  float real_ms = ms / 100.0;
+  animateSubdivisionSurface(real_ms);
 
+  // cout << 5 * (real_ms + g_subdivisionSurfaceSpeed) << endl;
   glutTimerFunc(
     10,
     animateSubdivisionSurfaceCallback,
-    ms + 10
+    100.0 * (real_ms + g_subdivisionSurfaceSpeed)
   );
 }
 
@@ -935,12 +940,13 @@ static void keyboard(const unsigned char key, const int x, const int y) {
       cout << "Number of subdivision steps set to " << g_subdivisionSteps << endl;
       break;
     case '7':
-      // TODO
+      cout << "subdivision surface speed: " << g_subdivisionSurfaceSpeed << endl;
+      g_subdivisionSurfaceSpeed /= 2.0;
       break;
     case '8':
-      // TODO
-      break;
-  }
+      cout << "subdivision surface speed: " << g_subdivisionSurfaceSpeed << endl;
+      g_subdivisionSurfaceSpeed *= 2.0;
+      break;  }
   glutPostRedisplay();
 }
 
