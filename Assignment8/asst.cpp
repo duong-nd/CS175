@@ -86,7 +86,10 @@ static shared_ptr<Material> g_redDiffuseMat,
                             g_arcballMat,
                             g_pickingMat,
                             g_lightMat,
-                            g_specularMat;
+                            g_specularMat,
+                            g_bunnyMat;
+
+static vector<shared_ptr<Material> > g_bunnyShellMats;
 
 shared_ptr<Material> g_overridingMaterial;
 
@@ -108,8 +111,17 @@ static Mesh g_subdivisionSurfaceMeshActual;
 static shared_ptr<SgRootNode> g_world;
 static shared_ptr<SgRbtNode> g_skyNode, g_groundNode, g_robot1Node, g_robot2Node;
 static shared_ptr<SgRbtNode> g_meshNode;
+static shared_ptr<SgRbtNode> g_bunnyNode;
 static shared_ptr<SgRbtNode> g_light1Node, g_light2Node;
 static shared_ptr<SgRbtNode> g_currentPickedRbtNode;
+
+/* Bunny! */
+static const int g_numShells = 24;
+static double g_furHeight = 0.21;
+static double g_hairyness = 0.7;
+static shared_ptr<SimpleGeometryPN> g_bunnyGeometry;
+static vector<shared_ptr<SimpleGeometryPNX> > g_bunnyShellGeometries;
+static Mesh g_bunnyMesh;
 
 /** SCENE */
 static const int g_numObjects = 2;
@@ -217,38 +229,40 @@ static void updateMeshVertices(Mesh &meshActual, Mesh &meshOriginal, float t) {
   }
 }
 
-static void updateMeshNormals(Mesh &mesh) {
+static void updateMeshNormals(Mesh &mesh, bool ignore) {
   /* reset normals */
   for (int i = 0; i < mesh.getNumVertices(); i++) {
     mesh.getVertex(i).setNormal(Cvec3());
   }
 
-  for (int i = 0; i < mesh.getNumVertices(); i++) {
-    Cvec3 vecSum = Cvec3();
-    Mesh::Vertex currentVertex = mesh.getVertex(i);
+  if (!ignore) {
+    for (int i = 0; i < mesh.getNumVertices(); i++) {
+      Cvec3 vecSum = Cvec3();
+      Mesh::Vertex currentVertex = mesh.getVertex(i);
 
-    Mesh::VertexIterator it(currentVertex.getIterator()), it0(it);
-    do {
-      vecSum += it.getFace().getNormal();
-    } while (++it != it0);
+      Mesh::VertexIterator it(currentVertex.getIterator()), it0(it);
+      do {
+        vecSum += it.getFace().getNormal();
+      } while (++it != it0);
 
-    if (dot(vecSum, vecSum) > CS175_EPS2) {
-      vecSum.normalize();
+      if (dot(vecSum, vecSum) > CS175_EPS2) {
+        vecSum.normalize();
+      }
+      currentVertex.setNormal(vecSum);
     }
-    currentVertex.setNormal(vecSum);
   }
 }
 
-static vector<VertexPN> getGeometryVertices(Mesh &mesh) {
+static vector<VertexPN> getGeometryVertices(Mesh &mesh, bool useSmoothShading) {
   vector<VertexPN> vs;
   for (int i = 0; i < mesh.getNumFaces(); i++) {
     Mesh::Face f = mesh.getFace(i);
     
     Cvec3 normals[3];
     for (int j = 1; j < f.getNumVertices() - 1; j++) {
-      if (g_useSmoothShading) {
+      if (useSmoothShading) {
         normals[0] = f.getVertex(0).getNormal();
-        normals[1] =  f.getVertex(j).getNormal();
+        normals[1] = f.getVertex(j).getNormal();
         normals[2] = f.getVertex(j+1).getNormal();
       } else {
         normals[0] = f.getNormal();
@@ -370,16 +384,32 @@ static Cvec3 getVertexSubdivisionVertex(Mesh &mesh, const int i) {
 static void initSubdivisionSurface() {
   g_subdivisionSurfaceMeshOriginal = Mesh();
   g_subdivisionSurfaceMeshOriginal.load(g_subdivisionSurfaceFilename.c_str());
-  updateMeshNormals(g_subdivisionSurfaceMeshOriginal);
+  updateMeshNormals(g_subdivisionSurfaceMeshOriginal, false);
 
   g_subdivisionSurfaceMeshActual = Mesh(g_subdivisionSurfaceMeshOriginal);
 
-  vector<VertexPN> verticies = getGeometryVertices(g_subdivisionSurfaceMeshActual);
+  vector<VertexPN> verticies = getGeometryVertices(g_subdivisionSurfaceMeshActual, g_useSmoothShading);
 
   g_subdivisionSurface.reset(new SimpleGeometryPN());
   g_subdivisionSurface->upload(&verticies[0], verticies.size());
 
   animateSubdivisionSurfaceCallback(0);
+}
+
+static void initBunnyMeshes() {
+  g_bunnyMesh.load("bunny.mesh");
+  updateMeshNormals(g_bunnyMesh, true);
+
+  vector<VertexPN> verticies = getGeometryVertices(g_bunnyMesh, false);
+
+  g_bunnyGeometry.reset(new SimpleGeometryPN());
+  g_bunnyGeometry->upload(&verticies[0], verticies.size());
+
+  // Now allocate array of SimpleGeometryPNX to for shells, one per layer
+  g_bunnyShellGeometries.resize(g_numShells);
+  for (int i = 0; i < g_numShells; ++i) {
+    g_bunnyShellGeometries[i].reset(new SimpleGeometryPNX());
+  }
 }
 
 static void initSphere() {
@@ -837,9 +867,9 @@ void animateSubdivisionSurface(float t) {
   g_subdivisionSurfaceMeshActual = Mesh(g_subdivisionSurfaceMeshOriginal);
   updateMeshVertices(g_subdivisionSurfaceMeshActual, g_subdivisionSurfaceMeshOriginal, t);
   applySubdivisions(g_subdivisionSurfaceMeshActual, g_subdivisionSteps);
-  updateMeshNormals(g_subdivisionSurfaceMeshActual);
+  updateMeshNormals(g_subdivisionSurfaceMeshActual, false);
 
-  vector<VertexPN> verticies = getGeometryVertices(g_subdivisionSurfaceMeshActual);
+  vector<VertexPN> verticies = getGeometryVertices(g_subdivisionSurfaceMeshActual, g_useSmoothShading);
   g_subdivisionSurface->upload(&verticies[0], verticies.size());
   glutPostRedisplay();
 }
@@ -1014,6 +1044,40 @@ static void initMaterials() {
 
   /* pick shader */
   g_pickingMat.reset(new Material("./shaders/basic-gl3.vshader", "./shaders/pick-gl3.fshader"));
+
+  /* bunny material */
+  g_bunnyMat.reset(new Material("./shaders/basic-gl3.vshader", "./shaders/bunny-gl3.fshader"));
+  g_bunnyMat->getUniforms()
+    .put("uColorAmbient", Cvec3f(0.45f, 0.3f, 0.3f))
+    .put("uColorDiffuse", Cvec3f(0.2f, 0.2f, 0.2f));
+
+  /* bunny shell materials */
+  shared_ptr<ImageTexture> shellTexture(new ImageTexture("shell.ppm", false)); // common shell texture
+
+  /* needs to enable repeating of texture coordinates */
+  shellTexture->bind();
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+  /* each layer of the shell uses a different material, though the materials will share the
+   * same shader files and some common uniforms. hence we create a prototype here, and will
+   * copy from the prototype later */
+  Material bunnyShellMatPrototype("./shaders/bunny-shell-gl3.vshader", "./shaders/bunny-shell-gl3.fshader");
+  bunnyShellMatPrototype.getUniforms().put("uTexShell", shellTexture);
+  bunnyShellMatPrototype.getRenderStates()
+    .blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) // set blending mode
+    .enable(GL_BLEND) // enable blending
+    .disable(GL_CULL_FACE); // disable culling
+
+  /* allocate array of materials */
+  g_bunnyShellMats.resize(g_numShells);
+  for (int i = 0; i < g_numShells; ++i) {
+    g_bunnyShellMats[i].reset(new Material(bunnyShellMatPrototype)); // copy from the prototype
+    
+    /* but set a different exponent for blending transparency */
+    g_bunnyShellMats[i]->getUniforms().put("uAlphaExponent", 2.f + 5.f * float(i + 1)/g_numShells);
+  }
 };
 
 static void initGeometry() {
@@ -1021,6 +1085,12 @@ static void initGeometry() {
   initCubes();
   initSubdivisionSurface();
   initSphere();
+
+  cout << "HI" << endl;
+
+  initBunnyMeshes();
+
+  cout << "HI AGAIN" << endl;
 }
 
 static void constructRobot(shared_ptr<SgTransformNode> base, shared_ptr<Material> material) {
@@ -1128,7 +1198,16 @@ static void initScene() {
 
   g_meshNode.reset(new SgRbtNode(RigTForm()));
   g_meshNode->addChild(shared_ptr<MyShapeNode>(
-                           new MyShapeNode(g_subdivisionSurface, g_specularMat, Cvec3(0, 0, 0))));
+                           new MyShapeNode(g_subdivisionSurface, g_specularMat, Cvec3(0, 0, 10))));
+
+  g_bunnyNode.reset(new SgRbtNode());
+  g_bunnyNode->addChild(shared_ptr<MyShapeNode>(
+                          new MyShapeNode(g_bunnyGeometry, g_bunnyMat)));
+  /* add each shell as shape node */
+  for (int i = 0; i < g_numShells; ++i) {
+    g_bunnyNode->addChild(shared_ptr<MyShapeNode>(
+                            new MyShapeNode(g_bunnyShellGeometries[i], g_bunnyShellMats[i])));
+  }
 
   g_world->addChild(g_skyNode);
   g_world->addChild(g_groundNode);
@@ -1137,6 +1216,7 @@ static void initScene() {
   g_world->addChild(g_robot1Node);
   g_world->addChild(g_robot2Node);
   g_world->addChild(g_meshNode);
+  g_world->addChild(g_bunnyNode);
 }
 
 int main(int argc, char * argv[]) {
