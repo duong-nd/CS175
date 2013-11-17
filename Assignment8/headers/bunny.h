@@ -23,7 +23,7 @@ static int g_simulationsPerSecond = 60;
  * @return   The position of the tip of the hair.
  */
 Cvec3 getAtRestTipPosition(Mesh::Vertex v) {
-  return v.getNormal() * g_furHeight * 漢;
+  return v.getNormal() * g_furHeight;
 }
 
 /**
