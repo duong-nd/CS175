@@ -123,6 +123,17 @@ static shared_ptr<SimpleGeometryPN> g_bunnyGeometry;
 static vector<shared_ptr<SimpleGeometryPNX> > g_bunnyShellGeometries;
 static Mesh g_bunnyMesh;
 
+/* used for physical simulation */
+static const Cvec3 g_gravity(0, -0.5, 0);  // gavity vector
+static double g_timeStep = 0.02;
+static double g_numStepsPerFrame = 10;
+static double g_damping = 0.96;
+static double g_stiffness = 4;
+static int g_simulationsPerSecond = 60;
+
+static std::vector<Cvec3> g_tipPos,        // should be hair tip position in world-space coordinates
+                          g_tipVelocity;   // should be hair tip velocity in world-space coordinates
+
 /** SCENE */
 static const int g_numObjects = 2;
 static int g_currentViewIndex = 0;
@@ -251,6 +262,10 @@ static void updateMeshNormals(Mesh &mesh, bool ignore) {
       currentVertex.setNormal(vecSum);
     }
   }
+}
+
+static void updateShellGeometry() {
+  // TASK 1 and 3 TODO: finish this function as part of Task 1 and Task 3
 }
 
 static vector<VertexPN> getGeometryVertices(Mesh &mesh, bool useSmoothShading) {
@@ -889,6 +904,18 @@ void animateSubdivisionSurfaceCallback(int ms) {
   );
 }
 
+/**
+ * Performs dynamics simulation g_simulationsPerSecond times per second
+ */
+static void hairsSimulationCallback(int dontCare) {
+
+  // TASK 2 TODO: write dynamics simulation code here as part of TASK2
+
+  // schedule this to get called again
+  glutTimerFunc(1000/g_simulationsPerSecond, hairsSimulationCallback, 0);
+  glutPostRedisplay();
+}
+
 
 static void keyboard(const unsigned char key, const int x, const int y) {
   switch (key) {
@@ -976,6 +1003,29 @@ static void keyboard(const unsigned char key, const int x, const int y) {
   glutPostRedisplay();
 }
 
+/* keyboard callback for arrow keys */
+static void specialKeyboard(const int key, const int x, const int y) {
+  switch (key) {
+  case GLUT_KEY_RIGHT:
+    g_furHeight *= 1.05;
+    cerr << "fur height = " << g_furHeight << std::endl;
+    break;
+  case GLUT_KEY_LEFT:
+    g_furHeight /= 1.05;
+    std::cerr << "fur height = " << g_furHeight << std::endl;
+    break;
+  case GLUT_KEY_UP:
+    g_hairyness *= 1.05;
+    cerr << "hairiness = " << g_hairyness << std::endl;
+    break;
+  case GLUT_KEY_DOWN:
+    g_hairyness /= 1.05;
+    cerr << "hairiness = " << g_hairyness << std::endl;
+    break;
+  }
+  glutPostRedisplay();
+}
+
 static void initGlutState(int argc, char * argv[]) {
   /* Initialize Glut based on cmd-line args */
   glutInit(&argc, argv);
@@ -994,7 +1044,10 @@ static void initGlutState(int argc, char * argv[]) {
   glutMotionFunc(motion);
   /* Mouse click callback */
   glutMouseFunc(mouse);
+
+  /* keyboard callbacks */
   glutKeyboardFunc(keyboard);
+  glutSpecialFunc(specialKeyboard);
 }
 
 static void initGLState() {
@@ -1078,19 +1131,24 @@ static void initMaterials() {
     /* but set a different exponent for blending transparency */
     g_bunnyShellMats[i]->getUniforms().put("uAlphaExponent", 2.f + 5.f * float(i + 1)/g_numShells);
   }
-};
+}
+
+static void initSimulation() {
+  g_tipPos.resize(g_bunnyMesh.getNumVertices(), Cvec3(0));
+  g_tipVelocity = g_tipPos;
+
+  // TASK 1 TODO: initialize g_tipPos to "at-rest" hair tips in world coordinates
+
+  /* starts hair tip simulation */
+  hairsSimulationCallback(0);
+}
 
 static void initGeometry() {
   initGround();
   initCubes();
   initSubdivisionSurface();
-  initSphere();
-
-  cout << "HI" << endl;
-
   initBunnyMeshes();
-
-  cout << "HI AGAIN" << endl;
+  initSphere();
 }
 
 static void constructRobot(shared_ptr<SgTransformNode> base, shared_ptr<Material> material) {
@@ -1236,6 +1294,7 @@ int main(int argc, char * argv[]) {
     initMaterials();
     initGeometry();
     initScene();
+    initSimulation();
 
     glutMainLoop();
     return 0;
