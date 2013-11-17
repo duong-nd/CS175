@@ -15,21 +15,23 @@ static std::vector<Cvec3> g_tipPos;
 /* The hair tip velocity in world-space coordinates */
 static std::vector<Cvec3> g_tipVelocity;
 
-
 /**
- * Computes the position of a hair vertex on a bunny shell.
+ * Computes the vertex on a bunny shell.
  *
  * For each vertex with position p, compute the longest hair position s
  * Compute n = (s - p) / g_numShells
  * Compute our specific vertex position with p + n * layer
  *
- * @param  p The vertex position on the bunny.
- * @param  N The normal at the above vertex position.
- * @param  i The layer of the bunny that we're computing.
- * @return   Returns the position of the hair vertex.
+ * @param       v The vertex on the bunny itself.
+ * @param       i The layer of the bunny that we're computing.
+ * @param vertNum The number of the vertex we're currently doing. 0, 1, or 2.
  */
-static Cvec3 computeHairVertexPosition(Cvec3 p, Cvec3 N, int i) {
-  return p + (N * g_furHeight / g_numShells) * i;
+static VertexPNX computeHairVertex(Mesh::Vertex v, int i, int vertNum) {
+  return VertexPNX(
+    v.getPosition() + (v.getNormal() * g_furHeight / g_numShells) * i,
+    v.getNormal(),
+    Cvec2(vertNum == 1 ? g_hairyness : 0, vertNum == 2 ? g_hairyness : 0)
+  );
 }
 
 /**
@@ -40,21 +42,11 @@ static vector<VertexPNX> getBunnyShellGeometryVertices(Mesh &mesh, int layer) {
   /* For each face: */
   for (int i = 0; i < mesh.getNumFaces(); i++) {
     Mesh::Face f = mesh.getFace(i);
-
-    Cvec3 normals[3];
     /* For each vertex of each face: */
     for (int j = 1; j < f.getNumVertices() - 1; j++) {
-      normals[0] = f.getNormal();
-      normals[1] = f.getNormal();
-      normals[2] = f.getNormal();
-
-      Cvec3 vertexShellPosition1 = computeHairVertexPosition(f.getVertex(0).getPosition(), normals[0], layer);
-      Cvec3 vertexShellPosition2 = computeHairVertexPosition(f.getVertex(j).getPosition(), normals[1], layer);
-      Cvec3 vertexShellPosition3 = computeHairVertexPosition(f.getVertex(j+1).getPosition(), normals[2], layer);
-
-      vs.push_back(VertexPNX(vertexShellPosition1, normals[1], Cvec2(0, 0)));
-      vs.push_back(VertexPNX(vertexShellPosition2, normals[2], Cvec2(g_hairyness, 0)));
-      vs.push_back(VertexPNX(vertexShellPosition3, normals[3], Cvec2(0, g_hairyness)));
+      vs.push_back(computeHairVertex(f.getVertex(  0), layer, 0));
+      vs.push_back(computeHairVertex(f.getVertex(  j), layer, 1));
+      vs.push_back(computeHairVertex(f.getVertex(j+1), layer, 2));
     }
   }
 

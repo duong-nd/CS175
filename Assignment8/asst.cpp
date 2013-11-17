@@ -252,7 +252,7 @@ static void updateMeshNormals(Mesh &mesh, bool ignore) {
   for (int i = 0; i < mesh.getNumVertices(); i++) {
     Mesh::Vertex currentVertex = mesh.getVertex(i);
     Cvec3 currentNormal = currentVertex.getNormal();
-    
+
     if (dot(currentNormal, currentNormal) > CS175_EPS2) {
       currentVertex.setNormal(currentNormal.normalize());
     }
@@ -419,8 +419,8 @@ static void initBunnyMeshes() {
   g_bunnyShellGeometries.resize(g_numShells);
   for (int i = 0; i < g_numShells; ++i) {
     g_bunnyShellGeometries[i].reset(new SimpleGeometryPNX());
-    // vector<VertexPNX> verticies = getBunnyShellGeometryVertices(g_bunnyMesh, i);
-    // g_bunnyShellGeometries[i]->upload(&verticies[0], verticies.size());
+    vector<VertexPNX> verticies = getBunnyShellGeometryVertices(g_bunnyMesh, i);
+    g_bunnyShellGeometries[i]->upload(&verticies[0], verticies.size());
   }
 }
 
