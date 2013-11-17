@@ -4,7 +4,7 @@
 static const int    g_numShells = 24;
 static       double g_furHeight = 0.21;
 static       double g_hairyness = 0.7;
-static const Cvec3  g_gravity(0, -0.5, 0);
+static const Cvec3  g_gravity(-1.0, -1.0, -1.0);
 static       double g_timeStep = 0.02;
 static       double g_numStepsPerFrame = 10;
 static       double g_damping = 0.96;
