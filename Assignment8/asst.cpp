@@ -122,9 +122,6 @@ static shared_ptr<SimpleGeometryPN> g_bunnyGeometry;
 static vector<shared_ptr<SimpleGeometryPNX> > g_bunnyShellGeometries;
 static Mesh g_bunnyMesh;
 
-/* used for physical simulation */
-static int g_simulationsPerSecond = 60;
-
 /** SCENE */
 static const int g_numObjects = 2;
 static int g_currentViewIndex = 0;
@@ -406,7 +403,7 @@ static void initSubdivisionSurface() {
   animateSubdivisionSurfaceCallback(0);
 }
 
-static void initBunnyMeshes() {
+static void initBunny() {
   g_bunnyMesh.load("bunny.mesh");
   updateMeshNormals(g_bunnyMesh);
 
@@ -422,6 +419,8 @@ static void initBunnyMeshes() {
     vector<VertexPNX> verticies = getBunnyShellGeometryVertices(g_bunnyMesh, i);
     g_bunnyShellGeometries[i]->upload(&verticies[0], verticies.size());
   }
+
+  initBunnyPhysics(g_bunnyMesh);
 }
 
 static void initSphere() {
@@ -901,19 +900,6 @@ void animateSubdivisionSurfaceCallback(int ms) {
   );
 }
 
-/**
- * Performs dynamics simulation g_simulationsPerSecond times per second
- */
-static void hairsSimulationCallback(int dontCare) {
-
-  // TASK 2 TODO: write dynamics simulation code here as part of TASK2
-
-  // schedule this to get called again
-  glutTimerFunc(1000/g_simulationsPerSecond, hairsSimulationCallback, 0);
-  glutPostRedisplay();
-}
-
-
 static void keyboard(const unsigned char key, const int x, const int y) {
   switch (key) {
     case ESCAPE_KEY:
@@ -1144,7 +1130,7 @@ static void initGeometry() {
   initGround();
   initCubes();
   initSubdivisionSurface();
-  initBunnyMeshes();
+  initBunny();
   initSphere();
 }
 

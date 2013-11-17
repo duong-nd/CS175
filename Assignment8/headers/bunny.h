@@ -14,6 +14,26 @@ static       double g_stiffness = 4;
 static std::vector<Cvec3> g_tipPos;
 /* The hair tip velocity in world-space coordinates */
 static std::vector<Cvec3> g_tipVelocity;
+/* Used for physical simulation */
+static int g_simulationsPerSecond = 60;
+
+/**
+ * Given a vertex on the bunny, returns the at-rest position of the hair tip.
+ * @param  v The vertex on the bunny.
+ * @return   The position of the tip of the hair.
+ */
+Cvec3 getAtRestTipPosition(Mesh::Vertex v) {
+  return v.getNormal() * g_furHeight;
+}
+
+/**
+ * Sets the tip positions to be the tips of the bunny's hair positions. Sets the
+ * velocities to be initialized to zero.
+ * @param mesh The bunny mesh.
+ */
+void initBunnyPhysics(Mesh &mesh) {
+
+}
 
 /**
  * Computes the vertex on a bunny shell.
@@ -28,7 +48,7 @@ static std::vector<Cvec3> g_tipVelocity;
  */
 static VertexPNX computeHairVertex(Mesh::Vertex v, int i, int vertNum) {
   return VertexPNX(
-    v.getPosition() + (v.getNormal() * g_furHeight / g_numShells) * i,
+    v.getPosition() + (getAtRestTipPosition(v) / g_numShells) * i,
     v.getNormal(),
     Cvec2(vertNum == 1 ? g_hairyness : 0, vertNum == 2 ? g_hairyness : 0)
   );
@@ -51,4 +71,24 @@ static vector<VertexPNX> getBunnyShellGeometryVertices(Mesh &mesh, int layer) {
   }
 
   return vs;
+}
+
+/**
+ * Updates the hair calculations for the bunny based on the physics simulation
+ * descriptions provided in the assignment.
+ */
+static void updateHairCalculations() {
+
+}
+
+/**
+ * Performs dynamics simulation g_simulationsPerSecond times per second
+ */
+static void hairsSimulationCallback(int dontCare) {
+  /* Update the hair dynamics */
+  updateHairCalculations();
+  /* Schedule this to get called again */
+  glutTimerFunc(1000 / g_simulationsPerSecond, hairsSimulationCallback, 0);
+  /* Force visual refresh */
+  glutPostRedisplay();
 }
