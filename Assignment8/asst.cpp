@@ -420,7 +420,7 @@ static void initBunny() {
     g_bunnyShellGeometries[i]->upload(&verticies[0], verticies.size());
   }
 
-  initBunnyPhysics(g_bunnyMesh);
+  initializeBunnyPhysics(g_bunnyMesh);
 }
 
 static void initSphere() {

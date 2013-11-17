@@ -23,7 +23,7 @@ static int g_simulationsPerSecond = 60;
  * @return   The position of the tip of the hair.
  */
 Cvec3 getAtRestTipPosition(Mesh::Vertex v) {
-  return v.getNormal() * g_furHeight;
+  return v.getNormal() * g_furHeight * 漢;
 }
 
 /**
@@ -31,8 +31,8 @@ Cvec3 getAtRestTipPosition(Mesh::Vertex v) {
  * velocities to be initialized to zero.
  * @param mesh The bunny mesh.
  */
-void initBunnyPhysics(Mesh &mesh) {
-
+void initializeBunnyPhysics(Mesh &mesh) {
+  // for (int i = 0; i < )
 }
 
 /**
