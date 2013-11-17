@@ -55,7 +55,7 @@ void initializeBunnyPhysics(Mesh &mesh) {
  */
 static VertexPNX computeHairVertex(Mesh::Vertex v, int i, int vertNum) {
   return VertexPNX(
-    v.getPosition() + (getAtRestTipPosition(v) / g_numShells) * i,
+    v.getPosition() + (g_tipPos[v.getIndex()] / g_numShells) * i,
     v.getNormal(),
     Cvec2(vertNum == 1 ? g_hairyness : 0, vertNum == 2 ? g_hairyness : 0)
   );
@@ -80,8 +80,22 @@ static vector<VertexPNX> getBunnyShellGeometryVertices(Mesh &mesh, int layer) {
   return vs;
 }
 
-static void updateHairCalculation(...) {
+static void updateHairCalculation(Mesh::Vertex vec, int vertexIndex) {
+  /* Reassignments so that we're consistent with notation in the assignment. */
+  double T = g_timeStep;
+  Cvec3 p = vec.getPosition();
+  Cvec3 s = getAtRestTipPosition(vec);
+  Cvec3 t = g_tipPos[vertexIndex];
+  Cvec3 v = g_tipVelocity[vertexIndex];
 
+  /* Step 1: Compute f */
+  Cvec3 f = g_gravity + (s - t) * g_stiffness;
+  /* Step 2: Update t */
+  t = t + v * T;
+  /* Step 3: Constrain t */
+  g_tipPos[vertexIndex] = p + (t - p) / norm(t - p) * g_furHeight;
+  /* Step 4: Update v */
+  g_tipVelocity[vertexIndex] = (v + f * T) * g_damping;
 }
 
 /**
@@ -90,7 +104,8 @@ static void updateHairCalculation(...) {
  */
 static void updateHairCalculations(Mesh &mesh) {
   for (int i = 0; i < mesh.getNumVertices(); i++) {
-
+    Mesh::Vertex v = mesh.getVertex(i);
+    updateHairCalculation(v, i);
   }
 }
 
@@ -102,7 +117,7 @@ static void hairsSimulationCallback(int _) {
      this function, but that's hard since it's a fucking callback. */
   updateHairCalculations(g_bunnyMesh);
   /* Schedule this to get called again */
-  glutTimerFunc(1000 / g_simulationsPerSecond, hairsSimulationCallback, 0);
+  glutTimerFunc(1000 / g_simulationsPerSecond, hairsSimulationCallback, _);
   /* Force visual refresh */
   glutPostRedisplay();
 }

@@ -405,6 +405,7 @@ static void initSubdivisionSurface() {
 static void initBunny() {
   g_bunnyMesh.load("bunny.mesh");
   updateMeshNormals(g_bunnyMesh);
+  initializeBunnyPhysics(g_bunnyMesh);
 
   vector<VertexPN> verticies = getGeometryVertices(g_bunnyMesh, true);
 
@@ -418,8 +419,7 @@ static void initBunny() {
     vector<VertexPNX> verticies = getBunnyShellGeometryVertices(g_bunnyMesh, i);
     g_bunnyShellGeometries[i]->upload(&verticies[0], verticies.size());
   }
-
-  initializeBunnyPhysics(g_bunnyMesh);
+  hairsSimulationCallback(9001);
 }
 
 static void initSphere() {
