@@ -10,12 +10,15 @@ static       double g_numStepsPerFrame = 10;
 static       double g_damping = 0.96;
 static       double g_stiffness = 4;
 
-/* Used for physical simulation */
+/** The bunny mesh */
+static Mesh g_bunnyMesh;
+
+/** Used for physical simulation */
 static int g_simulationsPerSecond = 60;
 
-/* The hair tip position in world-space coordinates */
+/** The hair tip position in world-space coordinates */
 static std::vector<Cvec3> g_tipPos;
-/* The hair tip velocity in world-space coordinates */
+/** The hair tip velocity in world-space coordinates */
 static std::vector<Cvec3> g_tipVelocity;
 
 /**
@@ -86,7 +89,7 @@ static void updateHairCalculation(...) {
  * descriptions provided in the assignment.
  */
 static void updateHairCalculations(Mesh &mesh) {
-  for (int i = 0; i < .getNumVertices(); i++) {
+  for (int i = 0; i < mesh.getNumVertices(); i++) {
 
   }
 }

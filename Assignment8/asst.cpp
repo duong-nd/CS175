@@ -120,7 +120,6 @@ static shared_ptr<SgRbtNode> g_currentPickedRbtNode;
 /* Bunny! */
 static shared_ptr<SimpleGeometryPN> g_bunnyGeometry;
 static vector<shared_ptr<SimpleGeometryPNX> > g_bunnyShellGeometries;
-static Mesh g_bunnyMesh;
 
 /** SCENE */
 static const int g_numObjects = 2;
