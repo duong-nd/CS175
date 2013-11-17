@@ -246,20 +246,24 @@ static void updateMeshNormals(Mesh &mesh, bool ignore) {
     mesh.getVertex(i).setNormal(Cvec3());
   }
 
-  if (!ignore) {
-    for (int i = 0; i < mesh.getNumVertices(); i++) {
-      Cvec3 vecSum = Cvec3();
-      Mesh::Vertex currentVertex = mesh.getVertex(i);
+  /* accumulate face normals in vertex normals */
+  for (int i = 0; i < mesh.getNumFaces(); i++) {
+    Mesh::Face currentFace = mesh.getFace(i);
+    const Cvec3 faceNormal = currentFace.getNormal();
 
-      Mesh::VertexIterator it(currentVertex.getIterator()), it0(it);
-      do {
-        vecSum += it.getFace().getNormal();
-      } while (++it != it0);
+    for (int j = 0; j < currentFace.getNumVertices(); j++) {
+      Mesh::Vertex currentVertex = currentFace.getVertex(j);
+      currentVertex.setNormal(currentVertex.getNormal() + faceNormal);
+    }
+  }
 
-      if (dot(vecSum, vecSum) > CS175_EPS2) {
-        vecSum.normalize();
-      }
-      currentVertex.setNormal(vecSum);
+  /* normalize vertex normals */
+  for (int i = 0; i < mesh.getNumVertices(); i++) {
+    Mesh::Vertex currentVertex = mesh.getVertex(i);
+    Cvec3 currentNormal = currentVertex.getNormal();
+    
+    if (dot(currentNormal, currentNormal) > CS175_EPS2) {
+      currentVertex.setNormal(currentNormal.normalize());
     }
   }
 }
@@ -459,19 +463,19 @@ static void initSubdivisionSurface() {
 
 static void initBunnyMeshes() {
   g_bunnyMesh.load("bunny.mesh");
-  updateMeshNormals(g_bunnyMesh, true);
+  updateMeshNormals(g_bunnyMesh, false);
 
-  vector<VertexPN> verticies = getGeometryVertices(g_bunnyMesh, false);
+  vector<VertexPN> verticies = getGeometryVertices(g_bunnyMesh, true);
 
   g_bunnyGeometry.reset(new SimpleGeometryPN());
   g_bunnyGeometry->upload(&verticies[0], verticies.size());
 
-  // Now allocate array of SimpleGeometryPNX to for shells, one per layer
+  /* now allocate array of SimpleGeometryPNX to for shells, one per layer */
   g_bunnyShellGeometries.resize(g_numShells);
   for (int i = 0; i < g_numShells; ++i) {
     g_bunnyShellGeometries[i].reset(new SimpleGeometryPNX());
-    vector<VertexPNX> verticies = getBunnyShellGeometryVertices(g_bunnyMesh, i);
-    g_bunnyShellGeometries[i]->upload(&verticies[0], verticies.size());
+    // vector<VertexPNX> verticies = getBunnyShellGeometryVertices(g_bunnyMesh, i);
+    // g_bunnyShellGeometries[i]->upload(&verticies[0], verticies.size());
   }
 }
 
