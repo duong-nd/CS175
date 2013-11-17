@@ -43,6 +43,8 @@
 
 #include "headers/mesh.h"
 
+#include "headers/bunny.h"
+
 #define ESCAPE_KEY 27
 #define SPACE_KEY  32
 
@@ -116,23 +118,12 @@ static shared_ptr<SgRbtNode> g_light1Node, g_light2Node;
 static shared_ptr<SgRbtNode> g_currentPickedRbtNode;
 
 /* Bunny! */
-static const int g_numShells = 24;
-static double g_furHeight = 0.21;
-static double g_hairyness = 0.7;
 static shared_ptr<SimpleGeometryPN> g_bunnyGeometry;
 static vector<shared_ptr<SimpleGeometryPNX> > g_bunnyShellGeometries;
 static Mesh g_bunnyMesh;
 
 /* used for physical simulation */
-static const Cvec3 g_gravity(0, -0.5, 0);  // gavity vector
-static double g_timeStep = 0.02;
-static double g_numStepsPerFrame = 10;
-static double g_damping = 0.96;
-static double g_stiffness = 4;
 static int g_simulationsPerSecond = 60;
-
-static std::vector<Cvec3> g_tipPos,        // should be hair tip position in world-space coordinates
-                          g_tipVelocity;   // should be hair tip velocity in world-space coordinates
 
 /** SCENE */
 static const int g_numObjects = 2;
@@ -288,52 +279,6 @@ static vector<VertexPN> getGeometryVertices(Mesh &mesh, bool useSmoothShading) {
       vs.push_back(VertexPN(f.getVertex(0).getPosition(), normals[0]));
       vs.push_back(VertexPN(f.getVertex(j).getPosition(), normals[1]));
       vs.push_back(VertexPN(f.getVertex(j+1).getPosition(), normals[2]));
-    }
-  }
-
-  return vs;
-}
-
-/**
- * Returns the vertices for the layer-th layer of the bunny shell.
- */
-static vector<VertexPNX> getBunnyShellGeometryVertices(Mesh &mesh, int layer) {
-  /* We're currently at shell whose numbered is indicated by layer */
-
-  vector<VertexPNX> vs;
-  /* For each face: */
-  for (int i = 0; i < mesh.getNumFaces(); i++) {
-    Mesh::Face f = mesh.getFace(i);
-
-    Cvec3 normals[3];
-    /* For each vertex of each face: */
-    for (int j = 1; j < f.getNumVertices() - 1; j++) {
-      /* For each vertex with position p, compute the longest hair position s */
-      /* Compute n = (s - p) / g_numShells */
-      /* Compute our specific vertex position with p + n * layer */
-      /* Throw that vertex onto our vertex geometries */
-
-      normals[0] = f.getNormal();
-      normals[1] = f.getNormal();
-      normals[2] = f.getNormal();
-
-      Cvec3 p1 = f.getVertex(0).getPosition();
-      Cvec3 p2 = f.getVertex(j).getPosition();
-      Cvec3 p3 = f.getVertex(j+1).getPosition();
-
-      Cvec3 s1 = p1 + (normals[0] * g_furHeight);
-      Cvec3 s2 = p2 + (normals[1] * g_furHeight);
-      Cvec3 s3 = p3 + (normals[2] * g_furHeight);
-
-      Cvec3 n1 = (s1 - p1) / g_numShells;
-      Cvec3 n2 = (s2 - p2) / g_numShells;
-      Cvec3 n3 = (s3 - p3) / g_numShells;
-
-      // THOUGHTS: It's possible that normals[0] here should be n1 (etc.) as
-      // defined above
-      vs.push_back(VertexPNX(p1 + n1 * layer, normals[0], Cvec2(0, 0)));
-      vs.push_back(VertexPNX(p2 + n2 * layer, normals[1], Cvec2(g_hairyness, 0)));
-      vs.push_back(VertexPNX(p3 + n3 * layer, normals[2], Cvec2(0, g_hairyness)));
     }
   }
 
@@ -540,7 +485,7 @@ static void setWrtFrame() {
   }
 }
 
-static RigTForm getEyeRBT() {
+RigTForm getEyeRBT() {
   return getPathAccumRbt(g_world, g_currentView);
 }
 
