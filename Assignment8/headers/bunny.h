@@ -1,21 +1,22 @@
 #include "debug.h"
 
+/* Some constant shits */
 static const int    g_numShells = 24;
 static       double g_furHeight = 0.21;
 static       double g_hairyness = 0.7;
-
 static const Cvec3  g_gravity(0, -0.5, 0);
 static       double g_timeStep = 0.02;
 static       double g_numStepsPerFrame = 10;
 static       double g_damping = 0.96;
 static       double g_stiffness = 4;
 
+/* Used for physical simulation */
+static int g_simulationsPerSecond = 60;
+
 /* The hair tip position in world-space coordinates */
 static std::vector<Cvec3> g_tipPos;
 /* The hair tip velocity in world-space coordinates */
 static std::vector<Cvec3> g_tipVelocity;
-/* Used for physical simulation */
-static int g_simulationsPerSecond = 60;
 
 /**
  * Given a vertex on the bunny, returns the at-rest position of the hair tip.
@@ -32,7 +33,10 @@ Cvec3 getAtRestTipPosition(Mesh::Vertex v) {
  * @param mesh The bunny mesh.
  */
 void initializeBunnyPhysics(Mesh &mesh) {
-  // for (int i = 0; i < )
+  for (int i = 0; i < mesh.getNumVertices(); i++) {
+    g_tipPos.push_back(getAtRestTipPosition(mesh.getVertex(i)));
+    g_tipVelocity.push_back(Cvec3());
+  }
 }
 
 /**
@@ -73,20 +77,27 @@ static vector<VertexPNX> getBunnyShellGeometryVertices(Mesh &mesh, int layer) {
   return vs;
 }
 
+static void updateHairCalculation(...) {
+
+}
+
 /**
  * Updates the hair calculations for the bunny based on the physics simulation
  * descriptions provided in the assignment.
  */
-static void updateHairCalculations() {
+static void updateHairCalculations(Mesh &mesh) {
+  for (int i = 0; i < .getNumVertices(); i++) {
 
+  }
 }
 
 /**
  * Performs dynamics simulation g_simulationsPerSecond times per second
  */
-static void hairsSimulationCallback(int dontCare) {
-  /* Update the hair dynamics */
-  updateHairCalculations();
+static void hairsSimulationCallback(int _) {
+  /* Update the hair dynamics. HACK: Ideally, we'd be passing in g_bunnyMesh to
+     this function, but that's hard since it's a fucking callback. */
+  updateHairCalculations(g_bunnyMesh);
   /* Schedule this to get called again */
   glutTimerFunc(1000 / g_simulationsPerSecond, hairsSimulationCallback, 0);
   /* Force visual refresh */
