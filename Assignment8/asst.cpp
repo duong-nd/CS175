@@ -231,7 +231,7 @@ static void updateMeshVertices(Mesh &meshActual, Mesh &meshOriginal, float t) {
   }
 }
 
-static void updateMeshNormals(Mesh &mesh, bool ignore) {
+static void updateMeshNormals(Mesh &mesh) {
   /* reset normals */
   for (int i = 0; i < mesh.getNumVertices(); i++) {
     mesh.getVertex(i).setNormal(Cvec3());
@@ -394,7 +394,7 @@ static Cvec3 getVertexSubdivisionVertex(Mesh &mesh, const int i) {
 static void initSubdivisionSurface() {
   g_subdivisionSurfaceMeshOriginal = Mesh();
   g_subdivisionSurfaceMeshOriginal.load(g_subdivisionSurfaceFilename.c_str());
-  updateMeshNormals(g_subdivisionSurfaceMeshOriginal, false);
+  updateMeshNormals(g_subdivisionSurfaceMeshOriginal);
 
   g_subdivisionSurfaceMeshActual = Mesh(g_subdivisionSurfaceMeshOriginal);
 
@@ -408,7 +408,7 @@ static void initSubdivisionSurface() {
 
 static void initBunnyMeshes() {
   g_bunnyMesh.load("bunny.mesh");
-  updateMeshNormals(g_bunnyMesh, false);
+  updateMeshNormals(g_bunnyMesh);
 
   vector<VertexPN> verticies = getGeometryVertices(g_bunnyMesh, true);
 
@@ -879,7 +879,7 @@ void animateSubdivisionSurface(float t) {
   g_subdivisionSurfaceMeshActual = Mesh(g_subdivisionSurfaceMeshOriginal);
   updateMeshVertices(g_subdivisionSurfaceMeshActual, g_subdivisionSurfaceMeshOriginal, t);
   applySubdivisions(g_subdivisionSurfaceMeshActual, g_subdivisionSteps);
-  updateMeshNormals(g_subdivisionSurfaceMeshActual, false);
+  updateMeshNormals(g_subdivisionSurfaceMeshActual);
 
   vector<VertexPN> verticies = getGeometryVertices(g_subdivisionSurfaceMeshActual, g_useSmoothShading);
   g_subdivisionSurface->upload(&verticies[0], verticies.size());
