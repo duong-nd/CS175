@@ -76,21 +76,24 @@ static VertexPNX computeHairVertex(
   const Cvec3 t = s;
   
   // const Cvec3 d = (t - p - n) / (g_numShells - 1);
-  const Cvec3 d = ((t - p - n * g_numShells - n) / (g_numShells * g_numShells + g_numShells)) * 2;
   // const Cvec3 d = convertFrame(invBunnyRbt, (t - p - n) / (g_numShells - 1));
+
+  // const Cvec3 d = ((t - p - n * g_numShells - n) / (g_numShells * g_numShells + g_numShells)) * 2;
+  const Cvec3 d = ((t - p - n * g_numShells) / (g_numShells * g_numShells - g_numShells)) * 2;
 
   // v.getPosition() + (bunnyRbt * g_tipPos[v.getIndex()] / g_numShells) * i,
 
 
-  
+
   // v.getPosition() + (getAtRestTipPosition(v) / g_numShells) * i,
   // v.getPosition() + d * i,
 
   return VertexPNX(
-    v.getPosition() + (
-      (invBunnyRbt * g_tipPos[v.getIndex()] - v.getPosition()) /
-      g_numShells
-    ) * i,
+    v.getPosition() + d * i,
+    // v.getPosition() + (
+    //   (invBunnyRbt * g_tipPos[v.getIndex()] - v.getPosition()) /
+    //   g_numShells
+    // ) * i,
     v.getNormal(),
     texVec
   );
