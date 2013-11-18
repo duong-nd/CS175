@@ -43,6 +43,8 @@
 
 #include "headers/mesh.h"
 
+static shared_ptr<SgRootNode> g_world;
+
 #include "headers/bunny.h"
 
 #define ESCAPE_KEY 27
@@ -110,16 +112,13 @@ static shared_ptr<Geometry> g_ground, g_cube, g_sphere;
 static shared_ptr<SimpleGeometryPN> g_subdivisionSurface;
 static Mesh g_subdivisionSurfaceMeshOriginal;
 static Mesh g_subdivisionSurfaceMeshActual;
-static shared_ptr<SgRootNode> g_world;
 static shared_ptr<SgRbtNode> g_skyNode, g_groundNode, g_robot1Node, g_robot2Node;
 static shared_ptr<SgRbtNode> g_meshNode;
-static shared_ptr<SgRbtNode> g_bunnyNode;
 static shared_ptr<SgRbtNode> g_light1Node, g_light2Node;
 static shared_ptr<SgRbtNode> g_currentPickedRbtNode;
 
 /* Bunny! */
 static shared_ptr<SimpleGeometryPN> g_bunnyGeometry;
-static vector<shared_ptr<SimpleGeometryPNX> > g_bunnyShellGeometries;
 
 /** SCENE */
 static const int g_numObjects = 2;
@@ -402,6 +401,7 @@ static void initSubdivisionSurface() {
   animateSubdivisionSurfaceCallback(0);
 }
 
+
 static void initBunny() {
   g_bunnyMesh.load("bunny.mesh");
   updateMeshNormals(g_bunnyMesh);
@@ -419,7 +419,7 @@ static void initBunny() {
     vector<VertexPNX> verticies = getBunnyShellGeometryVertices(g_bunnyMesh, i);
     g_bunnyShellGeometries[i]->upload(&verticies[0], verticies.size());
   }
-  hairsSimulationCallback(9001);
+  useRbt++;
 }
 
 static void initSphere() {
@@ -1243,6 +1243,7 @@ static void initScene() {
   g_bunnyNode.reset(new SgRbtNode());
   g_bunnyNode->addChild(shared_ptr<MyShapeNode>(
                           new MyShapeNode(g_bunnyGeometry, g_bunnyMat)));
+  cout << "BUNNY NODE ADDED" << endl;
   /* add each shell as shape node */
   for (int i = 0; i < g_numShells; ++i) {
     g_bunnyNode->addChild(shared_ptr<MyShapeNode>(
@@ -1257,6 +1258,7 @@ static void initScene() {
   g_world->addChild(g_robot2Node);
   g_world->addChild(g_meshNode);
   g_world->addChild(g_bunnyNode);
+  hairsSimulationCallback(9001);
 }
 
 int main(int argc, char * argv[]) {
