@@ -66,7 +66,7 @@ static VertexPNX computeHairVertex(
     RigTForm bunnyRbt,
     RigTForm invBunnyRbt) {
   return VertexPNX(
-    v.getPosition() + (invBunnyRbt * g_tipPos[v.getIndex()] / g_numShells) * i,
+    v.getPosition() + (bunnyRbt * g_tipPos[v.getIndex()] / g_numShells) * i,
     v.getNormal(),
     textureVec
   );
@@ -102,10 +102,10 @@ static void updateHairCalculation(
     RigTForm invBunnyRbt) {
   /* Reassignments so that we're consistent with notation in the assignment. */
   double T = g_timeStep;
-  Cvec3 p = bunnyRbt * vec.getPosition();
-  Cvec3 s = bunnyRbt * getAtRestTipPosition(vec);
-  Cvec3 t = bunnyRbt * g_tipPos[vertexIndex];
-  Cvec3 v = bunnyRbt * g_tipVelocity[vertexIndex];
+  Cvec3 p = invBunnyRbt * vec.getPosition();
+  Cvec3 s = invBunnyRbt * getAtRestTipPosition(vec);
+  Cvec3 t = invBunnyRbt * g_tipPos[vertexIndex];
+  Cvec3 v = invBunnyRbt * g_tipVelocity[vertexIndex];
 
   /* Step 1: Compute f */
   Cvec3 f = g_gravity + (s - t) * g_stiffness;
