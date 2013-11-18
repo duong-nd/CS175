@@ -32,7 +32,7 @@ static std::vector<Cvec3> g_tipVelocity;
  * @return   The position of the tip of the hair.
  */
 Cvec3 getAtRestTipPosition(Mesh::Vertex v) {
-  return v.getNormal() * g_furHeight;
+  return v.getPosition() + v.getNormal() * g_furHeight;
 }
 
 /**
@@ -66,7 +66,7 @@ static VertexPNX computeHairVertex(
     RigTForm bunnyRbt,
     RigTForm invBunnyRbt) {
   return VertexPNX(
-    v.getPosition() + (bunnyRbt * g_tipPos[v.getIndex()] / g_numShells) * i,
+    v.getPosition() + ((invBunnyRbt * g_tipPos[v.getIndex()] - v.getPosition()) / g_numShells) * i,
     v.getNormal(),
     textureVec
   );
@@ -96,14 +96,14 @@ static vector<VertexPNX> getBunnyShellGeometryVertices(
 }
 
 static void updateHairCalculation(
-    Mesh::Vertex vec,
+    Mesh::Vertex vert,
     int vertexIndex,
     RigTForm bunnyRbt,
     RigTForm invBunnyRbt) {
   /* Reassignments so that we're consistent with notation in the assignment. */
   double T = g_timeStep;
-  Cvec3 p = invBunnyRbt * vec.getPosition();
-  Cvec3 s = invBunnyRbt * getAtRestTipPosition(vec);
+  Cvec3 p = bunnyRbt * vert.getPosition();
+  Cvec3 s = bunnyRbt * getAtRestTipPosition(vert);
   Cvec3 t = g_tipPos[vertexIndex];
   Cvec3 v = g_tipVelocity[vertexIndex];
 
@@ -122,7 +122,7 @@ static void updateHairCalculation(
  * descriptions provided in the assignment.
  */
 static void updateHairs(Mesh &mesh) {
-  cout << "Update heirs" << endl;
+  cout << "Update hairs" << endl;
   RigTForm bunnyRbt = getPathAccumRbt(g_world, g_bunnyNode);
   RigTForm invBunnyRbt = inv(bunnyRbt);
   for (int i = 0; i < mesh.getNumVertices(); i++) {
@@ -139,12 +139,11 @@ static void hairsSimulationCallback(int _) {
      this function, but that's hard since it's a fucking callback. */
   updateHairs(g_bunnyMesh);
   /* Schedule this to get called again */
-  glutTimerFunc(1250 / g_simulationsPerSecond, hairsSimulationCallback, _);
+  glutTimerFunc(1000 / g_simulationsPerSecond, hairsSimulationCallback, _);
 }
 
 static void prepareBunnyForRendering() {
-  printVector("First g_tipPos: ", g_tipPos[0]);
-  // printVector("First g_tipVelocity: ", g_tipVelocity[0]);
+  cout << "Prepare for render" << endl;
   RigTForm bunnyRbt = getPathAccumRbt(g_world, g_bunnyNode);
   RigTForm invBunnyRbt = inv(bunnyRbt);
   for (int i = 0; i < g_numShells; ++i) {
