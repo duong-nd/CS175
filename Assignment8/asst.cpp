@@ -1247,7 +1247,7 @@ static void initScene() {
   g_world->addChild(g_robot2Node);
   g_world->addChild(g_meshNode);
   g_world->addChild(g_bunnyNode);
-  hairsSimulationCallback(9001);
+  // hairsSimulationCallback(9001);
 }
 
 int main(int argc, char * argv[]) {
