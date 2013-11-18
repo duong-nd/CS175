@@ -65,12 +65,34 @@ static VertexPNX computeHairVertex(
     Cvec2 textureVec,
     RigTForm bunnyRbt,
     RigTForm invBunnyRbt) {
+
+  // const Cvec3 t = g_tipPos[v.getIndex()];
+  // const Cvec3 t = convertFrame(invBunnyRbt, getAtRestTipPosition(v));
+  
+  const Cvec3 p = v.getPosition();
+  // const Cvec3 p = convertFrame(invBunnyRbt, v.getPosition());
+  
+  const Cvec3 n = v.getNormal() * (g_furHeight / g_numShells);
+  // const Cvec3 n = convertFrame(invBunnyRbt, v.getNormal() * (g_furHeight / g_numShells));
+
+  // const Cvec3 s = n * g_furHeight;
+  const Cvec3 s = getAtRestTipPosition(v);
+  const Cvec3 t = s;
+  
+  // const Cvec3 d = (t - p - n) / (g_numShells - 1);
+  const Cvec3 d = ((t - p - n * g_numShells - n) / (g_numShells * g_numShells + g_numShells)) * 2;
+  // const Cvec3 d = convertFrame(invBunnyRbt, (t - p - n) / (g_numShells - 1));
+
+  // v.getPosition() + (bunnyRbt * g_tipPos[v.getIndex()] / g_numShells) * i,
   return VertexPNX(
-    v.getPosition() + (bunnyRbt * g_tipPos[v.getIndex()] / g_numShells) * i,
+    // v.getPosition() + (getAtRestTipPosition(v) / g_numShells) * i,
+    v.getPosition() + d * i,
     v.getNormal(),
     textureVec
   );
 }
+
+
 
 /**
  * Returns the vertices for the layer-th layer of the bunny shell.

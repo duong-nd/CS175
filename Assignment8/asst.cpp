@@ -413,8 +413,8 @@ static void initBunny() {
   for (int i = 0; i < g_numShells; ++i) {
     /* We do not yet upload the hair verticies. This is because we need to use
        the bunny's scene graph node, which is not yet available. This is okay
-       though, since the bunny's fur is redraw in an animation loop and so we
-       will not notice if the bunny is initialize furless. */
+       though, since the bunny's fur is redrawn in an animation loop and so we
+       will not notice if the bunny is initialized furless. */
     g_bunnyShellGeometries[i].reset(new SimpleGeometryPNX());
   }
 }
