@@ -100,24 +100,24 @@ static void updateHairCalculation(
     int vertexIndex,
     RigTForm bunnyRbt,
     RigTForm invBunnyRbt) {
-  // /* Reassignments so that we're consistent with notation in the assignment. */
-  // double T = g_timeStep;
-  // Cvec3 p = Cvec3(invBunnyRbt * Cvec4(vec.getPosition(), 1));
-  // Cvec3 s = Cvec3(invBunnyRbt * Cvec4(getAtRestTipPosition(vec), 1));
-  // Cvec3 t = Cvec3(invBunnyRbt * Cvec4(g_tipPos[vertexIndex], 1));
-  // Cvec3 v = Cvec3(invBunnyRbt * Cvec4(g_tipVelocity[vertexIndex], 1));
+  /* Reassignments so that we're consistent with notation in the assignment. */
+  double T = g_timeStep;
+  Cvec3 p = bunnyRbt * vec.getPosition();
+  Cvec3 s = bunnyRbt * getAtRestTipPosition(vec);
+  Cvec3 t = bunnyRbt * g_tipPos[vertexIndex];
+  Cvec3 v = bunnyRbt * g_tipVelocity[vertexIndex];
 
-  // /* Step 1: Compute f */
-  // Cvec3 f = g_gravity + (s - t) * g_stiffness;
-  // /* Step 2: Update t */
-  // t = t + v * T;
-  // /* Step 3: Constrain t */
-  // g_tipPos[vertexIndex] = Cvec3(bunnyRbt * Cvec4(p + (t - p) / norm(t - p) * g_furHeight), 1);
-  // /* Step 4: Update v */
-  // g_tipVelocity[vertexIndex] = Cvec3(bunnyRbt * Cvec4((v + f * T) * g_damping), 1);
+  /* Step 1: Compute f */
+  Cvec3 f = g_gravity + (s - t) * g_stiffness;
+  /* Step 2: Update t */
+  t = t + v * T;
+  /* Step 3: Constrain t */
+  g_tipPos[vertexIndex] = (p + (t - p) / norm(t - p) * g_furHeight);
+  /* Step 4: Update v */
+  g_tipVelocity[vertexIndex] = ((v + f * T) * g_damping);
 
 
-  g_tipPos[vertexIndex] = Cvec3(0, -1, 0);
+  // g_tipPos[vertexIndex] = Cvec3(0, -1, 0);
 }
 
 /**
