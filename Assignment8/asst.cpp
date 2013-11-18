@@ -1115,16 +1115,6 @@ static void initMaterials() {
   }
 }
 
-static void initSimulation() {
-  g_tipPos.resize(g_bunnyMesh.getNumVertices(), Cvec3(0));
-  g_tipVelocity = g_tipPos;
-
-  // TASK 1 TODO: initialize g_tipPos to "at-rest" hair tips in world coordinates
-
-  /* starts hair tip simulation */
-  hairsSimulationCallback(0);
-}
-
 static void initGeometry() {
   initGround();
   initCubes();
@@ -1277,7 +1267,6 @@ int main(int argc, char * argv[]) {
     initMaterials();
     initGeometry();
     initScene();
-    initSimulation();
 
     glutMainLoop();
     return 0;

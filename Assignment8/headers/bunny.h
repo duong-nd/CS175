@@ -66,7 +66,7 @@ static VertexPNX computeHairVertex(
     RigTForm bunnyRbt,
     RigTForm invBunnyRbt) {
   return VertexPNX(
-    v.getPosition() + (invBunnyRbt * g_tipPos[v.getIndex()] / g_numShells) * i,
+    v.getPosition() + (bunnyRbt * g_tipPos[v.getIndex()] / g_numShells) * i,
     v.getNormal(),
     textureVec
   );
@@ -102,8 +102,8 @@ static void updateHairCalculation(
     RigTForm invBunnyRbt) {
   /* Reassignments so that we're consistent with notation in the assignment. */
   double T = g_timeStep;
-  Cvec3 p = bunnyRbt * vec.getPosition();
-  Cvec3 s = bunnyRbt * getAtRestTipPosition(vec);
+  Cvec3 p = invBunnyRbt * vec.getPosition();
+  Cvec3 s = invBunnyRbt * getAtRestTipPosition(vec);
   Cvec3 t = g_tipPos[vertexIndex];
   Cvec3 v = g_tipVelocity[vertexIndex];
 
@@ -115,9 +115,6 @@ static void updateHairCalculation(
   g_tipPos[vertexIndex] = (p + (t - p) / norm(t - p) * g_furHeight);
   /* Step 4: Update v */
   g_tipVelocity[vertexIndex] = ((v + f * T) * g_damping);
-
-
-  // g_tipPos[vertexIndex] = Cvec3(0, -1, 0);
 }
 
 /**
@@ -125,6 +122,7 @@ static void updateHairCalculation(
  * descriptions provided in the assignment.
  */
 static void updateHairs(Mesh &mesh) {
+  cout << "Update heirs" << endl;
   RigTForm bunnyRbt = getPathAccumRbt(g_world, g_bunnyNode);
   RigTForm invBunnyRbt = inv(bunnyRbt);
   for (int i = 0; i < mesh.getNumVertices(); i++) {
@@ -146,7 +144,7 @@ static void hairsSimulationCallback(int _) {
 
 static void prepareBunnyForRendering() {
   printVector("First g_tipPos: ", g_tipPos[0]);
-  printVector("First g_tipVelocity: ", g_tipVelocity[0]);
+  // printVector("First g_tipVelocity: ", g_tipVelocity[0]);
   RigTForm bunnyRbt = getPathAccumRbt(g_world, g_bunnyNode);
   RigTForm invBunnyRbt = inv(bunnyRbt);
   for (int i = 0; i < g_numShells; ++i) {
