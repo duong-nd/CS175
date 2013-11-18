@@ -22,6 +22,8 @@
 #   include <GL/glut.h>
 #endif
 
+#include "headers/global.h"
+
 #include "headers/cvec.h"
 #include "headers/matrix4.h"
 #include "headers/geometrymaker.h"
@@ -42,8 +44,6 @@
 #include "headers/script.h"
 
 #include "headers/mesh.h"
-
-static shared_ptr<SgRootNode> g_world;
 
 #include "headers/bunny.h"
 
@@ -254,10 +254,6 @@ static void updateMeshNormals(Mesh &mesh) {
   }
 }
 
-static void updateShellGeometry() {
-  // TASK 1 and 3 TODO: finish this function as part of Task 1 and Task 3
-}
-
 static vector<VertexPN> getGeometryVertices(Mesh &mesh, bool useSmoothShading) {
   vector<VertexPN> vs;
   for (int i = 0; i < mesh.getNumFaces(); i++) {
@@ -412,14 +408,15 @@ static void initBunny() {
   g_bunnyGeometry.reset(new SimpleGeometryPN());
   g_bunnyGeometry->upload(&verticies[0], verticies.size());
 
-  /* now allocate array of SimpleGeometryPNX to for shells, one per layer */
+  /* Now allocate array of SimpleGeometryPNX to for shells, one per layer */
   g_bunnyShellGeometries.resize(g_numShells);
   for (int i = 0; i < g_numShells; ++i) {
+    /* We do not yet upload the hair verticies. This is because we need to use
+       the bunny's scene graph node, which is not yet available. This is okay
+       though, since the bunny's fur is redraw in an animation loop and so we
+       will not notice if the bunny is initialize furless. */
     g_bunnyShellGeometries[i].reset(new SimpleGeometryPNX());
-    vector<VertexPNX> verticies = getBunnyShellGeometryVertices(g_bunnyMesh, i);
-    g_bunnyShellGeometries[i]->upload(&verticies[0], verticies.size());
   }
-  useRbt++;
 }
 
 static void initSphere() {
@@ -527,6 +524,9 @@ static void drawStuff(bool picking) {
   /* Get light positions in eye coordinates, and hand them to uniforms */
   uniforms.put("uLight", Cvec3(invEyeRbt * Cvec4(light1, 1)));
   uniforms.put("uLight2", Cvec3(invEyeRbt * Cvec4(light2, 1)));
+
+  /* Force the bunny to update its shell to reflect latest shell calculations */
+  prepareBunnyForRendering();
 
   if (!picking) {
     Drawer drawer(invEyeRbt, uniforms);
@@ -1243,7 +1243,6 @@ static void initScene() {
   g_bunnyNode.reset(new SgRbtNode());
   g_bunnyNode->addChild(shared_ptr<MyShapeNode>(
                           new MyShapeNode(g_bunnyGeometry, g_bunnyMat)));
-  cout << "BUNNY NODE ADDED" << endl;
   /* add each shell as shape node */
   for (int i = 0; i < g_numShells; ++i) {
     g_bunnyNode->addChild(shared_ptr<MyShapeNode>(

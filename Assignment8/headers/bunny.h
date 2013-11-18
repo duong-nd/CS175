@@ -54,45 +54,41 @@ void initializeBunnyPhysics(Mesh &mesh) {
  * Compute n = (s - p) / g_numShells
  * Compute our specific vertex position with p + n * layer
  *
- * @param       v The vertex on the bunny itself.
- * @param       i The layer of the bunny that we're computing.
- * @param vertNum The number of the vertex we're currently doing. 0, 1, or 2.
+ * @param          v The vertex on the bunny itself.
+ * @param          i The layer of the bunny that we're computing.
+ * @param textureVec The vector corresponding to the texture location we should
+ *                   map to.
  */
-static VertexPNX computeHairVertex(Mesh::Vertex v, int i, int vertNum, RigTForm bunnyRbt) {
+static VertexPNX computeHairVertex(
+    Mesh::Vertex v,
+    int i,
+    Cvec2 textureVec,
+    RigTForm bunnyRbt,
+    RigTForm invBunnyRbt) {
   return VertexPNX(
-    v.getPosition() + (
-      Cvec3(inv(bunnyRbt) * Cvec4(g_tipPos[v.getIndex()], 1))
-      / g_numShells) * i,
+    v.getPosition() + (invBunnyRbt * g_tipPos[v.getIndex()] / g_numShells) * i,
     v.getNormal(),
-    Cvec2(vertNum == 1 ? g_hairyness : 0, vertNum == 2 ? g_hairyness : 0)
+    textureVec
   );
 }
 
-// TODO: BLATANT HACK MUST BE FIXED
-int useRbt = 0;
 /**
  * Returns the vertices for the layer-th layer of the bunny shell.
  */
-static vector<VertexPNX> getBunnyShellGeometryVertices(Mesh &mesh, int layer) {
+static vector<VertexPNX> getBunnyShellGeometryVertices(
+    Mesh &mesh,
+    int layer,
+    RigTForm bunnyRbt,
+    RigTForm invBunnyRbt) {
   vector<VertexPNX> vs;
-  // cout << "here mother fucker " << endl;
-  RigTForm bunnyRbt;
-  if (useRbt > 0) {
-    cout << "uSING THIS " << endl;
-    bunnyRbt = getPathAccumRbt(g_world, g_bunnyNode);
-  } else {
-    bunnyRbt = RigTForm();
-  }
-  // printRigTForm(bunnyRbt);
-  // cout << "here father shitter " << endl;
   /* For each face: */
   for (int i = 0; i < mesh.getNumFaces(); i++) {
     Mesh::Face f = mesh.getFace(i);
     /* For each vertex of each face: */
     for (int j = 1; j < f.getNumVertices() - 1; j++) {
-      vs.push_back(computeHairVertex(f.getVertex(  0), layer, 0, bunnyRbt));
-      vs.push_back(computeHairVertex(f.getVertex(  j), layer, 1, bunnyRbt));
-      vs.push_back(computeHairVertex(f.getVertex(j+1), layer, 2, bunnyRbt));
+      vs.push_back(computeHairVertex(f.getVertex(  0), layer, Cvec2(0, 0)          , bunnyRbt, invBunnyRbt));
+      vs.push_back(computeHairVertex(f.getVertex(  j), layer, Cvec2(g_hairyness, 0), bunnyRbt, invBunnyRbt));
+      vs.push_back(computeHairVertex(f.getVertex(j+1), layer, Cvec2(0, g_hairyness), bunnyRbt, invBunnyRbt));
     }
   }
 
@@ -121,9 +117,6 @@ static void updateHairCalculation(
   // g_tipVelocity[vertexIndex] = Cvec3(bunnyRbt * Cvec4((v + f * T) * g_damping), 1);
 
 
-
-  Cvec3 p = Cvec3(invBunnyRbt * Cvec4(vec.getPosition(), 1));
-  Cvec3 newp = p + Cvec3(0, 1, 0);
   g_tipPos[vertexIndex] = Cvec3(0, -1, 0);
 }
 
@@ -138,24 +131,25 @@ static void updateHairs(Mesh &mesh) {
     Mesh::Vertex v = mesh.getVertex(i);
     updateHairCalculation(v, i, bunnyRbt, invBunnyRbt);
   }
-
-  // TODO: EVERYTHING BELOW SHOULD ONLY BE DONE ONCE PER RENDER CYCLE
-  for (int i = 0; i < g_numShells; ++i) {
-    vector<VertexPNX> verticies = getBunnyShellGeometryVertices(g_bunnyMesh, i);
-    g_bunnyShellGeometries[i]->upload(&verticies[0], verticies.size());
-  }
 }
 
 /**
  * Performs dynamics simulation g_simulationsPerSecond times per second
  */
 static void hairsSimulationCallback(int _) {
-  printVector("Tip vertex: ", g_tipPos[0]);
   /* Update the hair dynamics. HACK: Ideally, we'd be passing in g_bunnyMesh to
      this function, but that's hard since it's a fucking callback. */
   updateHairs(g_bunnyMesh);
   /* Schedule this to get called again */
   glutTimerFunc(1250 / g_simulationsPerSecond, hairsSimulationCallback, _);
-  /* Force visual refresh */
-  glutPostRedisplay();
+}
+
+static void prepareBunnyForRendering() {
+  RigTForm bunnyRbt = getPathAccumRbt(g_world, g_bunnyNode);
+  RigTForm invBunnyRbt = inv(bunnyRbt);
+  for (int i = 0; i < g_numShells; ++i) {
+    vector<VertexPNX> verticies =
+      getBunnyShellGeometryVertices(g_bunnyMesh, i, bunnyRbt, invBunnyRbt);
+    g_bunnyShellGeometries[i]->upload(&verticies[0], verticies.size());
+  }
 }
