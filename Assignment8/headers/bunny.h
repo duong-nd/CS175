@@ -1,4 +1,3 @@
-/* Some constant shits */
 static const int    g_numShells = 24;
 static       double g_furHeight = 0.21;
 static       double g_hairiness = 0.7;
