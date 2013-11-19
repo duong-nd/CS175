@@ -8,6 +8,12 @@ static       double g_numStepsPerFrame = 10;
 static       double g_damping = 0.96;
 static       double g_stiffness = 4;
 
+/**
+ * This is used to cache shell vertex values during hair curving.
+ * That way we don't have to re-compute intermediate values.
+ */
+static vector<vector<Cvec3> > g_ShellVertexCache;
+
 /** Bunny node */
 static shared_ptr<SgRbtNode> g_bunnyNode;
 
@@ -61,45 +67,22 @@ static VertexPNX computeHairVertex(
     Mesh::Vertex v, int i,
     Cvec2 texVec,
     RigTForm invBunnyRbt) {
-
-  // const Cvec3 t = g_tipPos[v.getIndex()];
-  // const Cvec3 t = convertFrame(invBunnyRbt, getAtRestTipPosition(v));
-  
   const Cvec3 p = v.getPosition();
-  // const Cvec3 p = convertFrame(invBunnyRbt, v.getPosition());
-  
   const Cvec3 n = v.getNormal() * (g_furHeight / g_numShells);
-  // const Cvec3 n = convertFrame(invBunnyRbt, v.getNormal() * (g_furHeight / g_numShells));
+  const Cvec3 t = invBunnyRbt * g_tipPos[v.getIndex()];
+  const Cvec3 d = ((t - p - n * g_numShells) /
+    (g_numShells * g_numShells - g_numShells)) * 2;
 
-  // const Cvec3 s = n * g_furHeight;
-  const Cvec3 s = getAtRestTipPosition(v);
-  const Cvec3 t = s;
-  
-  // const Cvec3 d = (t - p - n) / (g_numShells - 1);
-  // const Cvec3 d = convertFrame(invBunnyRbt, (t - p - n) / (g_numShells - 1));
+  Cvec3 point;
+  if (i == 0) {
+    point = v.getPosition();
+  } else {
+    point = g_ShellVertexCache[v.getIndex()][i - 1];
+  }
+  g_ShellVertexCache[v.getIndex()][i] = point + n + d * i;
 
-  // const Cvec3 d = ((t - p - n * g_numShells - n) / (g_numShells * g_numShells + g_numShells)) * 2;
-  const Cvec3 d = ((t - p - n * g_numShells) / (g_numShells * g_numShells - g_numShells)) * 2;
-
-  // v.getPosition() + (bunnyRbt * g_tipPos[v.getIndex()] / g_numShells) * i,
-
-
-
-  // v.getPosition() + (getAtRestTipPosition(v) / g_numShells) * i,
-  // v.getPosition() + d * i,
-
-  return VertexPNX(
-    v.getPosition() + d * i,
-    // v.getPosition() + (
-    //   (invBunnyRbt * g_tipPos[v.getIndex()] - v.getPosition()) /
-    //   g_numShells
-    // ) * i,
-    v.getNormal(),
-    texVec
-  );
+  return VertexPNX(g_ShellVertexCache[v.getIndex()][i], v.getNormal(), texVec);
 }
-
-
 
 /**
  * Returns the vertices for the layer-th layer of the bunny shell.
@@ -108,6 +91,13 @@ static vector<VertexPNX> getBunnyShellGeometryVertices(
     Mesh &mesh,
     int layer,
     RigTForm invBunnyRbt) {
+
+  /* initialize the shell vertex cache to the proper size */
+  g_ShellVertexCache.resize(mesh.getNumVertices());
+  for (int i = 0; i < mesh.getNumVertices(); i++) {
+    g_ShellVertexCache[i].resize(g_numShells);
+  }
+
   vector<VertexPNX> vs;
   /* For each face: */
   for (int i = 0; i < mesh.getNumFaces(); i++) {
