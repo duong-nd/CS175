@@ -997,12 +997,12 @@ static void specialKeyboard(const int key, const int x, const int y) {
       std::cerr << "fur height = " << g_furHeight << std::endl;
       break;
     case GLUT_KEY_UP:
-      g_hairyness *= 1.05;
-      cerr << "hairiness = " << g_hairyness << std::endl;
+      g_hairiness *= 1.05;
+      cerr << "hairiness = " << g_hairiness << std::endl;
       break;
     case GLUT_KEY_DOWN:
-      g_hairyness /= 1.05;
-      cerr << "hairiness = " << g_hairyness << std::endl;
+      g_hairiness /= 1.05;
+      cerr << "hairiness = " << g_hairiness << std::endl;
       break;
   }
   glutPostRedisplay();

@@ -1,7 +1,7 @@
 /* Some constant shits */
 static const int    g_numShells = 24;
 static       double g_furHeight = 0.21;
-static       double g_hairyness = 0.7;
+static       double g_hairiness = 0.7;
 static const Cvec3  g_gravity(0, -0.5, 0);
 static       double g_timeStep = 0.02;
 static       double g_numStepsPerFrame = 10;
@@ -110,8 +110,8 @@ static vector<VertexPNX> getBunnyShellGeometryVertices(
     /* For each vertex of each face: */
     for (int j = 1; j < f.getNumVertices() - 1; j++) {
       vs.push_back(computeHairVertex(f.getVertex(  0), layer, Cvec2(0, 0)          , invBunnyRbt));
-      vs.push_back(computeHairVertex(f.getVertex(  j), layer, Cvec2(g_hairyness, 0), invBunnyRbt));
-      vs.push_back(computeHairVertex(f.getVertex(j+1), layer, Cvec2(0, g_hairyness), invBunnyRbt));
+      vs.push_back(computeHairVertex(f.getVertex(  j), layer, Cvec2(g_hairiness, 0), invBunnyRbt));
+      vs.push_back(computeHairVertex(f.getVertex(j+1), layer, Cvec2(0, g_hairiness), invBunnyRbt));
     }
   }
 
