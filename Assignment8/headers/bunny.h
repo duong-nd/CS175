@@ -67,21 +67,25 @@ static VertexPNX computeHairVertex(
     Mesh::Vertex v, int i,
     Cvec2 texVec,
     RigTForm invBunnyRbt) {
+  /* values used for hair curving */
   const Cvec3 p = v.getPosition();
   const Cvec3 n = v.getNormal() * (g_furHeight / g_numShells);
   const Cvec3 t = invBunnyRbt * g_tipPos[v.getIndex()];
   const Cvec3 d = ((t - p - n * g_numShells) /
     (g_numShells * g_numShells - g_numShells)) * 2;
 
-  Cvec3 point;
-  if (i == 0) {
-    point = v.getPosition();
-  } else {
-    point = g_ShellVertexCache[v.getIndex()][i - 1];
-  }
+  /* If we're on the first shell, our previous vertex is just the one on the
+   * surface of the mesh. Otherwise, it's the previously computed vertex. */
+  const Cvec3 point = (i == 0) ? v.getPosition() : g_ShellVertexCache[v.getIndex()][i - 1];
+
+  /* compute the current vertex's position and cache it */
   g_ShellVertexCache[v.getIndex()][i] = point + n + d * i;
 
-  return VertexPNX(g_ShellVertexCache[v.getIndex()][i], v.getNormal(), texVec);
+  /* choose a normal that makes the fur shiny */
+  const Cvec3 normal = (i == 0) ? v.getNormal() : g_ShellVertexCache[v.getIndex()][i] - 
+                                                  g_ShellVertexCache[v.getIndex()][i - 1];
+
+  return VertexPNX(g_ShellVertexCache[v.getIndex()][i], normal, texVec);
 }
 
 /**
