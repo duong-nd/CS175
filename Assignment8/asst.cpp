@@ -1228,7 +1228,7 @@ static void initScene() {
 
   g_meshNode.reset(new SgRbtNode(RigTForm()));
   g_meshNode->addChild(shared_ptr<MyShapeNode>(
-                           new MyShapeNode(g_subdivisionSurface, g_specularMat, Cvec3(0, 0, 10))));
+                           new MyShapeNode(g_subdivisionSurface, g_specularMat, Cvec3(-5, 0, 0))));
 
   g_bunnyNode.reset(new SgRbtNode());
   g_bunnyNode->addChild(shared_ptr<MyShapeNode>(
