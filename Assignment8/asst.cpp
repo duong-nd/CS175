@@ -988,22 +988,22 @@ static void keyboard(const unsigned char key, const int x, const int y) {
 /* keyboard callback for arrow keys */
 static void specialKeyboard(const int key, const int x, const int y) {
   switch (key) {
-  case GLUT_KEY_RIGHT:
-    g_furHeight *= 1.05;
-    cerr << "fur height = " << g_furHeight << std::endl;
-    break;
-  case GLUT_KEY_LEFT:
-    g_furHeight /= 1.05;
-    std::cerr << "fur height = " << g_furHeight << std::endl;
-    break;
-  case GLUT_KEY_UP:
-    g_hairyness *= 1.05;
-    cerr << "hairiness = " << g_hairyness << std::endl;
-    break;
-  case GLUT_KEY_DOWN:
-    g_hairyness /= 1.05;
-    cerr << "hairiness = " << g_hairyness << std::endl;
-    break;
+    case GLUT_KEY_RIGHT:
+      g_furHeight *= 1.05;
+      cerr << "fur height = " << g_furHeight << std::endl;
+      break;
+    case GLUT_KEY_LEFT:
+      g_furHeight /= 1.05;
+      std::cerr << "fur height = " << g_furHeight << std::endl;
+      break;
+    case GLUT_KEY_UP:
+      g_hairyness *= 1.05;
+      cerr << "hairiness = " << g_hairyness << std::endl;
+      break;
+    case GLUT_KEY_DOWN:
+      g_hairyness /= 1.05;
+      cerr << "hairiness = " << g_hairyness << std::endl;
+      break;
   }
   glutPostRedisplay();
 }
@@ -1228,7 +1228,7 @@ static void initScene() {
 
   g_meshNode.reset(new SgRbtNode(RigTForm()));
   g_meshNode->addChild(shared_ptr<MyShapeNode>(
-                           new MyShapeNode(g_subdivisionSurface, g_specularMat, Cvec3(0, 0, 10))));
+                           new MyShapeNode(g_subdivisionSurface, g_specularMat, Cvec3(-5, 0, 0))));
 
   g_bunnyNode.reset(new SgRbtNode());
   g_bunnyNode->addChild(shared_ptr<MyShapeNode>(

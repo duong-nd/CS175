@@ -64,7 +64,8 @@ void initializeBunnyPhysics(Mesh &mesh) {
  *                   map to.
  */
 static VertexPNX computeHairVertex(
-    Mesh::Vertex v, int i,
+    Mesh::Vertex v,
+    int i,
     Cvec2 texVec,
     RigTForm invBunnyRbt) {
   /* values used for hair curving */
