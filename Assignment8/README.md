@@ -2,7 +2,7 @@ Computer Science 175
 ====================
 Assignment 8
 ------------
-This README was written using Markdown syntax -- consider using a Markdown viewer like [Dillinger](http://dillinger.io/) for a more pleasureable viewing experience!
+This README was written using Markdown syntax -- consider using a Markdown viewer like [Dillinger](http://dillinger.io/) for a more pleasurable viewing experience!
 
 ### Authors ###
 - Michael Tingley, < michaeltingley@college.harvard.edu >
@@ -77,7 +77,7 @@ We met all problem set requirements. We compared our result against the solution
 
 ### Code Design ###
 Most of the interesting code was implemented in `bunny.h`. We did a few initialization things in `asst.cpp`, including:
-* Initializing the bunny geomtery and vertices
+* Initializing the bunny geometry and vertices
 * Initializing the bunny physics
 * Initializing the bunny simulation
 * Initializing the bunny scene graph node
@@ -107,7 +107,7 @@ Testing for this assignment was straightforward.
 
 ** Bunny. **  Is there a bunny being rendered? Check.
 
-** Bunny transforms. **  Can the bunny be picked, rotated, and translated correclty, and is it smooth? Check.
+** Bunny transforms. **  Can the bunny be picked, rotated, and translated correctly, and is it smooth? Check.
 
 ** Furry. **  Does the bunny have fur? Check.
 
@@ -122,7 +122,7 @@ Testing for this assignment was straightforward.
 
 ** Normals. **  It's important to check that the fur normals are displayed correctly. It's difficult to test this programmatically. The only way that we could test this was to compare the visual reflection properties of the bunny in our implementation to those in the official solution. They appear to be the same, very very shiny.
 
-** Reponds to keyboard. **  We ensured that the bunny did the following:
+** Responds to keyboard. **  We ensured that the bunny did the following:
 * When the right arrow key is pressed, the fur grows longer.
 * When the left arrow key is pressed, the fur grows shorter.
 * When the up arrow key is pressed, the bunny becomes hairier.
