@@ -62,7 +62,7 @@
       x_n = -\frac{x_e}{z_e}, y_n = -\frac{y_e}{z_e}, z_n = -\frac{1}{z_e}
     }
 
-    Now we compute the screen-space coordinates replacing $P$ with $PS$:
+    Now we compute the screen-space coordinates again, this time replacing $P$ with $PS$:
     \ea{
       PS
       \begin{pmatrix}
@@ -121,48 +121,29 @@
     % Consider what happens when we scale the projection matrix. The $x$ and $y$ dimensions of everything in the scene get scaled, making them appear bigger to our eye. However, since we are also scaling the $z$ dimension, this has the effect of proportionally ``pushing things back''. So even though they get bigger, they get proportionally farther away, and so they look the same. Since we're also scaling the near and far plane, the clipping distances get scaled as well, and so there is no change with where objects get clipped, either.
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 3 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \newpage
   \problemn{3 (Ex. 11.2)}
+    In problem 2 we already computed the screen-space coordinates for the case with just $P$, so we only need to compute the case in which we replace $P$ with $PQ$:
     \ea{
-      PQ &=& \begin{pmatrix}
+      PQ
+      \begin{pmatrix}
+        x_e \\
+        y_e \\
+        z_e \\
+        1
+      \end{pmatrix}
+      &=&
+      \begin{pmatrix}
         1 & 0 & 0 & 0 \\
         0 & 1 & 0 & 0 \\
         0 & 0 & 0 & 1 \\
         0 & 0 & -1 & 0
       \end{pmatrix}
-      \times
       \begin{pmatrix}
         3 & 0 & 0 & 0 \\
         0 & 3 & 0 & 0 \\
         0 & 0 & 3 & 0 \\
         0 & 0 & 0 & 1
-      \end{pmatrix} \n
-      \begin{pmatrix}
-        3 & 0 & 0 & 0 \\
-        0 & 3 & 0 & 0 \\
-        0 & 0 & 0 & 1 \\
-        0 & 0 & -3 & 0
-      \end{pmatrix} \n
-      3 \begin{pmatrix}
-        1 & 0 & 0 & 0 \\
-        0 & 1 & 0 & 0 \\
-        0 & 0 & 0 & \frac{1}{3} \\
-        0 & 0 & -1 & 0
-      \end{pmatrix}
-    }
-    Before we go through explanation of this, let's first recall the generalized depth-sensitive model for transforming to eye-coordinates. This is given by:
-    \ea{
-      \begin{pmatrix}
-        x_c \\
-        y_c \\
-        z_c \\
-        w_c
-      \end{pmatrix}
-      &=&
-      \begin{pmatrix}
-        s_x & 0 & -c_x & 0 \\
-        0 & s_y & -c_y & 0 \\
-        0 & 0 & \alpha & \beta \\
-        0 & 0 & -1 & 0
       \end{pmatrix}
       \begin{pmatrix}
         x_e \\
@@ -170,11 +151,57 @@
         z_e \\
         1
       \end{pmatrix}
+      \n
+      \begin{pmatrix}
+        3 & 0 & 0 & 0 \\
+        0 & 3 & 0 & 0 \\
+        0 & 0 & 0 & 1 \\
+        0 & 0 & -3 & 0
+      \end{pmatrix}
+      \begin{pmatrix}
+        x_e \\
+        y_e \\
+        z_e \\
+        1
+      \end{pmatrix} \n
+      \begin{pmatrix}
+        3x_e \\
+        3y_e \\
+        1 \\
+        -3z_e
+      \end{pmatrix} \\
+      &\implies&
+      x_n = -\frac{3x_e}{3z_e}, y_n = -\frac{3y_e}{3z_e}, z_n = -\frac{1}{3z_e}
     }
 
-    As noted in the previous question, scaling the entire projection matrix by a constant has no effect on the projection itself --- it is only the \emph{ratios} that matter. Thus, we have made $\beta$ to be one third the relative size as it was before. Since we have chosen to let $\beta = -\frac{2fn}{f-n}$, we realize that scaling up the value of $\beta$ will scale the near and far plane closer, and scaling down $\beta$ will scale these planes farther away.
+    We see that $x_n$ and $y_n$ have not changed, so the scene will not appear to change. However, $z_n$ has changed; dividing it by 3 has the effect of pushing everything into a smaller range within the (fixed) $z$-buffer range, so objects may appear to overlap/be drawn in the wrong order if they are close enough to be pushed together by smaller $z_n$.
 
-    Here, we are scaling $\beta$ down, which scale the near and far plane closer. This results in having a ``closer'' clipping distance: we will be able to see images that are close to the camera that would normally get clipped out, and images that are farther away will get clipped earlier.
+    % Before we go through explanation of this, let's first recall the generalized depth-sensitive model for transforming to eye-coordinates. This is given by:
+    % \ea{
+    %   \begin{pmatrix}
+    %     x_c \\
+    %     y_c \\
+    %     z_c \\
+    %     w_c
+    %   \end{pmatrix}
+    %   &=&
+    %   \begin{pmatrix}
+    %     s_x & 0 & -c_x & 0 \\
+    %     0 & s_y & -c_y & 0 \\
+    %     0 & 0 & \alpha & \beta \\
+    %     0 & 0 & -1 & 0
+    %   \end{pmatrix}
+    %   \begin{pmatrix}
+    %     x_e \\
+    %     y_e \\
+    %     z_e \\
+    %     1
+    %   \end{pmatrix}
+    % }
+
+    % As noted in the previous question, scaling the entire projection matrix by a constant has no effect on the projection itself --- it is only the \emph{ratios} that matter. Thus, we have made $\beta$ to be one third the relative size as it was before. Since we have chosen to let $\beta = -\frac{2fn}{f-n}$, we realize that scaling up the value of $\beta$ will scale the near and far plane closer, and scaling down $\beta$ will scale these planes farther away.
+
+    % Here, we are scaling $\beta$ down, which scale the near and far plane closer. This results in having a ``closer'' clipping distance: we will be able to see images that are close to the camera that would normally get clipped out, and images that are farther away will get clipped earlier.
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 4 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problemn{4 (Ex. 11.4)}
