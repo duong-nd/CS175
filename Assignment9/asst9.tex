@@ -27,25 +27,25 @@
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 2 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problem
     \ea{
-      PS &=& \begin{bmatrix}
+      PS &=& \begin{pmatrix}
         1 & 0 & 0 & 0 \\
         0 & 1 & 0 & 0 \\
         0 & 0 & 0 & 1 \\
         0 & 0 & -1 & 0
-      \end{bmatrix}
+      \end{pmatrix}
       \times
-      \begin{bmatrix}
+      \begin{pmatrix}
         3 & 0 & 0 & 0 \\
         0 & 3 & 0 & 0 \\
         0 & 0 & 3 & 0 \\
         0 & 0 & 0 & 3
-      \end{bmatrix} \n
-      \begin{bmatrix}
+      \end{pmatrix} \n
+      \begin{pmatrix}
         1 & 0 & 0 & 0 \\
         0 & 1 & 0 & 0 \\
         0 & 0 & 0 & 1 \\
         0 & 0 & -1 & 0
-      \end{bmatrix}
+      \end{pmatrix}
       \times
       3\mathbb{I} \n
       3P
@@ -58,33 +58,58 @@
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 3 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problem
     \ea{
-      PQ &=& \begin{bmatrix}
+      PQ &=& \begin{pmatrix}
         1 & 0 & 0 & 0 \\
         0 & 1 & 0 & 0 \\
         0 & 0 & 0 & 1 \\
         0 & 0 & -1 & 0
-      \end{bmatrix}
+      \end{pmatrix}
       \times
-      \begin{bmatrix}
+      \begin{pmatrix}
         3 & 0 & 0 & 0 \\
         0 & 3 & 0 & 0 \\
         0 & 0 & 3 & 0 \\
         0 & 0 & 0 & 1
-      \end{bmatrix} \n
-      \begin{bmatrix}
+      \end{pmatrix} \n
+      \begin{pmatrix}
         3 & 0 & 0 & 0 \\
         0 & 3 & 0 & 0 \\
         0 & 0 & 0 & 1 \\
         0 & 0 & -3 & 0
-      \end{bmatrix} \n
-      3 \begin{bmatrix}
+      \end{pmatrix} \n
+      3 \begin{pmatrix}
         1 & 0 & 0 & 0 \\
         0 & 1 & 0 & 0 \\
         0 & 0 & 0 & \frac{1}{3} \\
         0 & 0 & -1 & 0
-      \end{bmatrix}
+      \end{pmatrix}
     }
-    Realize that, after having factored out the 3 coefficient from this final matrix, that
+    Before we go through explanation of this, let's first recall the generalized depth-sensitive model for transforming to eye-coordinates. This is given by:
+    \ea{
+      \begin{pmatrix}
+        x_c \\
+        y_c \\
+        z_c \\
+        w_c
+      \end{pmatrix}
+      &=&
+      \begin{pmatrix}
+        s_x & 0 & -c_x & 0 \\
+        0 & s_y & -c_y & 0 \\
+        0 & 0 & \alpha & \beta \\
+        0 & 0 & -1 & 0
+      \end{pmatrix}
+      \begin{pmatrix}
+        x_e \\
+        y_e \\
+        z_e \\
+        1
+      \end{pmatrix}
+    }
+
+    As noted in the previous question, scaling the entire projection matrix by a constant has no effect on the project itself --- it is only the \emph{ratios} that matter. Thus, we have made $\beta$ to be one third the relative size as it was before. Since we have chosen to let $\beta = -\frac{2fn}{f-n}$, we realize that scaling up the value of $\beta$ will scale the near and far plane closer, and scaling down $\beta$ will scale these planes farther away.
+
+    Here, we are scaling $\beta$ down, which scale the near and far plane closer. This results in having a ``closer'' clipping distance: we will be able to see images that are close to the camera that would normally get clipped out, and images that are farther away will get clipped earlier.
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 4 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problem

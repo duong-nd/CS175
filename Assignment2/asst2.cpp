@@ -291,16 +291,16 @@ static void updateFrustFovY() {
 
 static Matrix4 makeProjectionMatrix() {
   return
-    (g_META == 1 ?
+        Matrix4::makeProjection(
+           g_frustFovY, g_windowWidth / static_cast <double> (g_windowHeight),
+           g_frustNear, g_frustFar)
+    *
+(g_META == 1 ?
       Matrix4(3, 0, 0, 0,
               0, 3, 0, 0,
               0, 0, 3, 0,
               0, 0, 0, 1) :
       Matrix4())
-    *
-    Matrix4::makeProjection(
-           g_frustFovY, g_windowWidth / static_cast <double> (g_windowHeight),
-           g_frustNear, g_frustFar)
     ;
 }
 
