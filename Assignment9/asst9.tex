@@ -174,7 +174,7 @@
       x_n = -\frac{3x_e}{3z_e}, y_n = -\frac{3y_e}{3z_e}, z_n = -\frac{1}{3z_e}
     }
 
-    We see that $x_n$ and $y_n$ have not changed, so the scene will not appear to change. However, $z_n$ has changed; dividing it by 3 has the effect of pushing everything into a smaller range within the (fixed) $z$-buffer range, so objects may appear to overlap/be drawn in the wrong order if they are close enough to be pushed together by smaller $z_n$.
+    We see that $x_n$ and $y_n$ have not changed, so the position of objects on screen will not change. However, $z_n$ has changed; dividing it by 3 has the effect of pushing everything into a smaller range within the (fixed) $z$-buffer range, so objects may appear to overlap/be drawn in the wrong order if they are close enough to be pushed together by smaller $z_n$.
 
     % Before we go through explanation of this, let's first recall the generalized depth-sensitive model for transforming to eye-coordinates. This is given by:
     % \ea{
@@ -207,15 +207,57 @@
   \problemn{4 (Ex. 11.4)}
 
   \ea{
-    QP &=& \begin{pmatrix}
+    QP
+    \begin{pmatrix}
+      x_e \\
+      y_e \\
+      z_e \\
+      1
+    \end{pmatrix}
+    &=&
+    \begin{pmatrix}
+      3 & 0 & 0 & 0 \\
+      0 & 3 & 0 & 0 \\
+      0 & 0 & 3 & 0 \\
+      0 & 0 & 0 & 1
+    \end{pmatrix}
+    \begin{pmatrix}
+      1 & 0 & 0 & 0 \\
+      0 & 1 & 0 & 0 \\
+      0 & 0 & 0 & 1 \\
+      0 & 0 & -1 & 0
+    \end{pmatrix}
+    \begin{pmatrix}
+      x_e \\
+      y_e \\
+      z_e \\
+      1
+    \end{pmatrix}
+    \n
+    \begin{pmatrix}
       3 & 0 & 0 & 0 \\
       0 & 3 & 0 & 0 \\
       0 & 0 & 0 & 3 \\
       0 & 0 & -1 & 0
     \end{pmatrix}
+    \begin{pmatrix}
+      x_e \\
+      y_e \\
+      z_e \\
+      1
+    \end{pmatrix}
+    \n
+    \begin{pmatrix}
+      3x_e \\
+      3y_e \\
+      3 \\
+      -z_e
+    \end{pmatrix} \\
+      &\implies&
+      x_n = -3\frac{x_e}{z_e}, y_n = -3\frac{y_e}{z_e}, z_n = -\frac{1}{z_e}
   }
 
-  % {{3, 0, 0, 0}, {0, 3, 0, 0}, {0, 0, 0, 3}, {0, 0, -1, 0}}
+  We see that $x_n$ and $y_n$ have been multiplied by 3, and $z_n$ has not changed. This has the effect of zooming in the scene by a factor of 3.
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 5 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problemn{5 (Ex. 12.3)}
