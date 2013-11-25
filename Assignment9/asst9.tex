@@ -57,10 +57,12 @@
         y_e \\
         1 \\
         -z_e
-      \end{pmatrix} \\
-      &\implies&
-      x_n = -\frac{x_e}{z_e}, y_n = -\frac{y_e}{z_e}, z_n = -\frac{1}{z_e}
+      \end{pmatrix}\\
+      \eaimplies
     }
+    \[
+      x_n = -\frac{x_e}{z_e}, y_n = -\frac{y_e}{z_e}, z_n = -\frac{1}{z_e}
+    \]
 
     Now we compute the screen-space coordinates again, this time replacing $P$ with $PS$:
     \ea{
@@ -110,9 +112,11 @@
         3 \\
         -3z_e
       \end{pmatrix} \\
-      &\implies&
-      x_n = -\frac{3x_e}{3z_e}, y_n = -\frac{3y_e}{3z_e}, z_n = -\frac{3}{3z_e}
+      \eaimplies
     }
+    \[
+      x_n = -\frac{3x_e}{3z_e}, y_n = -\frac{3y_e}{3z_e}, z_n = -\frac{3}{3z_e}
+    \]
 
     We see that the screen-space coordinates are the same in each case, and because these coordinates determine what is actually drawn, there is no effect on the scene.
 
@@ -170,9 +174,11 @@
         1 \\
         -3z_e
       \end{pmatrix} \\
-      &\implies&
-      x_n = -\frac{3x_e}{3z_e}, y_n = -\frac{3y_e}{3z_e}, z_n = -\frac{1}{3z_e}
+      \eaimplies
     }
+    \[
+      x_n = -\frac{3x_e}{3z_e}, y_n = -\frac{3y_e}{3z_e}, z_n = -\frac{1}{3z_e}
+    \]
 
     We see that $x_n$ and $y_n$ have not changed, so the position of objects on screen will not change. However, $z_n$ has changed; dividing it by 3 has the effect of pushing everything into a smaller range within the (fixed) $z$-buffer range, so objects may appear to overlap/be drawn in the wrong order if they are close enough to be pushed together by smaller $z_n$.
 
@@ -253,9 +259,11 @@
       3 \\
       -z_e
     \end{pmatrix} \\
-      &\implies&
-      x_n = -3\frac{x_e}{z_e}, y_n = -3\frac{y_e}{z_e}, z_n = -\frac{1}{z_e}
+    \eaimplies
   }
+  \[
+    x_n = -3\frac{x_e}{z_e}, y_n = -3\frac{y_e}{z_e}, z_n = -\frac{1}{z_e}
+  \]
 
   We see that $x_n$ and $y_n$ have been multiplied by 3, and $z_n$ has not changed. This has the effect of zooming in the scene by a factor of 3.
 
@@ -295,7 +303,6 @@
       z_n \\
       1
     \end{pmatrix}$.
-
     \ealn{
       V \begin{pmatrix}
         x_n \\
@@ -350,6 +357,31 @@
         1
       \end{pmatrix}
     }
+    Now let's examine
+    $\left.
+    QV \begin{pmatrix}
+      x_n \\
+      y_n \\
+      z_n \\
+      1
+    \end{pmatrix}
+    \middle/
+    V \begin{pmatrix}
+        x_n \\
+        y_n \\
+        z_n \\
+        1
+    \end{pmatrix}
+    \right.
+    $ (that is, element-wise divide). We find that this gives
+    $
+      \begin{pmatrix}
+        3 \\
+        3 \\
+        1 \\
+        1 \\
+      \end{pmatrix}
+    $. This is interesting, because it means that the change implied by this transformation is simply to scale up the $x_w$ and $y_w$ coordinates by a factor of 3, effectively zooming in. \emph{However}, it is important to realize that this scaling is done \emph{after} applying the viewport matrix. Therefore, while in our previous results (i.e., the result from 11.4) the scaling was done `intuitively' (exploding the image from the center), here the scaling is done from the bottom left corner, which is the origin of the viewport coordinate system.
 
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 6 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
