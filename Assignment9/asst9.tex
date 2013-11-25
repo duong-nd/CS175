@@ -107,14 +107,23 @@
       \end{pmatrix}
     }
 
-    As noted in the previous question, scaling the entire projection matrix by a constant has no effect on the project itself --- it is only the \emph{ratios} that matter. Thus, we have made $\beta$ to be one third the relative size as it was before. Since we have chosen to let $\beta = -\frac{2fn}{f-n}$, we realize that scaling up the value of $\beta$ will scale the near and far plane closer, and scaling down $\beta$ will scale these planes farther away.
+    As noted in the previous question, scaling the entire projection matrix by a constant has no effect on the projection itself --- it is only the \emph{ratios} that matter. Thus, we have made $\beta$ to be one third the relative size as it was before. Since we have chosen to let $\beta = -\frac{2fn}{f-n}$, we realize that scaling up the value of $\beta$ will scale the near and far plane closer, and scaling down $\beta$ will scale these planes farther away.
 
     Here, we are scaling $\beta$ down, which scale the near and far plane closer. This results in having a ``closer'' clipping distance: we will be able to see images that are close to the camera that would normally get clipped out, and images that are farther away will get clipped earlier.
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 4 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problem
 
-  \todo
+  \ea{
+    QP &=& \begin{pmatrix}
+      3 & 0 & 0 & 0 \\
+      0 & 3 & 0 & 0 \\
+      0 & 0 & 0 & 3 \\
+      0 & 0 & -1 & 0
+    \end{pmatrix}
+  }
+
+  % {{3, 0, 0, 0}, {0, 3, 0, 0}, {0, 0, 0, 3}, {0, 0, -1, 0}}
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 5 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problem
