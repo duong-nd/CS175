@@ -22,22 +22,34 @@
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 2 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problem
-    \[
-    PQ = \begin{bmatrix}
-      1 & 0 & 0 & 0 \\
-      0 & 1 & 0 & 0 \\
-      0 & 0 & 0 & 1 \\
-      0 & 0 & -1 & 0
-    \end{bmatrix}
-    \begin{bmatrix}
-      3 & 0 & 0 & 0 \\
-      0 & 3 & 0 & 0 \\
-      0 & 0 & 3 & 0 \\
-      0 & 0 & 0 & 3
-    \end{bmatrix}
-    \]
+    \ea{
+      PQ &=& \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 0 & 1 \\
+        0 & 0 & -1 & 0
+      \end{bmatrix}
+      \times
+      \begin{bmatrix}
+        3 & 0 & 0 & 0 \\
+        0 & 3 & 0 & 0 \\
+        0 & 0 & 3 & 0 \\
+        0 & 0 & 0 & 3
+      \end{bmatrix} \n
+      \begin{bmatrix}
+        1 & 0 & 0 & 0 \\
+        0 & 1 & 0 & 0 \\
+        0 & 0 & 0 & 1 \\
+        0 & 0 & -1 & 0
+      \end{bmatrix}
+      \times
+      3\mathbb{I} \n
+      3P
+    }
 
-    The $Q$ matrix above is just three times the identity matrix, so we're simply scaling $P$ by a constant. This has no effect on the scene.
+    The $Q$ matrix above is just three times the identity matrix, so we're simply scaling $P$ by a constant. However, this has no effect on the scene. Why?
+
+    Consider what happens when we scale the projection matrix. The $x$ and $y$ dimensions of everything in the scene get scaled, making them appear bigger to our eye. However, since we are also scaling the $z$ dimension, this has the effect of proportionally ``pushing things back''. So even though they get bigger, they get proportionally farther away, and so they look the same. Since we're also scaling the near and far plane, the clipping distances get scaled as well, and so there is no change with where objects get clipped, either.
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 3 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problem
