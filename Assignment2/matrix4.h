@@ -16,6 +16,28 @@ class Matrix4 {
   double d_[16]; // layout is row-major
 
 public:
+  Matrix4(double x0,  double x1,  double x2,  double x3,
+          double x4,  double x5,  double x6,  double x7,
+          double x8,  double x9,  double x10, double x11,
+          double x12, double x13, double x14, double x15) {
+    d_[0] = x0;
+    d_[1] = x1;
+    d_[2] = x2;
+    d_[3] = x3;
+    d_[4] = x4;
+    d_[5] = x5;
+    d_[6] = x6;
+    d_[7] = x7;
+    d_[8] = x8;
+    d_[9] = x9;
+    d_[10] = x10;
+    d_[11] = x11;
+    d_[12] = x12;
+    d_[13] = x13;
+    d_[14] = x14;
+    d_[15] = x15;
+  }
+
   double &operator () (const int row, const int col) {
     return d_[(row << 2) + col];
   }
