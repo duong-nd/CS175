@@ -116,7 +116,7 @@
       x_n = -\frac{3x_e}{3z_e}, y_n = -\frac{3y_e}{3z_e}, z_n = -\frac{3}{3z_e}
     \]
 
-    We see that the NDC's are the same in each case, and because these coordinates determine what is actually drawn, there is no effect on the scene.
+    We see that the NDC's are the same in each case, and because these are the coordinates that determine what is actually drawn, there is no effect on the scene.
 
     % The $S$ matrix above is just three times the identity matrix, so we're simply scaling $P$ by a constant. However, this has no effect on the scene. Why?
 
@@ -178,7 +178,7 @@
       x_n = -\frac{3x_e}{3z_e}, y_n = -\frac{3y_e}{3z_e}, z_n = -\frac{1}{3z_e}
     \]
 
-    We see that $x_n$ and $y_n$ have not changed, so the position of objects on screen will not change. However, $z_n$ has changed; dividing it by 3 has the effect of pushing everything into a smaller range within the (fixed) $z$-buffer range, so objects may appear to overlap/be drawn in the wrong order if they are close enough to be pushed together by smaller $z_n$.
+    We see that $x_n$ and $y_n$ have not changed, so the position of objects on screen will not change. However, $z_n$ has changed; dividing it by 3 has the effect of pushing everything into a smaller range within the (fixed) $z$-buffer range, so objects may appear to overlap/be drawn in the wrong order if their $z_n$ values are close enough to be ``pushed together'' by scaling $z_n$.
 
     % Before we go through explanation of this, let's first recall the generalized depth-sensitive model for transforming to eye-coordinates. This is given by:
     % \ea{
@@ -263,7 +263,7 @@
     x_n = -3\frac{x_e}{z_e}, y_n = -3\frac{y_e}{z_e}, z_n = -\frac{1}{z_e}
   \]
 
-  We see that $x_n$ and $y_n$ have been multiplied by 3, and $z_n$ has not changed. This has the effect of zooming in the scene by a factor of 3.
+  We see that $x_n$ and $y_n$ have been multiplied by 3, and $z_n$ has not changed. This has the effect of zooming in toward the center of the scene by a factor of 3.
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 5 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problemn{5 (Ex. 12.3)}
