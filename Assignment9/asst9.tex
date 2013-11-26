@@ -391,7 +391,121 @@
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 7 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problemn{7}
+    We want to interpolate $v$, where
+    \[
+      v =
+        \begin{pmatrix}
+          a & b & c
+        \end{pmatrix}
+        \begin{pmatrix}
+          x_n \\
+          y_n \\
+          1
+        \end{pmatrix}
+    \]
 
-  \todo
+    We will use the fact that
+    \ea{
+      \begin{pmatrix}
+        x_nw_n \\
+        y_nw_n \\
+        w_n
+      \end{pmatrix}
+      &=& P'
+      \begin{pmatrix}
+        x_e \\
+        y_e \\
+        z_e \\
+        1
+      \end{pmatrix} \\
+      \eaimplies \\
+      w_n
+      \begin{pmatrix}
+        x_n \\
+        y_n \\
+        1
+      \end{pmatrix}
+      &=& P'
+      \begin{pmatrix}
+        x_e \\
+        y_e \\
+        z_e \\
+        1
+      \end{pmatrix}
+    }
 
+    Now, we want to utilize a trick similar to the one in the book that allowed us to rewrite $v$ as a column vector of itself and 1. For appropriate values of $d$, $e$, and $f$, this is immediate:
+    \ea{
+      \begin{pmatrix}
+        v \\
+        1
+      \end{pmatrix}
+      &=&
+      \begin{pmatrix}
+        a & b & c \\
+        d & e & f
+      \end{pmatrix}
+      \begin{pmatrix}
+        x_n \\
+        y_n \\
+        1
+      \end{pmatrix} \\
+      \eaimplies \\
+      w_n
+      \begin{pmatrix}
+        v \\
+        1
+      \end{pmatrix}
+      &=&
+      \begin{pmatrix}
+        a & b & c \\
+        d & e & f
+      \end{pmatrix}
+      w_n
+      \begin{pmatrix}
+        x_n \\
+        y_n \\
+        1
+      \end{pmatrix}
+    }
+    I've written these terms with $w_n$ multiplied on both sides, because it will allow us to translate from normalized device coordinates to eye coordinates. We can use the conclusion that we made in the first part of this problem to rewrite this as:
+    \ea{
+      \begin{pmatrix}
+        vw_n \\
+        w_n
+      \end{pmatrix}
+      &=&
+      \begin{pmatrix}
+        a & b & c \\
+        d & e & f
+      \end{pmatrix}
+      P'
+      \begin{pmatrix}
+        x_e \\
+        y_e \\
+        z_e \\
+        1
+      \end{pmatrix}
+    }
+    Now, we can transform a little more to find $v$. Dividing by $w_n$ will leave us with
+    \ea{
+      \begin{pmatrix}
+        v \\
+        1
+      \end{pmatrix}
+      &=&
+      \begin{pmatrix}
+        a & b & c \\
+        d & e & f
+      \end{pmatrix}
+      P'
+      \begin{pmatrix}
+        x_e \\
+        y_e \\
+        z_e \\
+        1
+      \end{pmatrix}
+      \frac{1}{w_n},
+    }
+    and now we can interpolate with respect to the eye coordinate $x_e, y_e, z_e$ to evaluate $v$.
 \end{document}
