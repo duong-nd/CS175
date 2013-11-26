@@ -420,9 +420,116 @@
 
   So the pixel center closest to the query point, in the domain of the canonical unit square, is at $[0.450195, 0.629883]^t$.
 
+  \pagebreak
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 7 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problemn{7}
 
-  \todo
+  Given the following,
+  \[
+    v =
+    \begin{pmatrix}
+      a & b & c
+    \end{pmatrix}
+    \begin{pmatrix}
+      x_n \\
+      y_n \\
+      1
+    \end{pmatrix}
+  \]
+  \[
+    \begin{pmatrix}
+      w_n x_n \\
+      w_n y_n \\
+      w_n
+    \end{pmatrix}
+    =
+    w_n
+    \begin{pmatrix}
+      x_n \\
+      y_n \\
+      1
+    \end{pmatrix}
+    =
+    P^\prime
+    \begin{pmatrix}
+      x_e \\
+      y_e \\
+      z_e \\
+      1
+    \end{pmatrix}
+  \]
+  \[
+    1 =
+    \begin{pmatrix}
+      d & e & f
+    \end{pmatrix}
+    \begin{pmatrix}
+      x_n \\
+      y_n \\
+      1
+    \end{pmatrix}
+  \]
+  we wish to interpolate $v$, which is affine w.r.t. NDC's but not eye coordinates, with respect to eye coordinates. Using the constant 1 function, we see that
+  \[
+    w_n
+    \begin{pmatrix}
+      v \\
+      1
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+      a & b & c \\
+      d & e & f
+    \end{pmatrix}
+    \begin{pmatrix}
+      x_n \\
+      y_n \\
+      1
+    \end{pmatrix}
+    w_n
+  \]
+
+  Substituting in from the relationship between NDC's and eye coordinates,
+  \[
+    w_n
+    \begin{pmatrix}
+      v \\
+      1
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+      a & b & c \\
+      d & e & f
+    \end{pmatrix}
+    P^\prime
+    \begin{pmatrix}
+      x_e \\
+      y_e \\
+      z_e \\
+      1
+    \end{pmatrix}
+  \]
+  and dividing through by $w_n$,
+  \[
+    \begin{pmatrix}
+      v \\
+      1
+    \end{pmatrix}
+    =
+    \frac{1}{w_n}
+    \begin{pmatrix}
+      a & b & c \\
+      d & e & f
+    \end{pmatrix}
+    P^\prime
+    \begin{pmatrix}
+      x_e \\
+      y_e \\
+      z_e \\
+      1
+    \end{pmatrix}
+  \]
+
+  We can now compute the value of $v$ using eye coordinates, so we can therefore interpolate it w.r.t. eye coordinates.
 
 \end{document}
