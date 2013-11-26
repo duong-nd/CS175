@@ -27,7 +27,7 @@
   \problemn{2 (Ex. 11.3)}
     For problems 2, 3, and 4, we use the simplified projection matrix specified in the assignment.
 
-    Let's calculate our screen-space coordinates $x_n$, $y_n$, and $z_n$ for each case. First, the case with just the projection matrix $P$:
+    Let's calculate our NDC's $x_n$, $y_n$, and $z_n$ for each case. First, the case with just the projection matrix $P$:
     \ea{
       P
       \begin{pmatrix}
@@ -62,7 +62,7 @@
       x_n = -\frac{x_e}{z_e}, y_n = -\frac{y_e}{z_e}, z_n = -\frac{1}{z_e}
     \]
 
-    Now we compute the screen-space coordinates again, this time replacing $P$ with $PS$:
+    Now we compute the NDC's again, this time replacing $P$ with $PS$:
     \ea{
       PS
       \begin{pmatrix}
@@ -116,7 +116,7 @@
       x_n = -\frac{3x_e}{3z_e}, y_n = -\frac{3y_e}{3z_e}, z_n = -\frac{3}{3z_e}
     \]
 
-    We see that the screen-space coordinates are the same in each case, and because these coordinates determine what is actually drawn, there is no effect on the scene.
+    We see that the NDC's are the same in each case, and because these coordinates determine what is actually drawn, there is no effect on the scene.
 
     % The $S$ matrix above is just three times the identity matrix, so we're simply scaling $P$ by a constant. However, this has no effect on the scene. Why?
 
@@ -125,7 +125,7 @@
   \pagebreak
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 3 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problemn{3 (Ex. 11.2)}
-    In problem 2 we already computed the screen-space coordinates for the case with just $P$, so we only need to compute the case in which we replace $P$ with $PQ$:
+    In problem 2 we already computed the NDC's for the case with just $P$, so we only need to compute the case in which we replace $P$ with $PQ$:
     \ea{
       PQ
       \begin{pmatrix}
