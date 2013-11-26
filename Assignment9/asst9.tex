@@ -122,8 +122,8 @@
 
     % Consider what happens when we scale the projection matrix. The $x$ and $y$ dimensions of everything in the scene get scaled, making them appear bigger to our eye. However, since we are also scaling the $z$ dimension, this has the effect of proportionally ``pushing things back''. So even though they get bigger, they get proportionally farther away, and so they look the same. Since we're also scaling the near and far plane, the clipping distances get scaled as well, and so there is no change with where objects get clipped, either.
 
+  \pagebreak
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 3 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \newpage
   \problemn{3 (Ex. 11.2)}
     In problem 2 we already computed the screen-space coordinates for the case with just $P$, so we only need to compute the case in which we replace $P$ with $PQ$:
     \ea{
@@ -387,7 +387,38 @@
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 6 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problemn{6}
 
-  \todo
+  First we use a texture viewport matrix to convert our query point $[0.45, 0.63]^t$ into texture ``window'' coordinates within our $512 \times 512$ texture:
+
+  \[
+    \begin{pmatrix}
+      512 & 0 & 0 & -\frac{1}{2} \\
+      0 & 512 & 0 & -\frac{1}{2} \\
+      - & - & - & - \\
+      0 & 0 & 0 & 1
+    \end{pmatrix}
+    \begin{pmatrix}
+      0.45 \\
+      0.63 \\
+      - \\
+      1
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+      229.9 \\
+      322.06 \\
+      - \\
+      1
+    \end{pmatrix}
+  \]
+
+  These coordinates are closest to the pixel center at $[230, 322]^t$. Now we convert these integer-valued coordinates back to the domain of the canonical unit square by applying the inverse of the texture viewport matrix used above. But since it's a pretty simple matrix, it's faster to just do some quick math to achieve the same effect without having to do matrix inversion and multiplication:
+
+  \ea{
+    \frac{230 + \frac{1}{2}}{512} &=& 0.450195 \\
+    \frac{322 + \frac{1}{2}}{512} &=& 0.629883
+  }
+
+  So the pixel center closest to the query point, in the domain of the canonical unit square, is at $[0.450195, 0.629883]^t$.
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 7 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problemn{7}
