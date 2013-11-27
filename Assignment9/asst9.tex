@@ -22,14 +22,12 @@
 
     Meanwhile, this proportional growth rate is not maintained by answers \textbf{A} and \textbf{C}. In answer \textbf{A}, the rear face does not grow at all. In addition to this not being consistent, it begs the following question: \emph{what is happening on behind the rear face?} That is, if we had a third face that was behind the rear cube face, it's unclear what it would do... answer \textbf{A} may even imply that it would \emph{shrink}, which is clearly wrong. Answer \textbf{C} also doesn't make sense, because the back face grows faster than the front face. This doesn't make any sense; in addition to this not being consistent with proportionate growth, it begs the following question: \emph{what happens if we decreased the field of view even more?} If it were to continue with this trend, the rear face would grow larger the the front face... which doesn't make geometric sense at all.
 
-  %%%%%%%%%%%%%%%%%%%%%%%%% 2, 3, 4 %%%%%%%%%%%%%%%%%%%%%%%%%
-  \problemn{2, 3, \& 4}
-    For these problems, we used the simplified projection matrix specified in the assignment, since it was simpler to work with and would lead to the same result.
-
   \pagebreak
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 2 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problemn{2 (Ex. 11.3)}
-    Let's calculate our screen-space coordinates $x_n$, $y_n$, and $z_n$ for each case. First, the case with just the projection matrix $P$:
+    For problems 2, 3, and 4, we use the simplified projection matrix specified in the assignment.
+
+    Let's calculate our NDC's $x_n$, $y_n$, and $z_n$ for each case. First, the case with just the projection matrix $P$:
     \ea{
       P
       \begin{pmatrix}
@@ -64,7 +62,7 @@
       x_n = -\frac{x_e}{z_e}, y_n = -\frac{y_e}{z_e}, z_n = -\frac{1}{z_e}
     \]
 
-    Now we compute the screen-space coordinates again, this time replacing $P$ with $PS$:
+    Now we compute the NDC's again, this time replacing $P$ with $PS$:
     \ea{
       PS
       \begin{pmatrix}
@@ -118,16 +116,16 @@
       x_n = -\frac{3x_e}{3z_e}, y_n = -\frac{3y_e}{3z_e}, z_n = -\frac{3}{3z_e}
     \]
 
-    We see that the screen-space coordinates are the same in each case, and because these coordinates determine what is actually drawn, there is no effect on the scene.
+    We see that the NDC's are the same in each case, and because these are the coordinates that determine what is actually drawn, there is no effect on the scene.
 
     % The $S$ matrix above is just three times the identity matrix, so we're simply scaling $P$ by a constant. However, this has no effect on the scene. Why?
 
     % Consider what happens when we scale the projection matrix. The $x$ and $y$ dimensions of everything in the scene get scaled, making them appear bigger to our eye. However, since we are also scaling the $z$ dimension, this has the effect of proportionally ``pushing things back''. So even though they get bigger, they get proportionally farther away, and so they look the same. Since we're also scaling the near and far plane, the clipping distances get scaled as well, and so there is no change with where objects get clipped, either.
 
+  \pagebreak
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 3 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \newpage
   \problemn{3 (Ex. 11.2)}
-    In problem 2 we already computed the screen-space coordinates for the case with just $P$, so we only need to compute the case in which we replace $P$ with $PQ$:
+    In problem 2 we already computed the NDC's for the case with just $P$, so we only need to compute the case in which we replace $P$ with $PQ$:
     \ea{
       PQ
       \begin{pmatrix}
@@ -180,7 +178,7 @@
       x_n = -\frac{3x_e}{3z_e}, y_n = -\frac{3y_e}{3z_e}, z_n = -\frac{1}{3z_e}
     \]
 
-    We see that $x_n$ and $y_n$ have not changed, so the position of objects on screen will not change. However, $z_n$ has changed; dividing it by 3 has the effect of pushing everything into a smaller range within the (fixed) $z$-buffer range, so objects may appear to overlap/be drawn in the wrong order if they are close enough to be pushed together by smaller $z_n$.
+    We see that $x_n$ and $y_n$ have not changed, so the position of objects on screen will not change. However, $z_n$ has changed; dividing it by 3 has the effect of pushing everything into a smaller range within the (fixed) $z$-buffer range, so objects may appear to overlap/be drawn in the wrong order if their $z_n$ values are close enough to be ``pushed together'' by scaling $z_n$.
 
     % Before we go through explanation of this, let's first recall the generalized depth-sensitive model for transforming to eye-coordinates. This is given by:
     % \ea{
@@ -265,11 +263,13 @@
     x_n = -3\frac{x_e}{z_e}, y_n = -3\frac{y_e}{z_e}, z_n = -\frac{1}{z_e}
   \]
 
-  We see that $x_n$ and $y_n$ have been multiplied by 3, and $z_n$ has not changed. This has the effect of zooming in the scene by a factor of 3.
+  We see that $x_n$ and $y_n$ have been multiplied by 3, and $z_n$ has not changed. This has the effect of zooming in toward the center of the scene by a factor of 3.
 
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 5 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problemn{5 (Ex. 12.3)}
-    \ealn{QV}{
+    \ea{
+      QV
+      &=&
       \begin{pmatrix}
         3 & 0 & 0 & 0 \\
         0 & 3 & 0 & 0 \\
@@ -303,14 +303,14 @@
       z_n \\
       1
     \end{pmatrix}$.
-    \ealn{
+    \ea{
       V \begin{pmatrix}
         x_n \\
         y_n \\
         z_n \\
         1
       \end{pmatrix}
-    }{
+      &=&
       \begin{pmatrix}
         \frac{W}{2} & 0 & 0 & \frac{W-1}{2} \\
         0 & \frac{H}{2} & 0 & \frac{H-1}{2} \\
@@ -330,14 +330,14 @@
         1
       \end{pmatrix}
     }
-    \ealn{
+    \ea{
       QV \begin{pmatrix}
         x_n \\
         y_n \\
         z_n \\
         1
       \end{pmatrix}
-    }{
+      &=&
       \begin{pmatrix}
         \frac{3 W}{2} & 0 & 0 & \frac{3 (W-1)}{2} \\
         0 & \frac{3 H}{2} & 0 & \frac{3 (H-1)}{2} \\
@@ -387,8 +387,40 @@
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 6 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problemn{6}
 
-  \todo
+  First we use a texture viewport matrix to convert our query point $[0.45, 0.63]^t$ into texture ``window'' coordinates within our $512 \times 512$ texture:
 
+  \[
+    \begin{pmatrix}
+      512 & 0 & 0 & -\frac{1}{2} \\
+      0 & 512 & 0 & -\frac{1}{2} \\
+      - & - & - & - \\
+      0 & 0 & 0 & 1
+    \end{pmatrix}
+    \begin{pmatrix}
+      0.45 \\
+      0.63 \\
+      - \\
+      1
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+      229.9 \\
+      322.06 \\
+      - \\
+      1
+    \end{pmatrix}
+  \]
+
+  These coordinates are closest to the pixel center at $[230, 322]^t$. Now we convert these integer-valued coordinates back to the domain of the canonical unit square by applying the inverse of the texture viewport matrix used above. But since it's a pretty simple matrix, it's faster to just do some quick math to achieve the same effect without having to do matrix inversion and multiplication:
+
+  \ea{
+    \frac{230 + \frac{1}{2}}{512} &=& 0.450195 \\
+    \frac{322 + \frac{1}{2}}{512} &=& 0.629883
+  }
+
+  So the pixel center closest to the query point, in the domain of the canonical unit square, is at $[0.450195, 0.629883]^t$.
+
+  \pagebreak
   %%%%%%%%%%%%%%%%%%%%%%%%%%%% 7 %%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \problemn{7}
     We want to interpolate $v$, where
@@ -404,108 +436,218 @@
         \end{pmatrix}
     \]
 
-    We will use the fact that
-    \ea{
-      \begin{pmatrix}
-        x_nw_n \\
-        y_nw_n \\
-        w_n
-      \end{pmatrix}
-      &=& P'
-      \begin{pmatrix}
-        x_e \\
-        y_e \\
-        z_e \\
-        1
-      \end{pmatrix} \\
-      \eaimplies \\
+% <<<<<<< HEAD
+    % We will use the fact that
+    % \ea{
+    %   \begin{pmatrix}
+    %     x_nw_n \\
+    %     y_nw_n \\
+    %     w_n
+    %   \end{pmatrix}
+    %   &=& P'
+    %   \begin{pmatrix}
+    %     x_e \\
+    %     y_e \\
+    %     z_e \\
+    %     1
+    %   \end{pmatrix} \\
+    %   \eaimplies \\
+    %   w_n
+    %   \begin{pmatrix}
+    %     x_n \\
+    %     y_n \\
+    %     1
+    %   \end{pmatrix}
+    %   &=& P'
+    %   \begin{pmatrix}
+    %     x_e \\
+    %     y_e \\
+    %     z_e \\
+    %     1
+    %   \end{pmatrix}
+    % }
+% =======
+  Given the following,
+  \[
+    v =
+    \begin{pmatrix}
+      a & b & c
+    \end{pmatrix}
+    \begin{pmatrix}
+      x_n \\
+      y_n \\
+      1
+    \end{pmatrix}
+  \]
+  \[
+    \begin{pmatrix}
+      w_n x_n \\
+      w_n y_n \\
       w_n
-      \begin{pmatrix}
-        x_n \\
-        y_n \\
-        1
-      \end{pmatrix}
-      &=& P'
-      \begin{pmatrix}
-        x_e \\
-        y_e \\
-        z_e \\
-        1
-      \end{pmatrix}
-    }
+    \end{pmatrix}
+    =
+    w_n
+    \begin{pmatrix}
+      x_n \\
+      y_n \\
+      1
+    \end{pmatrix}
+    =
+    P^\prime
+    \begin{pmatrix}
+      x_e \\
+      y_e \\
+      z_e \\
+      1
+    \end{pmatrix}
+  \]
+  \[
+    1 =
+    \begin{pmatrix}
+      d & e & f
+    \end{pmatrix}
+    \begin{pmatrix}
+      x_n \\
+      y_n \\
+      1
+    \end{pmatrix}
+  \]
+  we wish to interpolate $v$, which is affine w.r.t. NDC's but not eye coordinates, with respect to eye coordinates. Using the constant 1 function, we see that
+  \[
+    w_n
+    \begin{pmatrix}
+      v \\
+      1
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+      a & b & c \\
+      d & e & f
+    \end{pmatrix}
+    \begin{pmatrix}
+      x_n \\
+      y_n \\
+      1
+    \end{pmatrix}
+    w_n
+  \]
 
-    Now, we want to utilize a trick similar to the one in the book that allowed us to rewrite $v$ as a column vector of itself and 1. For appropriate values of $d$, $e$, and $f$, this is immediate:
-    \ea{
-      \begin{pmatrix}
-        v \\
-        1
-      \end{pmatrix}
-      &=&
-      \begin{pmatrix}
-        a & b & c \\
-        d & e & f
-      \end{pmatrix}
-      \begin{pmatrix}
-        x_n \\
-        y_n \\
-        1
-      \end{pmatrix} \\
-      \eaimplies \\
-      w_n
-      \begin{pmatrix}
-        v \\
-        1
-      \end{pmatrix}
-      &=&
-      \begin{pmatrix}
-        a & b & c \\
-        d & e & f
-      \end{pmatrix}
-      w_n
-      \begin{pmatrix}
-        x_n \\
-        y_n \\
-        1
-      \end{pmatrix}
-    }
-    I've written these terms with $w_n$ multiplied on both sides, because it will allow us to translate from normalized device coordinates to eye coordinates. We can use the conclusion that we made in the first part of this problem to rewrite this as:
-    \ea{
-      \begin{pmatrix}
-        vw_n \\
-        w_n
-      \end{pmatrix}
-      &=&
-      \begin{pmatrix}
-        a & b & c \\
-        d & e & f
-      \end{pmatrix}
-      P'
-      \begin{pmatrix}
-        x_e \\
-        y_e \\
-        z_e \\
-        1
-      \end{pmatrix}
-    }
-    Now, we can transform a little more to find $v$. Dividing by $w_n$ will leave us with
-    \ea{
-      \begin{pmatrix}
-        v \\
-        1
-      \end{pmatrix}
-      &=&
-      \begin{pmatrix}
-        a & b & c \\
-        d & e & f
-      \end{pmatrix}
-      P'
-      \begin{pmatrix}
-        x_e \\
-        y_e \\
-        z_e \\
-        1
-      \end{pmatrix}
-      \frac{1}{w_n},
-    }
-    and now we can interpolate with respect to the eye coordinate $x_e, y_e, z_e$ to evaluate $v$.
+  Substituting in from the relationship between NDC's and eye coordinates,
+  \[
+    w_n
+    \begin{pmatrix}
+      v \\
+      1
+    \end{pmatrix}
+    =
+    \begin{pmatrix}
+      a & b & c \\
+      d & e & f
+    \end{pmatrix}
+    P^\prime
+    \begin{pmatrix}
+      x_e \\
+      y_e \\
+      z_e \\
+      1
+    \end{pmatrix}
+  \]
+  and dividing through by $w_n$,
+  \[
+    \begin{pmatrix}
+      v \\
+      1
+    \end{pmatrix}
+    =
+    \frac{1}{w_n}
+    \begin{pmatrix}
+      a & b & c \\
+      d & e & f
+    \end{pmatrix}
+    P^\prime
+    \begin{pmatrix}
+      x_e \\
+      y_e \\
+      z_e \\
+      1
+    \end{pmatrix}
+  \]
+
+  We can now compute the value of $v$ using eye coordinates, so we can therefore interpolate it w.r.t. eye coordinates.
+% >>>>>>> 74c6350f118cba694aa8aa114c95e38267d01cce
+
+    % Now, we want to utilize a trick similar to the one in the book that allowed us to rewrite $v$ as a column vector of itself and 1. For appropriate values of $d$, $e$, and $f$, this is immediate:
+    % \ea{
+    %   \begin{pmatrix}
+    %     v \\
+    %     1
+    %   \end{pmatrix}
+    %   &=&
+    %   \begin{pmatrix}
+    %     a & b & c \\
+    %     d & e & f
+    %   \end{pmatrix}
+    %   \begin{pmatrix}
+    %     x_n \\
+    %     y_n \\
+    %     1
+    %   \end{pmatrix} \\
+    %   \eaimplies \\
+    %   w_n
+    %   \begin{pmatrix}
+    %     v \\
+    %     1
+    %   \end{pmatrix}
+    %   &=&
+    %   \begin{pmatrix}
+    %     a & b & c \\
+    %     d & e & f
+    %   \end{pmatrix}
+    %   w_n
+    %   \begin{pmatrix}
+    %     x_n \\
+    %     y_n \\
+    %     1
+    %   \end{pmatrix}
+    % }
+    % I've written these terms with $w_n$ multiplied on both sides, because it will allow us to translate from normalized device coordinates to eye coordinates. We can use the conclusion that we made in the first part of this problem to rewrite this as:
+    % \ea{
+    %   \begin{pmatrix}
+    %     vw_n \\
+    %     w_n
+    %   \end{pmatrix}
+    %   &=&
+    %   \begin{pmatrix}
+    %     a & b & c \\
+    %     d & e & f
+    %   \end{pmatrix}
+    %   P'
+    %   \begin{pmatrix}
+    %     x_e \\
+    %     y_e \\
+    %     z_e \\
+    %     1
+    %   \end{pmatrix}
+    % }
+    % Now, we can transform a little more to find $v$. Dividing by $w_n$ will leave us with
+    % \ea{
+    %   \begin{pmatrix}
+    %     v \\
+    %     1
+    %   \end{pmatrix}
+    %   &=&
+    %   \begin{pmatrix}
+    %     a & b & c \\
+    %     d & e & f
+    %   \end{pmatrix}
+    %   P'
+    %   \begin{pmatrix}
+    %     x_e \\
+    %     y_e \\
+    %     z_e \\
+    %     1
+    %   \end{pmatrix}
+    %   \frac{1}{w_n},
+    % }
+    % and now we can interpolate with respect to the eye coordinate $x_e, y_e, z_e$ to evaluate $v$.
 \end{document}
