@@ -42,7 +42,7 @@ RenderStates& RenderStates::polygonMode(GLenum face, GLenum mode) {
 }
 
 RenderStates& RenderStates::blendFunc(GLenum sfactor, GLenum dfactor) {
-  // do in future: should check if sfactor and dfactor are valid enums
+  // future TODO: should check if sfactor and dfactor are valid enums
   glBlendSrcFactor = sfactor;
   glBlendDstFactor = dfactor;
   return *this;

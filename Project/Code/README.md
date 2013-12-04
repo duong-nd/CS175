@@ -1,8 +1,8 @@
 Computer Science 175
 ====================
-Assignment 8
+Assignment 7
 ------------
-This README was written using Markdown syntax -- consider using a Markdown viewer like [Dillinger](http://dillinger.io/) for a more pleasurable viewing experience!
+This README was written using Markdown syntax -- consider using a Markdown viewer like [Dillinger](http://dillinger.io/) for a more pleasureable viewing experience!
 
 ### Authors ###
 - Michael Tingley, < michaeltingley@college.harvard.edu >
@@ -12,14 +12,11 @@ This README was written using Markdown syntax -- consider using a Markdown viewe
 * headers/
   * arcball.h: (as provided)
   * asstcommon.h: (as provided)
-  * bunny.h: Our custom-baked bunny header file that contains most of the interesting bunny calculations used in this assignment.
   * cvec.h: (as provided)
-  * debug.h: Introduced to print Cvec3s and RigTForms. This isn't used anywhere in production code, but we left it here since it may prove useful in the final project.
   * drawer.h: (as provided)
   * frame.h: (as provided)
   * geometry.h: (as provided)
   * geometrymaker.h: (as provided)
-  * global.h: Contains the global definition for the world. We introduced this so that we could use `g_world` in the bunny header file.
   * glsupport.h: (as provided)
   * material.h: (as provided)
   * matrix4.h: (as provided)
@@ -28,18 +25,15 @@ This README was written using Markdown syntax -- consider using a Markdown viewe
   * ppm.h: (as provided)
   * quat.h: (as provided)
   * renderstates.h: (as provided)
-  * rigtform.h: Expaned to also allow for multiplication with Cvec3s.
+  * rigtform.h: (as provided)
   * scenegraph.h: (as provided)
   * script.h: (as provided)
   * sgutils.h: (as provided)
   * texture.h: (as provided)
   * uniforms.h: (as provided)
   * utils.h: (as provided)
-* shaders/
+* shaders/: (as provided)
   * basic-gl2.vshader: (as provided)
-  * bunny-gl2.fshader: (as provided)
-  * bunny-shell-gl2.fshader: (as provided)
-  * bunny-shell-gl2.vshader: (as provided)
   * diffuse-gl2.fshader: (as provided)
   * normal-gl2.fshader: (as provided)
   * normal-gl2.vshader: (as provided)
@@ -52,8 +46,7 @@ This README was written using Markdown syntax -- consider using a Markdown viewe
 * LICENSE: (as provided)
 * Makefile: Slightly modified the Makefile so that it produces an output file called `asst` rather than `asst<assignment number>`.
 * README.md: This file, in Markdown format.
-* asst.cpp: The main C++ file, now with a furry bunny.
-* bunny.mesh: (as provided)
+* asst.cpp: The main C++ file, now with subdivision surfacing.
 * cube.mesh: (as provided)
 * geometry.cpp: (as provided)
 * glsupport.cpp: (as provided)
@@ -63,7 +56,6 @@ This README was written using Markdown syntax -- consider using a Markdown viewe
 * ppm.cpp: (as provided)
 * renderstates.cpp: (as provided)
 * scenegraph.cpp: (as provided)
-* shell.ppm: (as provided)
 * texture.cpp: (as provided)
 
 ### Platform ###
@@ -76,57 +68,30 @@ Simply run the command `make all; ./asst` to compile and run the code.
 We met all problem set requirements. We compared our result against the solution binary and it behaves in the the same way.
 
 ### Code Design ###
-Most of the interesting code was implemented in `bunny.h`. We did a few initialization things in `asst.cpp`, including:
-* Initializing the bunny geometry and vertices
-* Initializing the bunny physics
-* Initializing the bunny simulation
-* Initializing the bunny scene graph node
-* Initializing the bunny material
+We maintain two meshes in global variables. One mesh is the original mesh, and the other mesh is our temporary mesh, which gets updated with subdividing, oscillating vertices, etc.
 
-The rest was done in `bunny.h`. This file contains all of our configurable global constants related to the bunny simulation. The design is centered around these functions, so I'll describe the program design in terms of what these functions do.
+** Task 1. ** We created a new method, `initSubdivisionSurface`. This is called like the other init methods, but simply reads in the provided mesh file into a global variable. It then parses through the vertices of the quads and turns them into triangles. We construct the triangles using the first point and every other two sequential points. For instance, if we had a pentagon, we would break this into triangles using vertex groupings: {1, 2, 3}, {1, 3, 4}, and {1, 4, 5}. We assign them appropriate normals, based on whether we're using specular shading or not, and upload them into the geometry, which is also a global variable.
 
-** getAtRestTipPosition. **  Computes the value of __s__ as defined in the problem set.
+We also added a new `SgRbtNode` to the scene graph, and a shape node child constructed from the geometry in order to have the cube rendered in the world.
 
-** initializeBunnyPhysics. **  Sets the initialization values for `g_tipPos` and `g_tipVelocity`. Nothing too special going on here.
+** Task 2. ** Smooth shading was accomplished by taking an average of all of the face vertices surrounding a given vertex. We do this using a `vertexIterator`. All of this is done before uploading the vertices to the geometry.
 
-** computeHairVertex. **  Computes the hair tip vertex for the <i>i</i>th layer for a given bunny surface vertex.
+** Task 3. ** We did this in the same manner as the animation assignment. We computed the new vertex values by taking the original mesh template, and adding a small sinusoidal scaling factor to each vertex, which had offsets so that they were visually out of phase. The exact sinusoidal offset can be seen in the code. Every time the cube is drawn, we upload the new vertex values to the geometry.
 
-** getBunnyShellGeometryVertices. **  Returns a vector of the `VertexPNX`s used for the <i>layer</i>th shell in the bunny.
+** Task 4. ** Subdivision was fairly straightforward. We made a large number of functions that handled the recursive nature of the tasks at hand. We have a 'toplevel' function that handles the subdivision of mesh, called `applySubdivision`. This calls the three sub-routines, called `applyFaceSubdivisions`, `applyEdgeSubdivisions`, and `applyVertexSubdivisions`. Each one of these iterates through the appropriate pieces of the mesh and iteratively call, respectively, `getFaceSubdivisionVertex`, `getEdgeSubdivisionVertex`, and `getVertexSubdivisionVertex`. These methods are responsible for directly carrying out the math needed to update the appropriate face vertex, edge vertex, or vertex vertex. The math can be seen in more detail in the code.
 
-** updateHairCalculation. **  Performs the animation simulation for the tip associated with the provided vertex in the bunny shell.
-
-** updateHairs. **  Repeatedly calls `updateHairCalculation` in order to update all of the hair tips on for the bunny.
-
-** hairsSimulationCallback. **  Main animation loop for the bunny simulation. Calls `updateHairs` a number `g_numStepsPerFrame` of times per frame in order to simulate the physics acting on the hairs.
-
-** prepareBunnyForRendering. **  Called before the bunny is rendered. From the simulated tip computations, this computes the actual vertex locations of each shell and uploads them into the appropriate entry in `g_bunnyShellGeometries`.
-
+Implementing the keyboard callback was very simple. To turn on or off smooth shading, we simply either upload the face normals or the average face normals to the geometry when rendering the subdivision surface. In order to change the number of subdivision surfaces, we change the number of times that we recursively divide the surface. To change the speed, we simply change the amount of 'time' that we jump forward after each iteration of the timer loop.
 
 ### Testing ###
-Testing for this assignment was straightforward.
+Testing for this assignment was very straightforward.
 
-** Bunny. **  Is there a bunny being rendered? Check.
+We tested spcular shading by turning off and on smooth shading and observing changes in the rendering surface. Smooth should not be able to see corners.
 
-** Bunny transforms. **  Can the bunny be picked, rotated, and translated correctly, and is it smooth? Check.
+We tested oscillating vertices by observation. They should oscillate at different speeds and out-of-phase. We tried changing the speed to very slow and very fast to ensure that everything still worked correctly.
 
-** Furry. **  Does the bunny have fur? Check.
+To test subdivision surfaces, we tried changing the number of subdivisions and ensuring that our solution looked like the solution binary's. We tried changing the number of subdivision surfaces to a very high amount to ensure that everything slowed down a lot. Indeed it did :) We also made sure that you coldn't subdivide less than zero.
 
-** Curvy fur. **  Does the bunny have curvy fur when stationary? Check.
-
-** Animated fur. **  Does the bunny's fur move in a realistic fashion when subjected to the following interactions:
-* Bunny is slowly rotated? Check.
-* Bunny is vigorously rotated? Check.
-* Bunny is slowly translated? Check.
-* Bunny is vigorously translated? Check.
-* Bunny is gently caressed? Unfortunately, we were unable to check this one.
-
-** Normals. **  It's important to check that the fur normals are displayed correctly. It's difficult to test this programmatically. The only way that we could test this was to compare the visual reflection properties of the bunny in our implementation to those in the official solution. They appear to be the same, very very shiny.
-
-** Responds to keyboard. **  We ensured that the bunny did the following:
-* When the right arrow key is pressed, the fur grows longer.
-* When the left arrow key is pressed, the fur grows shorter.
-* When the up arrow key is pressed, the bunny becomes hairier.
-* When the down arrow key is pressed, the bunny becomes less hairy.
+We also tried pickign different objects, and rotating and translating the subdivision surface to ensure that everything behaved as expected and that the animation was not stopped prematurely.
 
 ### Above and Beyond ###
 We did not implement anything above and beyond the assignment.
