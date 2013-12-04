@@ -90,7 +90,9 @@ static shared_ptr<Material> g_redDiffuseMat,
                             g_arcballMat,
                             g_pickingMat,
                             g_lightMat,
-                            g_specularMat;
+                            g_specularMat,
+                            g_holyWaterMat,
+                            g_waterMat;
 
 shared_ptr<Material> g_overridingMaterial;
 
@@ -1046,6 +1048,15 @@ static void initMaterials() {
   g_arcballMat->getUniforms().put("uColor", Cvec3f(0.27f, 0.82f, 0.35f));
   g_arcballMat->getRenderStates().polygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
+  /* copy solid prototype, and set to wireframed rendering */
+  g_holyWaterMat.reset(new Material(solid));
+  g_holyWaterMat->getUniforms().put("uColor", Cvec3f(0.27f, 0.35f, 0.82f));
+  g_holyWaterMat->getRenderStates().polygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+  /* copy solid prototype, and set to wireframed rendering */
+  g_waterMat.reset(new Material(solid));
+  g_waterMat->getUniforms().put("uColor", Cvec3f(0.27f, 0.35f, 0.82f));
+
   /* copy solid prototype, and set to color white */
   g_lightMat.reset(new Material(solid));
   g_lightMat->getUniforms().put("uColor", Cvec3f(1, 1, 1));
@@ -1180,7 +1191,7 @@ static void initScene() {
 
   g_waterNode.reset(new SgRbtNode(RigTForm()));
   g_waterNode->addChild(shared_ptr<MyShapeNode>(
-                           new MyShapeNode(g_waterGeometry, g_arcballMat, Cvec3(0, 0, 0))));
+                           new MyShapeNode(g_waterGeometry, g_holyWaterMat, Cvec3(0, 0, 0))));
 
   g_world->addChild(g_skyNode);
   g_world->addChild(g_groundNode);
