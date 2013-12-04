@@ -21,3 +21,4 @@ static vector<VertexPN> getWaterGeometryVertices(Mesh &mesh);
 
 
 #endif
+WHATCHA GONNA DO ABOUT IT MOTHERDUCKTYPER?
