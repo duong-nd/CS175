@@ -243,7 +243,7 @@ static vector<VertexPN> getGeometryVertices(Mesh &mesh) {
   vector<VertexPN> vs;
   for (int i = 0; i < mesh.getNumFaces(); i++) {
     Mesh::Face f = mesh.getFace(i);
-    
+
     Cvec3 normals[3];
     for (int j = 1; j < f.getNumVertices() - 1; j++) {
       if (g_useSmoothShading) {

@@ -9,16 +9,22 @@
 
 using namespace std;
 
-// CONSTANTS ///////////////////////////////////////////////////////////////////
+/** CONSTANTS *****************************************************************/
 /** The filename for the file containing the subdivision surface. */
 static const string g_waterMesh = "watery_hell.mesh";
 
 
-// FUNCTION PROTOTYPES /////////////////////////////////////////////////////////
+/** FUNCTION PROTOTYPES *******************************************************/
 static vector<VertexPN> getWaterGeometryVertices(Mesh &mesh);
 
-// FUNCTIONS ///////////////////////////////////////////////////////////////////
+/** FUNCTIONS *****************************************************************/
 
+/**
+ * Initializes the water
+ */
+static void initWater() {
+
+}
 
 #endif
 WHATCHA GONNA DO ABOUT IT MOTHERDUCKTYPER?
