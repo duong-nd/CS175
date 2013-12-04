@@ -45,7 +45,6 @@
 
 #include "headers/mesh.h"
 
-#include "headers/bunny.h"
 #include "headers/water.h"
 
 #define ESCAPE_KEY 27
@@ -91,10 +90,7 @@ static shared_ptr<Material> g_redDiffuseMat,
                             g_arcballMat,
                             g_pickingMat,
                             g_lightMat,
-                            g_specularMat,
-                            g_bunnyMat;
-
-static vector<shared_ptr<Material> > g_bunnyShellMats;
+                            g_specularMat;
 
 shared_ptr<Material> g_overridingMaterial;
 
@@ -118,8 +114,10 @@ static shared_ptr<SgRbtNode> g_meshNode;
 static shared_ptr<SgRbtNode> g_light1Node, g_light2Node;
 static shared_ptr<SgRbtNode> g_currentPickedRbtNode;
 
-/* Bunny! */
-static shared_ptr<SimpleGeometryPN> g_bunnyGeometry;
+/* Water */
+static shared_ptr<SimpleGeometryPN> g_waterGeometry;
+static Mesh g_waterMesh;
+static shared_ptr<SgRbtNode> g_waterNode;
 
 /** SCENE */
 static const int g_numObjects = 2;
@@ -177,6 +175,9 @@ static int g_lastAnimatedFrame = -1;
 
 /** The filename for the file containing the subdivision surface. */
 static const string g_subdivisionSurfaceFilename = "cube.mesh";
+
+/** The filename for the file containing the water plane mesh */
+static const string g_waterMeshFilename = "plane.mesh";
 
 /** METHOD PROTOTYPES *********************************************************/
 static void enablePickingMode();
@@ -398,26 +399,15 @@ static void initSubdivisionSurface() {
   animateSubdivisionSurfaceCallback(0);
 }
 
+static void initWater() {
+  g_waterMesh = Mesh();
+  g_waterMesh.load(g_waterMeshFilename.c_str());
+  // updateMeshNormals(g_waterMesh);
 
-static void initBunny() {
-  g_bunnyMesh.load("bunny.mesh");
-  updateMeshNormals(g_bunnyMesh);
-  initializeBunnyPhysics(g_bunnyMesh);
+  vector<VertexPN> verticies = getGeometryVertices(g_waterMesh, g_useSmoothShading);
 
-  vector<VertexPN> verticies = getGeometryVertices(g_bunnyMesh, true);
-
-  g_bunnyGeometry.reset(new SimpleGeometryPN());
-  g_bunnyGeometry->upload(&verticies[0], verticies.size());
-
-  /* Now allocate array of SimpleGeometryPNX to for shells, one per layer */
-  g_bunnyShellGeometries.resize(g_numShells);
-  for (int i = 0; i < g_numShells; ++i) {
-    /* We do not yet upload the hair verticies. This is because we need to use
-       the bunny's scene graph node, which is not yet available. This is okay
-       though, since the bunny's fur is redrawn in an animation loop and so we
-       will not notice if the bunny is initialized furless. */
-    g_bunnyShellGeometries[i].reset(new SimpleGeometryPNX());
-  }
+  g_waterGeometry.reset(new SimpleGeometryPN());
+  g_waterGeometry->upload(&verticies[0], verticies.size());
 }
 
 static void initSphere() {
@@ -525,9 +515,6 @@ static void drawStuff(bool picking) {
   /* Get light positions in eye coordinates, and hand them to uniforms */
   uniforms.put("uLight", Cvec3(invEyeRbt * Cvec4(light1, 1)));
   uniforms.put("uLight2", Cvec3(invEyeRbt * Cvec4(light2, 1)));
-
-  /* Force the bunny to update its shell to reflect latest shell calculations */
-  prepareBunnyForRendering();
 
   if (!picking) {
     Drawer drawer(invEyeRbt, uniforms);
@@ -990,20 +977,8 @@ static void keyboard(const unsigned char key, const int x, const int y) {
 static void specialKeyboard(const int key, const int x, const int y) {
   switch (key) {
     case GLUT_KEY_RIGHT:
-      g_furHeight *= 1.05;
-      cerr << "fur height = " << g_furHeight << std::endl;
       break;
     case GLUT_KEY_LEFT:
-      g_furHeight /= 1.05;
-      std::cerr << "fur height = " << g_furHeight << std::endl;
-      break;
-    case GLUT_KEY_UP:
-      g_hairiness *= 1.05;
-      cerr << "hairiness = " << g_hairiness << std::endl;
-      break;
-    case GLUT_KEY_DOWN:
-      g_hairiness /= 1.05;
-      cerr << "hairiness = " << g_hairiness << std::endl;
       break;
   }
   glutPostRedisplay();
@@ -1081,39 +1056,11 @@ static void initMaterials() {
   /* pick shader */
   g_pickingMat.reset(new Material("./shaders/basic-gl3.vshader", "./shaders/pick-gl3.fshader"));
 
-  /* bunny material */
-  g_bunnyMat.reset(new Material("./shaders/basic-gl3.vshader", "./shaders/bunny-gl3.fshader"));
-  g_bunnyMat->getUniforms()
-    .put("uColorAmbient", Cvec3f(0.45f, 0.3f, 0.3f))
-    .put("uColorDiffuse", Cvec3f(0.2f, 0.2f, 0.2f));
-
-  /* bunny shell materials */
-  shared_ptr<ImageTexture> shellTexture(new ImageTexture("shell.ppm", false)); // common shell texture
-
   /* needs to enable repeating of texture coordinates */
-  shellTexture->bind();
+  // TODO what are these doing?
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
   glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-  /* each layer of the shell uses a different material, though the materials will share the
-   * same shader files and some common uniforms. hence we create a prototype here, and will
-   * copy from the prototype later */
-  Material bunnyShellMatPrototype("./shaders/bunny-shell-gl3.vshader", "./shaders/bunny-shell-gl3.fshader");
-  bunnyShellMatPrototype.getUniforms().put("uTexShell", shellTexture);
-  bunnyShellMatPrototype.getRenderStates()
-    .blendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) // set blending mode
-    .enable(GL_BLEND) // enable blending
-    .disable(GL_CULL_FACE); // disable culling
-
-  /* allocate array of materials */
-  g_bunnyShellMats.resize(g_numShells);
-  for (int i = 0; i < g_numShells; ++i) {
-    g_bunnyShellMats[i].reset(new Material(bunnyShellMatPrototype)); // copy from the prototype
-
-    /* but set a different exponent for blending transparency */
-    g_bunnyShellMats[i]->getUniforms().put("uAlphaExponent", 2.f + 5.f * float(i + 1)/g_numShells);
-  }
 }
 
 static void initGeometry() {
@@ -1121,7 +1068,6 @@ static void initGeometry() {
   initWater();
   initCubes();
   initSubdivisionSurface();
-  initBunny();
   initSphere();
 }
 
@@ -1232,14 +1178,9 @@ static void initScene() {
   g_meshNode->addChild(shared_ptr<MyShapeNode>(
                            new MyShapeNode(g_subdivisionSurface, g_specularMat, Cvec3(-5, 0, 0))));
 
-  g_bunnyNode.reset(new SgRbtNode());
-  g_bunnyNode->addChild(shared_ptr<MyShapeNode>(
-                          new MyShapeNode(g_bunnyGeometry, g_bunnyMat)));
-  /* add each shell as shape node */
-  for (int i = 0; i < g_numShells; ++i) {
-    g_bunnyNode->addChild(shared_ptr<MyShapeNode>(
-                            new MyShapeNode(g_bunnyShellGeometries[i], g_bunnyShellMats[i])));
-  }
+  g_waterNode.reset(new SgRbtNode(RigTForm()));
+  g_waterNode->addChild(shared_ptr<MyShapeNode>(
+                           new MyShapeNode(g_waterGeometry, g_arcballMat, Cvec3(0, 0, 0))));
 
   g_world->addChild(g_skyNode);
   g_world->addChild(g_groundNode);
@@ -1248,8 +1189,9 @@ static void initScene() {
   g_world->addChild(g_robot1Node);
   g_world->addChild(g_robot2Node);
   g_world->addChild(g_meshNode);
-  g_world->addChild(g_bunnyNode);
-  hairsSimulationCallback(9001);
+  g_world->addChild(g_waterNode);
+  // hairsSimulationCallback(9001);
+  // TODO water simulation callback
 }
 
 int main(int argc, char * argv[]) {
