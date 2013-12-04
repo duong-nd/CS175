@@ -46,6 +46,7 @@
 #include "headers/mesh.h"
 
 #include "headers/bunny.h"
+#include "headers/water.h"
 
 #define ESCAPE_KEY 27
 #define SPACE_KEY  32
@@ -1117,6 +1118,7 @@ static void initMaterials() {
 
 static void initGeometry() {
   initGround();
+  initWater();
   initCubes();
   initSubdivisionSurface();
   initBunny();
