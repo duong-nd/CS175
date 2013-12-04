@@ -52,6 +52,10 @@ public:
     return r_ * a + Cvec4(t_, 0) * a[3];
   }
 
+  Cvec3 operator * (const Cvec3& a) const {
+    return Cvec3(operator*(Cvec4(a, 1)));
+  }
+
   RigTForm operator * (const RigTForm& a) const {
     return RigTForm(
       t_ + Cvec3(r_ * Cvec4(a.getTranslation(), 0)),

@@ -17,6 +17,7 @@ Quat normalize(const Quat& q);
 Matrix4 quatToMatrix(const Quat& q);
 
 class Quat {
+public:
   Cvec4 q_;  // layout is: q_[0]==w, q_[1]==x, q_[2]==y, q_[3]==z
 
 private:

@@ -24,6 +24,7 @@ else
 endif
 
 CXX = g++ 
+CXX += -stdlib=libstdc++ -Wno-deprecated 
 
 OBJ = $(BASE).o ppm.o glsupport.o scenegraph.o picker.o geometry.o material.o renderstates.o texture.o
 
