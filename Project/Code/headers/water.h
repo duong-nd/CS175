@@ -9,9 +9,15 @@
 
 using namespace std;
 
+// CONSTANTS ///////////////////////////////////////////////////////////////////
 /** The filename for the file containing the subdivision surface. */
 static const string g_waterMesh = "watery_hell.mesh";
 
-// Your function here
+
+// FUNCTION PROTOTYPES /////////////////////////////////////////////////////////
+static vector<VertexPN> getWaterGeometryVertices(Mesh &mesh);
+
+// FUNCTIONS ///////////////////////////////////////////////////////////////////
+
 
 #endif
