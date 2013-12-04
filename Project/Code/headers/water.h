@@ -9,6 +9,9 @@
 
 using namespace std;
 
+/** The filename for the file containing the subdivision surface. */
+static const string g_waterMesh = "watery_hell.mesh";
+
 // Your function here
 
 #endif
