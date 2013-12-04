@@ -20,4 +20,3 @@ using namespace std;
 
 
 #endif
-WHATCHA GONNA DO ABOUT IT MOTHERDUCKTYPER?
